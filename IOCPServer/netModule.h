@@ -66,7 +66,7 @@ public:
 		_socket = 0;
 		_uid = -1;
 		_x = _y = _z = -9999;
-		strncpy_s(_name, "", strlen(""));
+		strncpy_s(_name, "empty", strlen("empty"));
 		_prev_size = 0;
 	}
 
@@ -84,11 +84,9 @@ public:
 		OVER_EXP* sdata = new OVER_EXP{ reinterpret_cast<char*>(packet) };
 		WSASend(_socket, &sdata->_wsabuf, 1, 0, 0, &sdata->_over, 0);
 	}
-
-
 };
 
 array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
 
 void worker_thread(HANDLE h_iocp);
-void process_packet();
+void process_packet(short c_uid, char* packet);

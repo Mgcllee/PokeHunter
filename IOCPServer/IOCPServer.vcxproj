@@ -127,11 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DBMgr.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="netModule.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DBModule.h" />
     <ClInclude Include="netModule.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="stdafx.h" />

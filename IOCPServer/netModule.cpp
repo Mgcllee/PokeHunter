@@ -1,4 +1,41 @@
+#pragma once
+
 #include "netModule.h"
+#include "DBModule.h"
+
+void process_packet(short c_uid, char* packet)
+{
+	switch (packet[1]) {
+	case CS_LOGIN:
+	{
+		CS_LOGIN_PACK* p = reinterpret_cast<CS_LOGIN_PACK*>(packet);
+		
+		// DB data checking
+		if (/*DB*/true) {
+
+		}
+		else {
+
+		}
+	}
+	break;
+	case CS_MOVE:
+	{
+
+	}
+	break;
+	case CS_ATTACK:
+	{
+
+	}
+	break;
+	case CS_LOGOUT:
+	{
+
+	}
+	break;
+	}
+}
 
 void worker_thread(HANDLE h_iocp)
 {
@@ -37,6 +74,27 @@ void worker_thread(HANDLE h_iocp)
 		case ACCEPT:	// accept new client
 		{
 			// newClient 고유번호 부여, 게임정보 입력, 연결
+			short new_c_uid = get_player_uid();
+			
+			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
+				clients[new_c_uid]._x;
+				clients[new_c_uid]._y;
+				clients[new_c_uid]._z;
+				clients[new_c_uid].direction;
+
+				clients[new_c_uid]._uid = new_c_uid;
+				clients[new_c_uid]._socket = g_c_socket;
+
+				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, new_c_uid, 0);
+				clients[new_c_uid].do_recv();
+				g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+
+			}
+			else {					// 접속 실패
+
+			}
+
+			
 		}
 		break;
 		case RECV:		// get new message
@@ -51,9 +109,4 @@ void worker_thread(HANDLE h_iocp)
 		break;
 		}
 	}
-}
-
-void process_packet()
-{
-
 }

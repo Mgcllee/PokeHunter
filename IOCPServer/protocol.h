@@ -8,9 +8,15 @@ constexpr int PORT_NUM = 7777;
 constexpr short CHAR_SIZE = 20;
 
 constexpr char CS_LOGIN			= 0;
-constexpr char SC_LOGIN_FAIL	= 1;
-constexpr char SC_LOGIN_SUCCESS = 2;
-constexpr char SC_LOGIN_INFO	= 3;
+constexpr char CS_MOVE			= 1;
+constexpr char CS_ATTACK		= 2;
+constexpr char CS_LOGOUT		= 3;
+
+constexpr char SC_LOGIN_FAIL	= 10;
+constexpr char SC_LOGIN_SUCCESS = 11;
+constexpr char SC_LOGIN_INFO	= 12;
+
+
 
 #pragma pack (push, 1)
 
