@@ -10,14 +10,14 @@ int main() {
 
 	g_s_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-	SOCKADDR_IN server_addr;							// ¼ÒÄÏ ±âº» ±¸Á¶Ã¼
-	memset(&server_addr, 0, sizeof(server_addr));		// ±¸Á¶Ã¼ »ç¿ëÀ» À§ÇÑ ÃÊ±âÈ­
-	server_addr.sin_family = AF_INET;					// IPv4¸¦ »ç¿ëÇÔ
-	server_addr.sin_port = htons(PORT_NUM);				// ÇÁ·Î±×·¥ÀÇ Æ÷Æ®¹øÈ£´Â PORT_NUM
-	// server_addr.sin_addr.S_un.S_addr = INADDR_ANY;	// ¿©·¯ ·£Ä«µå¸¦ »ç¿ëÇÒ °æ¿ì »ç¿ë
+	SOCKADDR_IN server_addr;							// ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½Ã¼
+	memset(&server_addr, 0, sizeof(server_addr));		// ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+	server_addr.sin_family = AF_INET;					// IPv4ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	server_addr.sin_port = htons(PORT_NUM);				// ï¿½ï¿½ï¿½Î±×·ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½È£ï¿½ï¿½ PORT_NUM
+	// server_addr.sin_addr.S_un.S_addr = INADDR_ANY;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä«ï¿½å¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 
 	bind(g_s_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
-	listen(g_s_socket, SOMAXCONN);	// ÃÖ´ë ¿¬°á Å¬¶ó¼ö (SOMAXCONN)
+	listen(g_s_socket, SOMAXCONN);	// ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ (SOMAXCONN)
 
 	SOCKADDR_IN cl_addr;
 	int addr_size = sizeof(cl_addr);
@@ -31,14 +31,14 @@ int main() {
 	err_code = AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
 
 	vector<thread> worker_threads;
-	int num_threads = std::thread::hardware_concurrency();	// PCÀÇ ³í¸®ÄÚ¾î °³¼ö
+	int num_threads = std::thread::hardware_concurrency();	// PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ú¾ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	// === WORK SPACE ===
 	for (int i = 0; i < num_threads; ++i)
 		worker_threads.emplace_back(worker_thread, h_iocp);
 	// === ========== ===
 
-	// ÇÁ·Î±×·¥ Á¾·á °úÁ¤
+	// ï¿½ï¿½ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	for (auto& th : worker_threads)
 		th.join();
 	closesocket(g_s_socket);
