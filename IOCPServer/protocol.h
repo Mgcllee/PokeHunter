@@ -1,5 +1,10 @@
 #pragma once
 
+constexpr int MAX_USER = 100;
+constexpr int NAME_SIZE = 30;
+constexpr int BUF_SIZE = 128;
+constexpr int PORT_NUM = 7777;
+
 constexpr short CHAR_SIZE = 20;
 
 constexpr char CS_LOGIN			= 0;
