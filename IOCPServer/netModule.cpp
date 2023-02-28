@@ -9,29 +9,78 @@ void process_packet(short c_uid, char* packet)
 	case CS_LOGIN:
 	{
 		CS_LOGIN_PACK* p = reinterpret_cast<CS_LOGIN_PACK*>(packet);
-		
+		short new_c_uid = -1;
+
 		// DB data checking
-		if (/*DB*/true) {
+		if (/*DB*/true && new_c_uid != -1) {
+			// Login Sucssess
+			
+			SC_LOGIN_SUCCESS_PACK ok_pack;
+			ok_pack.size = sizeof(ok_pack);
+			ok_pack.type = SC_LOGIN_SUCCESS;
+			clients[new_c_uid].do_send(&ok_pack);
 
+			SC_LOGIN_INFO_PACK info_pack;
+			info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+			info_pack.type = SC_LOGIN_INFO;
+
+			// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
+			for (SESSION& c : clients) {
+				c.do_send(&info_pack);
+			}
+
+			SC_LOGIN_INFO_PACK old_info_pack;
+			old_info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+			old_info_pack.type = SC_LOGIN_INFO;
+
+			// 새로운 클라이언트에게 기존 클라이언트들 정보를 전부 전송
+			for (SESSION& c : clients) {
+				// 새로운 클라이언트에게 자기 자신의 정보는 보낼 필요 없음(위 반복문과 중복됨)
+				if (new_c_uid != c._uid) {
+					old_info_pack.name;
+					old_info_pack.x = c._x;
+					old_info_pack.y = c._y;
+					old_info_pack.z = c._z;
+					strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
+
+					// 새로운 클라이언트에게 전송
+					clients[new_c_uid].do_send(&old_info_pack);
+				}
+			}
 		}
-		else {
-
+		else if(new_c_uid != -1){
+			SC_LOGIN_FAIL_PACK fail_pack;
+			fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
+			fail_pack.type = SC_LOGIN_FAIL;
+			clients[new_c_uid].do_send(&fail_pack);
 		}
 	}
 	break;
 	case CS_MOVE:
 	{
+		CS_MOVE_PACK* move_pack = reinterpret_cast<CS_MOVE_PACK*>(packet);
+
+		// save position data in DB
 
 	}
 	break;
-	case CS_ATTACK:
+	case CS_SEARCHING_PARTY:
 	{
+		//send party list
+		SC_PARTY_LIST_INFO_PACK party_list;
+		party_list.size = sizeof(SC_PARTY_LIST_INFO_PACK);
+		party_list.type = SC_PARTY_LIST_INFO;
+		
+		strcpy_s(party_list._name, "TEST PARTY");
+		party_list._staff_member = 1;	// char형 주의
+
+		// send
 
 	}
 	break;
 	case CS_LOGOUT:
 	{
-
+		//Disconnect client
 	}
 	break;
 	}

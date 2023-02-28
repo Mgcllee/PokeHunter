@@ -52,7 +52,7 @@ public:
 	int _prev_size;	// 재조립에서 사용
 	short _uid;		// 서버용 플레이어 고유 ID
 	
-	char _name[NAME_SIZE];
+	char _name[CHAR_SIZE];
 	
 	char direction;
 	int _x, _y, _z;
