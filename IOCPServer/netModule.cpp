@@ -56,25 +56,25 @@ void process_packet(short c_uid, char* packet)
 		}
 	}
 	break;
-	case CS_MOVE:
-	{
-		CS_MOVE_PACK* move_pack = reinterpret_cast<CS_MOVE_PACK*>(packet);
-
-		// save position data in DB
-
-	}
-	break;
 	case CS_SEARCHING_PARTY:
 	{
 		//send party list
 		SC_PARTY_LIST_INFO_PACK party_list;
 		party_list.size = sizeof(SC_PARTY_LIST_INFO_PACK);
 		party_list.type = SC_PARTY_LIST_INFO;
-		
 		strcpy_s(party_list._name, "TEST PARTY");
 		party_list._staff_member = 1;	// char«¸ ¡÷¿«
 
-		// send
+		clients[c_uid].do_send(&party_list);
+	}
+	break;
+	case CS_PARTY_INFO:
+	{
+		CS_PARTY_INFO_PACK* party_info = reinterpret_cast<CS_PARTY_INFO_PACK*>(packet);
+
+		char party_num = party_info->party_num;
+
+		// get partys[party_num] info
 
 	}
 	break;

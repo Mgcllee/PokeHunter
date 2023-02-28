@@ -66,8 +66,10 @@ public:
 		_socket = 0;
 		_uid = -1;
 		_x = _y = _z = -9999;
+		direction = 1;
 		strncpy_s(_name, "empty", strlen("empty"));
 		_prev_size = 0;
+		_pet_num = -1;
 	}
 
 	void do_recv()
@@ -87,6 +89,25 @@ public:
 };
 
 array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
+
+class PARTY {
+private:
+	array<char[CHAR_SIZE], 4> member;
+	array<char, 4> pets;
+
+public:
+	short get_member_count() {
+		short count = 0;
+		for (char* name : member) {
+			if (0 != strcmp(name, "empty")) {
+				count += 1;
+			}
+		}
+		return count;
+	}
+
+
+};
 
 void worker_thread(HANDLE h_iocp);
 void process_packet(short c_uid, char* packet);

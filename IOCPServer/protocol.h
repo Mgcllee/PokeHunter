@@ -9,13 +9,14 @@ constexpr short CHAR_SIZE			= 20;
 constexpr char CS_LOGIN				= 0;
 constexpr char CS_MOVE				= 1;
 constexpr char CS_SEARCHING_PARTY	= 2;
-
-constexpr char CS_LOGOUT			= 3;
+constexpr char CS_PARTY_INFO		= 3;
+constexpr char CS_LOGOUT			= 9;
 
 constexpr char SC_LOGIN_FAIL		= 10;
 constexpr char SC_LOGIN_SUCCESS		= 11;
 constexpr char SC_LOGIN_INFO		= 12;
 constexpr char SC_PARTY_LIST_INFO   = 13;
+constexpr char SC_PARTY_INFO   = 14;
 
 
 
@@ -40,6 +41,13 @@ struct CS_MOVE_PACK {
 struct CS_SEARCHING_PARTY_PACK {
 	unsigned char size;
 	unsigned char type;
+};
+
+struct CS_PARTY_INFO_PACK {
+	unsigned char size;
+	unsigned char type;
+
+	char party_num;
 };
 
 struct SC_LOGIN_FAIL_PACK {
