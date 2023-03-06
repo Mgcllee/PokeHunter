@@ -96,6 +96,19 @@ private:
 	array<char, 4> pets;
 
 public:
+	PARTY() {
+		for (char* name : member) {
+			strcpy(name, "empty");
+		}
+		for (char p : pets) {
+			p = -1;
+		}
+	}
+	~PARTY() {
+		// free(&member);
+		// free(&pets);
+	}
+
 	short get_member_count() {
 		short count = 0;
 		for (char* name : member) {
@@ -106,8 +119,34 @@ public:
 		return count;
 	}
 
+	bool new_member(char* in_name, char in_pet_num) {
+		for (int i = 0; i < member.size(); ++i) {
+			if (0 == strcmp(member[i], "empty")) {	// ºóÀÚ¸® ¹ß°ß
+				
+				strcpy(member[i], in_name);
+				
+				if (0 <= in_pet_num) {
+					pets[i] = in_pet_num;
+				}
 
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void get_party_info(array<char[CHAR_SIZE], 4>& in_member, array<char, 4>& in_pet) {
+		for (int i = 0; i < 4; ++i) {
+			if (0 != strcmp(member[i], "emtpy")) {
+				strcpy(in_member[i], member[i]);
+				in_pet[i] = pets[i];
+			}
+		}
+	}
 };
+
+array<PARTY, MAX_PARTY> partys;
 
 void worker_thread(HANDLE h_iocp);
 void process_packet(short c_uid, char* packet);

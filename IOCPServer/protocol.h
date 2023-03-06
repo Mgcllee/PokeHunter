@@ -1,6 +1,7 @@
 #pragma once
 
 constexpr int MAX_USER				= 100;
+constexpr int MAX_PARTY				= 100;
 constexpr int BUF_SIZE				= 128;
 constexpr int PORT_NUM				= 7777;
 
@@ -16,7 +17,7 @@ constexpr char SC_LOGIN_FAIL		= 10;
 constexpr char SC_LOGIN_SUCCESS		= 11;
 constexpr char SC_LOGIN_INFO		= 12;
 constexpr char SC_PARTY_LIST_INFO   = 13;
-constexpr char SC_PARTY_INFO   = 14;
+constexpr char SC_PARTY_INFO		= 14;
 
 
 

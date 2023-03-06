@@ -68,14 +68,28 @@ void process_packet(short c_uid, char* packet)
 		clients[c_uid].do_send(&party_list);
 	}
 	break;
-	case CS_PARTY_INFO:
+	case CS_PARTY_INFO:	// 플레이어가 파티룸에 입장
 	{
 		CS_PARTY_INFO_PACK* party_info = reinterpret_cast<CS_PARTY_INFO_PACK*>(packet);
 
-		char party_num = party_info->party_num;
+		short party_num = static_cast<int>(party_info->party_num);
+		
+		array<char[CHAR_SIZE], 4> member;
+		array<char, 4> pets;
+		partys[party_num].get_party_info(member, pets);
 
 		// get partys[party_num] info
+		SC_PARTY_INFO_PACK in_party;
+		in_party.size = sizeof(SC_PARTY_INFO_PACK);
+		in_party.type = SC_PARTY_INFO;
 
+		if (0 <= party_num) {
+			short staff_member = partys[party_num].get_member_count();
+			for (int i = 0; i < staff_member; ++i) {
+				strcpy(in_party._mem01, member[i]);
+				in_party._mem01_pet;
+			}
+		}
 	}
 	break;
 	case CS_LOGOUT:
