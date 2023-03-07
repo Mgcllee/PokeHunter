@@ -86,15 +86,17 @@ void process_packet(short c_uid, char* packet)
 		if (0 <= party_num) {
 			short staff_member = partys[party_num].get_member_count();
 			for (int i = 0; i < staff_member; ++i) {
-				strcpy(in_party._mem01, member[i]);
-				in_party._mem01_pet;
+				strcpy(in_party._mem[i], member[i]);
+				in_party._mem_pet[i] = pets[i];
 			}
 		}
+
+		clients[c_uid].do_send(&in_party);
 	}
 	break;
 	case CS_LOGOUT:
 	{
-		//Disconnect client
+		// Disconnect client
 	}
 	break;
 	}
@@ -163,6 +165,22 @@ void worker_thread(HANDLE h_iocp)
 		case RECV:		// get new message
 		{
 			// 패킷 재조립
+			int remain_data = num_bytes + clients[key]._prev_size;
+			char* p = ex_over->_send_buf;
+			while (remain_data > 0) {
+				int packet_size = p[0];
+				if (packet_size <= remain_data) {
+					process_packet(static_cast<int>(key), p);
+					p = p + packet_size;
+					remain_data = remain_data - packet_size;
+				}
+				else break;
+			}
+			clients[key]._prev_size = remain_data;
+			if (remain_data > 0) {
+				memcpy(ex_over->_send_buf, p, remain_data);
+			}
+			clients[key].do_recv();
 		}
 		break;
 		case SEND:		// send new message

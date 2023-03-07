@@ -98,17 +98,8 @@ struct SC_PARTY_INFO_PACK {
 	unsigned char size;
 	unsigned char type;
 
-	char _mem01[CHAR_SIZE];	// 비어있어도 사용
-	char _mem01_pet;
-
-	char _mem02[CHAR_SIZE];
-	char _mem02_pet;
-
-	char _mem03[CHAR_SIZE];
-	char _mem03_pet;
-
-	char _mem04[CHAR_SIZE];
-	char _mem04_pet;
+	char _mem[4][CHAR_SIZE];	// 비어있어도 사용
+	char _mem_pet[4];
 };
 
 #pragma pack (pop)
