@@ -1,7 +1,9 @@
 #pragma once
 
-#include "netModule.h"
 #include "DBModule.h"
+
+array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
+array<PARTY, MAX_PARTY> partys;
 
 void process_packet(short c_uid, char* packet)
 {
@@ -86,7 +88,7 @@ void process_packet(short c_uid, char* packet)
 		if (0 <= party_num) {
 			short staff_member = partys[party_num].get_member_count();
 			for (int i = 0; i < staff_member; ++i) {
-				strcpy(in_party._mem[i], member[i]);
+				strncpy_s(in_party._mem[i], sizeof(in_party._mem[i]), member[i], sizeof(member[i]));
 				in_party._mem_pet[i] = pets[i];
 			}
 		}
@@ -100,7 +102,7 @@ void process_packet(short c_uid, char* packet)
 
 		char* staff_name{};
 		char staff_pet = static_cast<char>(1);
-		strcpy(staff_name, "empty");
+		strncpy_s(staff_name, sizeof(staff_name), "empty", sizeof("empty"));
 
 		partys[new_staff->party_num].new_member(staff_name, staff_pet);
 	}
@@ -163,7 +165,7 @@ void worker_thread(HANDLE h_iocp)
 				std::ofstream err_file(err_text.data());
 
 				if (err_file.is_open()) {
-					err_file << "";
+					/*err_file << "";
 
 					time_t timer;
 					struct tm* t;
@@ -173,7 +175,7 @@ void worker_thread(HANDLE h_iocp)
 
 					err_file << t->tm_year + 1900 << "/" << t->tm_mon + 1 << "/" << t->tm_mday
 						<< "-(" << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << ")"
-						<< " : Accept Error\n";
+						<< " : Accept Error\n";*/
 				}
 			}
 			else continue;

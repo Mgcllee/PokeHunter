@@ -1,12 +1,7 @@
 #pragma once
+
+#include "stdafx.h"
 #include "protocol.h"
-
-#include <ctime>
-#include <fstream>
-#include <iostream>
-#include <array>
-
-using namespace std;
 
 #include <WS2tcpip.h>
 #include <MSWSock.h>
@@ -88,8 +83,6 @@ public:
 	}
 };
 
-array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
-
 class PARTY {
 private:
 	array<char[CHAR_SIZE], 4> member;
@@ -98,7 +91,7 @@ private:
 public:
 	PARTY() {
 		for (char* name : member) {
-			strcpy(name, "empty");
+			strncpy_s(name, sizeof(name), "empty", sizeof("empty"));
 		}
 		for (char p : pets) {
 			p = -1;
@@ -123,7 +116,7 @@ public:
 		for (int i = 0; i < member.size(); ++i) {
 			if (0 == strcmp(member[i], "empty")) {	// 빈자리 발견
 				
-				strcpy(member[i], in_name);
+				strncpy_s(member[i], sizeof(member[i]), in_name, sizeof(in_name));
 				
 				if (0 <= in_pet_num) {
 					pets[i] = in_pet_num;
@@ -139,7 +132,7 @@ public:
 	void get_party_info(array<char[CHAR_SIZE], 4>& in_member, array<char, 4>& in_pet) {
 		for (int i = 0; i < 4; ++i) {
 			if (0 != strcmp(member[i], "emtpy")) {
-				strcpy(in_member[i], member[i]);
+				strncpy_s(in_member[i], sizeof(in_member[i]), member[i], sizeof(member[i]));
 				in_pet[i] = pets[i];
 			}
 		}
@@ -149,7 +142,7 @@ public:
 	bool out_party_staff(char* in_name) {
 		for (int i = 0; i < 4; ++i) {
 			if (0 == strcmp(in_name, member[i])) {
-				strcpy(member[i], "empty");
+				strncpy_s(member[i], sizeof(member[i]), "empty", sizeof("empty"));
 				pets[i] = -1;
 				return true;
 			}
@@ -158,7 +151,8 @@ public:
 	}
 };
 
-array<PARTY, MAX_PARTY> partys;
+extern array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
+extern array<PARTY, MAX_PARTY> partys;
 
 void worker_thread(HANDLE h_iocp);
 void process_packet(short c_uid, char* packet);

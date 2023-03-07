@@ -1,8 +1,9 @@
 #pragma once
-#include "stdafx.h"
 #include "netModule.h"
 
 OVER_EXP g_a_over;
+HANDLE h_iocp;
+SOCKET g_s_socket, g_c_socket;
 
 int main() {
 	WSADATA WSAData;
