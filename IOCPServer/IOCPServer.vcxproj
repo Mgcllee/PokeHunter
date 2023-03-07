@@ -127,7 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DBMgr.cpp" />
+    <ClCompile Include="DBModule.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="netModule.cpp" />
     <ClCompile Include="stdafx.cpp" />

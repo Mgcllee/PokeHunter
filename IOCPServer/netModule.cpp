@@ -94,9 +94,54 @@ void process_packet(short c_uid, char* packet)
 		clients[c_uid].do_send(&in_party);
 	}
 	break;
+	case CS_JOIN_PARTY:
+	{
+		CS_JOIN_PARTY_PACK* new_staff = reinterpret_cast<CS_JOIN_PARTY_PACK*>(packet);
+
+		char* staff_name{};
+		char staff_pet = static_cast<char>(1);
+		strcpy(staff_name, "empty");
+
+		partys[new_staff->party_num].new_member(staff_name, staff_pet);
+	}
+	break;
+	case CS_LEAVE_PARTY:
+	{
+		CS_LEAVE_PARTY_PACK* old_staff = reinterpret_cast<CS_LEAVE_PARTY_PACK*>(packet);
+
+		checking_DB(old_staff->name, c_uid);
+		
+		if (/*checking data && save data*/ partys[old_staff->party_num].out_party_staff(old_staff->name)) {
+			SC_LEAVE_PARTY_SUCCESS_PACK leave_pack;
+			leave_pack.size = sizeof(SC_LEAVE_PARTY_SUCCESS_PACK);
+			leave_pack.type = SC_LEAVE_PARTY_SUCCESS;
+			clients[c_uid].do_send(&leave_pack);
+		}
+		else {
+			SC_LEAVE_PARTY_FAIL_PACK fail_leave_pack;
+			fail_leave_pack.size = sizeof(SC_LEAVE_PARTY_FAIL_PACK);
+			fail_leave_pack.type = SC_LEAVE_PARTY_FAIL;
+			clients[c_uid].do_send(&fail_leave_pack);
+		}
+	}
+	break;
 	case CS_LOGOUT:
 	{
 		// Disconnect client
+		CS_LOGOUT_PACK* logout_client = reinterpret_cast<CS_LOGOUT_PACK*>(packet);
+
+		if (checking_DB(logout_client->name, c_uid)) {
+			SC_LOGOUT_SUCCESS_PACK out_client;
+			out_client.size = sizeof(SC_LOGOUT_SUCCESS_PACK);
+			out_client.type = SC_LOGOUT_SUCCESS;
+			clients[c_uid].do_send(&out_client);
+		}
+		else {
+			SC_LOGOUT_FAIL_PACK return_client;
+			return_client.size = sizeof(SC_LOGOUT_FAIL_PACK);
+			return_client.type = SC_LOGOUT_FAIL;
+			clients[c_uid].do_send(&return_client);
+		}
 	}
 	break;
 	}

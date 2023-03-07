@@ -144,6 +144,18 @@ public:
 			}
 		}
 	}
+
+	// staff leave party
+	bool out_party_staff(char* in_name) {
+		for (int i = 0; i < 4; ++i) {
+			if (0 == strcmp(in_name, member[i])) {
+				strcpy(member[i], "empty");
+				pets[i] = -1;
+				return true;
+			}
+		}
+		return false;
+	}
 };
 
 array<PARTY, MAX_PARTY> partys;
