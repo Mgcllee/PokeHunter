@@ -1,61 +1,68 @@
-#include <iostream>
-#include <winsock2.h>
-#include <ws2tcpip.h>
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include<iostream>
+#include<string>
+#include<winsock2.h>
 
-#pragma comment (lib, "Ws2_32.lib")
+#include "../IOCPServer/protocol.h"
+
+#pragma comment(lib, "WS2_32.lib")
+#pragma comment(lib, "MSWSock.lib")
 
 using namespace std;
 
-int main() {
-    WSADATA wsaData;
-    SOCKET ConnectSocket = INVALID_SOCKET;
-    struct addrinfo* result = NULL,
-        * ptr = NULL,
-        hints;
+void ShowErrorMessage(string message)
+{
+	cout << "[오류발생]: " << message << '\n';
+	system("pause");
+	exit(1);
+}
 
-    // Winsock 초기화
-    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != 0) {
-        // 초기화 실패
-    }
+int main()
+{
+	WSADATA wsaData;
+	SOCKET clientSocket;
+	SOCKADDR_IN serverAddress;
+	
+	char received[256];
 
-    ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
+	string sent;
 
-    // 서버 주소 정보 가져오기
-    iResult = getaddrinfo("localhost", "27015", &hints, &result);
-    if (iResult != 0) {
-        // 주소 정보 가져오기 실패
-    }
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) // Winsock을초기화합니다.
+		ShowErrorMessage("WSAStartup()");
 
-    // 서버에 연결
-    for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+	clientSocket = socket(PF_INET, SOCK_STREAM, 0); // TCP 소켓을생성합니다.
 
-        // 소켓 생성
-        ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
-            ptr->ai_protocol);
-        if (ConnectSocket == INVALID_SOCKET) {
-            // 소켓 생성 실패
-            continue;
-        }
+	if (clientSocket == INVALID_SOCKET)
+		ShowErrorMessage("socket()");
 
-        // 서버에 연결
-        iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
-        if (iResult == SOCKET_ERROR) {
-            // 연결 실패
-            closesocket(ConnectSocket);
-            ConnectSocket = INVALID_SOCKET;
-            continue;
-        }
-        break;
-    }
+	memset(&serverAddress, 0, sizeof(serverAddress));
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); // 문자열IP를네트워크바이트형식으로
+	serverAddress.sin_port = htons(PORT_NUM); // 2바이트정수네트워크바이트형식으로
 
-    // 주소 정보 메모리 해제
-    freeaddrinfo(result);
+	if (connect(clientSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
+		ShowErrorMessage("connect()");
 
-    if (ConnectSocket == INVALID_SOCKET) {
-        // 서버 연결 실패
-    }
+	while (1) {
+		CS_LOGIN_PACK msg;
+		msg.size = sizeof(CS_LOGIN_PACK);
+		msg.type = CS_LOGIN;
+
+		cout << "[메시지전송]: ";
+		getline(cin, sent);
+		if (sent == "") continue;	// + 문자입력 길이제한 필요
+		for (int i = 0; i < CHAR_SIZE; ++i) {
+			if (sent[i] == NULL) {
+				msg.id[i] = '\0';
+				break;
+			}
+			else
+				msg.id[i] = sent[i];
+		}
+
+		send(clientSocket, (char*)&msg, msg.size, NULL);
+	}
+	closesocket(clientSocket);
+	WSACleanup();
+	system("pause");
 }

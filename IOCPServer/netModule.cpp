@@ -13,6 +13,11 @@ void process_packet(short c_uid, char* packet)
 		CS_LOGIN_PACK* p = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 		short new_c_uid = -1;
 
+		cout << "input ID: " << p->id << endl;
+
+		break;
+
+
 		// DB data checking
 		if (/*DB*/true && new_c_uid != -1) {
 			// Login Sucssess
@@ -206,7 +211,8 @@ void worker_thread(HANDLE h_iocp)
 
 			}
 
-			
+			// Dummy Client È®ÀÎ¿ë
+			cout << "NEW PLAYER! - " << new_c_uid << endl;
 		}
 		break;
 		case RECV:		// get new message

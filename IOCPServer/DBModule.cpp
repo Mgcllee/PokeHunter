@@ -30,14 +30,18 @@ void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode)
 	}
 }
 
-bool checking_DB(char* p_name, short& c_uid) {
+bool checking_DB(char* data, short& c_uid) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
+
 	SQLWCHAR Name[CHAR_SIZE];
-	SQLINTEGER PosX, PosY, EXP;
-	SQLLEN cbName = 0, cb_pos_x = 0, cb_pos_y = 0, cb_exp = 0;
+	SQLWCHAR ID[CHAR_SIZE];
+	SQLWCHAR PASS[CHAR_SIZE];
+	
+	SQLLEN cbName = 0, cbId = 0, cbPass = 0;
+
 	setlocale(LC_ALL, "Korean");
 
 	if (-1 == c_uid) {
@@ -53,18 +57,17 @@ bool checking_DB(char* p_name, short& c_uid) {
 
 			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
-				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"GSPDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
+				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEUDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
 
 				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)L"SELECT NAME, PosX, PosY, EXP FROM PlayerInfo", SQL_NTS);
+					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)L"SELECT NAME, ID, PASS FROM userInfo", SQL_NTS);
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 
 						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, Name, CHAR_SIZE, &cbName);
-						retcode = SQLBindCol(hstmt, 2, SQL_C_LONG, &PosX, 4, &cb_pos_x);
-						retcode = SQLBindCol(hstmt, 3, SQL_C_LONG, &PosY, 4, &cb_pos_y);
-						retcode = SQLBindCol(hstmt, 4, SQL_C_LONG, &EXP, 4, &cb_exp);
+						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &ID, 4, &cbId);
+						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &PASS, 4, &cbPass);
 
 						for (int i = 0; ; ++i) {
 							retcode = SQLFetch(hstmt);
@@ -76,17 +79,18 @@ bool checking_DB(char* p_name, short& c_uid) {
 							if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
 							{
 								char db_buf[CHAR_SIZE];
-								int strSize = WideCharToMultiByte(CP_ACP, 0, Name, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, Name, -1, db_buf, strSize, 0, 0);
+								int strSize = WideCharToMultiByte(CP_ACP, 0, ID, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, ID, -1, db_buf, strSize, 0, 0);
 
 								string c_buf = db_buf;
 								c_buf.erase(remove(c_buf.begin(), c_buf.end(), ' '), c_buf.end());
 
-								if (strncmp(c_buf.c_str(), p_name, c_buf.length()) == 0) {
+								if (strncmp(c_buf.c_str(), data, c_buf.length()) == 0) {
 									/*clients[c_uid].x = PosX;
 									clients[c_uid].y = PosY;
 									strncpy_s(clients[c_id]._name, c_buf.c_str(), c_buf.length());
 									clients[c_uid].exp = EXP;*/
+									
 									return true;
 								}
 							}

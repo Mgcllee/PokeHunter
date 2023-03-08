@@ -11,11 +11,11 @@ int main() {
 
 	g_s_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-	SOCKADDR_IN server_addr;							// ���� �⺻ ����ü
-	memset(&server_addr, 0, sizeof(server_addr));		// ����ü ����� ���� �ʱ�ȭ
-	server_addr.sin_family = AF_INET;					// IPv4�� �����
-	server_addr.sin_port = htons(PORT_NUM);				// ���α׷��� ��Ʈ��ȣ�� PORT_NUM
-	// server_addr.sin_addr.S_un.S_addr = INADDR_ANY;	// ���� ��ī�带 ����� ��� ���
+	SOCKADDR_IN server_addr;						
+	memset(&server_addr, 0, sizeof(server_addr));	
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(PORT_NUM);
+	server_addr.sin_addr.S_un.S_addr = INADDR_ANY;
 
 	bind(g_s_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
 	listen(g_s_socket, SOMAXCONN);	// �ִ� ���� Ŭ��� (SOMAXCONN)
@@ -35,11 +35,12 @@ int main() {
 	int num_threads = std::thread::hardware_concurrency();	// PC�� ����ھ� ����
 
 	// === WORK SPACE ===
-	for (int i = 0; i < num_threads; ++i)
+	cout << "Start..." << endl;
+	// for (int i = 0; i < num_threads; ++i)
+	for (int i = 0; i < 1; ++i)
 		worker_threads.emplace_back(worker_thread, h_iocp);
 	// === ========== ===
 
-	// ���α׷� ���� ����
 	for (auto& th : worker_threads)
 		th.join();
 	closesocket(g_s_socket);
