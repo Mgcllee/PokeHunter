@@ -30,23 +30,22 @@ void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode)
 	}
 }
 
-bool checking_DB(char* data, short& c_uid) {
+bool Login_UDB(char* id, char* pass, short& c_uid) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
 
-	SQLWCHAR Name[CHAR_SIZE];
+	SQLWCHAR NAME[CHAR_SIZE];
 	SQLWCHAR ID[CHAR_SIZE];
 	SQLWCHAR PASS[CHAR_SIZE];
-	
+
+	SQLINTEGER PET;
+	SQLINTEGER T_PLAYER;
+
 	SQLLEN cbName = 0, cbId = 0, cbPass = 0;
 
 	setlocale(LC_ALL, "Korean");
-
-	if (-1 == c_uid) {
-		c_uid = get_player_uid();
-	}
 
 	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
 	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
@@ -65,7 +64,7 @@ bool checking_DB(char* data, short& c_uid) {
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 
-						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, Name, CHAR_SIZE, &cbName);
+						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, NAME, CHAR_SIZE, &cbName);
 						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &ID, 4, &cbId);
 						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &PASS, 4, &cbPass);
 
@@ -78,19 +77,37 @@ bool checking_DB(char* data, short& c_uid) {
 
 							if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
 							{
-								char db_buf[CHAR_SIZE];
-								int strSize = WideCharToMultiByte(CP_ACP, 0, ID, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, ID, -1, db_buf, strSize, 0, 0);
+								char db_name_buf[CHAR_SIZE], db_id_buf[CHAR_SIZE], db_pass_buf[CHAR_SIZE];
+								int strSize;
 
-								string c_buf = db_buf;
-								c_buf.erase(remove(c_buf.begin(), c_buf.end(), ' '), c_buf.end());
+								strSize = WideCharToMultiByte(CP_ACP, 0, NAME, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, NAME, -1, db_name_buf, strSize, 0, 0);
 
-								if (strncmp(c_buf.c_str(), data, c_buf.length()) == 0) {
-									/*clients[c_uid].x = PosX;
-									clients[c_uid].y = PosY;
-									strncpy_s(clients[c_id]._name, c_buf.c_str(), c_buf.length());
-									clients[c_uid].exp = EXP;*/
-									
+								strSize = WideCharToMultiByte(CP_ACP, 0, ID, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, ID, -1, db_id_buf, strSize, 0, 0);
+								
+								strSize = WideCharToMultiByte(CP_ACP, 0, PASS, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, PASS, -1, db_pass_buf, strSize, 0, 0);
+
+								string c_name_buf = db_name_buf;
+								c_name_buf.erase(remove(c_name_buf.begin(), c_name_buf.end(), ' '), c_name_buf.end());
+
+								string c_id_buf = db_id_buf;
+								c_id_buf.erase(remove(c_id_buf.begin(), c_id_buf.end(), ' '), c_id_buf.end());
+
+								string c_pass_buf = db_pass_buf;
+								c_pass_buf.erase(remove(c_pass_buf.begin(), c_pass_buf.end(), ' '), c_pass_buf.end());
+
+								if (strncmp(c_id_buf.c_str(), id, c_id_buf.length()) == 0
+									&& strncmp(c_pass_buf.c_str(), pass, c_pass_buf.length()) == 0) {
+
+									if (-1 == c_uid) {
+										c_uid = get_player_uid();
+									}
+									else {
+										strncpy_s(clients[c_uid]._name, c_name_buf.c_str(), sizeof(c_name_buf));
+										
+									}
 									return true;
 								}
 							}
@@ -124,6 +141,7 @@ bool checking_DB(char* data, short& c_uid) {
 	}
 	return false;
 }
+
 
 bool write_DB(int game_id, int pos_x, int pos_y) {
 	SQLHENV henv;
@@ -189,3 +207,4 @@ bool write_DB(int game_id, int pos_x, int pos_y) {
 	}
 	return false;
 }
+

@@ -13,6 +13,9 @@ constexpr char CS_SEARCHING_PARTY		= 2;
 constexpr char CS_PARTY_INFO			= 3;
 constexpr char CS_JOIN_PARTY			= 4;
 constexpr char CS_LEAVE_PARTY			= 5;
+
+constexpr char CS_QUEST_INVENTORY		= 6;
+
 constexpr char CS_LOGOUT				= 9;
 
 constexpr char SC_LOGIN_FAIL			= 10;
@@ -26,6 +29,7 @@ constexpr char SC_LEAVE_PARTY_FAIL		= 17;
 constexpr char SC_LEAVE_PARTY_SUCCESS	= 18;
 constexpr char SC_LOGOUT_FAIL			= 19;
 constexpr char SC_LOGOUT_SUCCESS		= 20;
+
 
 
 #pragma pack (push, 1)
@@ -101,6 +105,7 @@ struct SC_LOGIN_INFO_PACK {
 	char direction;
 	// character ability and skin ...
 	// player item ...
+
 
 	char _pet_num;
 	// pet ability
