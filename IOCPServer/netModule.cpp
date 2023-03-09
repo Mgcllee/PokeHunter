@@ -172,24 +172,18 @@ void worker_thread(HANDLE h_iocp)
 		{
 			// newClient 고유번호 부여, 게임정보 입력, 연결
 			short new_c_uid = get_player_uid();
-			
-			clients[new_c_uid]._socket = g_c_socket;
 
-			CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, new_c_uid, 0);
-			clients[new_c_uid].do_recv();
-			g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-
-			// Dummy Client 확인용
-			cout << "NEW PLAYER! : " << new_c_uid << endl;
-
-			/*
 			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
 				// clients[new_c_uid]._uid = new_c_uid;
 				clients[new_c_uid]._socket = g_c_socket;
 
-				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, new_c_uid, 0);
+				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, NULL, 0);
 				clients[new_c_uid].do_recv();
 				g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+
+				ZeroMemory(&g_a_over._over, sizeof(g_a_over._over));
+				int addr_size = sizeof(SOCKADDR_IN);
+				AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
 
 				// Dummy Client 확인용
 				cout << "NEW PLAYER!" << endl;
@@ -197,7 +191,6 @@ void worker_thread(HANDLE h_iocp)
 			else {					// 접속 실패
 
 			}
-			*/
 		}
 		break;
 		case RECV:		// get new message

@@ -9,9 +9,6 @@
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 
-extern HANDLE h_iocp;
-extern SOCKET g_s_socket, g_c_socket;
-
 enum TYPE { ACCEPT, RECV, SEND };
 
 class OVER_EXP {
@@ -150,6 +147,10 @@ public:
 		return false;
 	}
 };
+
+extern OVER_EXP g_a_over;
+extern HANDLE h_iocp;
+extern SOCKET g_s_socket, g_c_socket;
 
 extern array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
 extern array<PARTY, MAX_PARTY> partys;
