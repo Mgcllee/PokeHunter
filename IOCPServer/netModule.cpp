@@ -13,13 +13,7 @@ void process_packet(short c_uid, char* packet)
 		CS_LOGIN_PACK* p = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 		short new_c_uid = -1;
 
-		cout << "input ID: " << p->id << endl;
-
-		break;
-
-
-		// DB data checking
-		if (/*DB*/true && new_c_uid != -1) {
+		if (Login_UDB(p->id, p->pw, new_c_uid) && new_c_uid != -1) {
 			// Login Sucssess
 			
 			SC_LOGIN_SUCCESS_PACK ok_pack;
@@ -45,21 +39,22 @@ void process_packet(short c_uid, char* packet)
 				// 새로운 클라이언트에게 자기 자신의 정보는 보낼 필요 없음(위 반복문과 중복됨)
 				if (new_c_uid != c._uid) {
 					old_info_pack.name;
-					old_info_pack.x = c._x;
-					old_info_pack.y = c._y;
-					old_info_pack.z = c._z;
 					strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
 
 					// 새로운 클라이언트에게 전송
 					clients[new_c_uid].do_send(&old_info_pack);
 				}
 			}
+
+			cout << "Login Success!\nID: " << p->id << "\nPW: " << p->pw << "\nName: " << clients[c_uid]._name << endl;
 		}
 		else if(new_c_uid != -1){
 			SC_LOGIN_FAIL_PACK fail_pack;
 			fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
 			fail_pack.type = SC_LOGIN_FAIL;
 			clients[new_c_uid].do_send(&fail_pack);
+
+			cout << "Login Fail!" << endl;
 		}
 	}
 	break;
@@ -116,7 +111,7 @@ void process_packet(short c_uid, char* packet)
 	{
 		CS_LEAVE_PARTY_PACK* old_staff = reinterpret_cast<CS_LEAVE_PARTY_PACK*>(packet);
 
-		checking_DB(old_staff->name, c_uid);
+		// checking_DB(old_staff->name, c_uid);
 		
 		if (/*checking data && save data*/ partys[old_staff->party_num].out_party_staff(old_staff->name)) {
 			SC_LEAVE_PARTY_SUCCESS_PACK leave_pack;
@@ -137,7 +132,7 @@ void process_packet(short c_uid, char* packet)
 		// Disconnect client
 		CS_LOGOUT_PACK* logout_client = reinterpret_cast<CS_LOGOUT_PACK*>(packet);
 
-		if (checking_DB(logout_client->name, c_uid)) {
+		if (/*checking_DB(logout_client->name, c_uid)*/false) {
 			SC_LOGOUT_SUCCESS_PACK out_client;
 			out_client.size = sizeof(SC_LOGOUT_SUCCESS_PACK);
 			out_client.type = SC_LOGOUT_SUCCESS;
@@ -166,22 +161,7 @@ void worker_thread(HANDLE h_iocp)
 		// error 검출기
 		if (FALSE == ret) {
 			if (ex_over->c_type == ACCEPT) {
-				std::string err_text = "errorCollecter.txt";
-				std::ofstream err_file(err_text.data());
-
-				if (err_file.is_open()) {
-					/*err_file << "";
-
-					time_t timer;
-					struct tm* t;
-
-					timer = time(NULL);
-					t = localtime(&timer);
-
-					err_file << t->tm_year + 1900 << "/" << t->tm_mon + 1 << "/" << t->tm_mday
-						<< "-(" << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << ")"
-						<< " : Accept Error\n";*/
-				}
+				cout << "Accept error\n";
 			}
 			else continue;
 		}
@@ -193,26 +173,31 @@ void worker_thread(HANDLE h_iocp)
 			// newClient 고유번호 부여, 게임정보 입력, 연결
 			short new_c_uid = get_player_uid();
 			
-			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
-				clients[new_c_uid]._x;
-				clients[new_c_uid]._y;
-				clients[new_c_uid]._z;
-				clients[new_c_uid].direction;
+			clients[new_c_uid]._socket = g_c_socket;
 
-				clients[new_c_uid]._uid = new_c_uid;
+			CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, new_c_uid, 0);
+			clients[new_c_uid].do_recv();
+			g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+
+			// Dummy Client 확인용
+			cout << "NEW PLAYER! : " << new_c_uid << endl;
+
+			/*
+			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
+				// clients[new_c_uid]._uid = new_c_uid;
 				clients[new_c_uid]._socket = g_c_socket;
 
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, new_c_uid, 0);
 				clients[new_c_uid].do_recv();
 				g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
+				// Dummy Client 확인용
+				cout << "NEW PLAYER!" << endl;
 			}
 			else {					// 접속 실패
 
 			}
-
-			// Dummy Client 확인용
-			cout << "NEW PLAYER! - " << new_c_uid << endl;
+			*/
 		}
 		break;
 		case RECV:		// get new message

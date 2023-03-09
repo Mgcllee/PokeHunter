@@ -37,8 +37,9 @@ constexpr char SC_LOGOUT_SUCCESS		= 20;
 struct CS_LOGIN_PACK {
 	unsigned char size;
 	unsigned char type;
-	unsigned char id[CHAR_SIZE];
-	unsigned char pw[CHAR_SIZE];
+
+	char id[CHAR_SIZE];
+	char pw[CHAR_SIZE];
 };
 
 struct CS_MOVE_PACK {
@@ -99,16 +100,15 @@ struct SC_LOGIN_INFO_PACK {
 	unsigned char type;
 	char name[CHAR_SIZE];
 	
-	short x;
-	short y;
-	short z;
-	char direction;
+	// short x, y, z, direction;
 	// character ability and skin ...
 	// player item ...
 
-
+	char _player_skin;
 	char _pet_num;
-	// pet ability
+	
+	char q_item;
+	char q_skill[4];
 };
 
 struct SC_MOVE_PACK {

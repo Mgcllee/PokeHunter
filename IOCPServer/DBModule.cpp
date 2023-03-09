@@ -4,7 +4,7 @@
 
 int get_player_uid() {
 	for (int i = 0; i < MAX_USER; ++i) {
-		if (0 == strcmp(clients[i]._name, "empty")) {
+		if (clients[i]._socket == NULL) {
 			return i;
 		}
 	}
@@ -104,10 +104,9 @@ bool Login_UDB(char* id, char* pass, short& c_uid) {
 									if (-1 == c_uid) {
 										c_uid = get_player_uid();
 									}
-									else {
-										strncpy_s(clients[c_uid]._name, c_name_buf.c_str(), sizeof(c_name_buf));
-										
-									}
+									
+									strncpy_s(clients[c_uid]._name, c_name_buf.c_str(), sizeof(c_name_buf));
+
 									return true;
 								}
 							}

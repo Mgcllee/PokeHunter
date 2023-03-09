@@ -36,8 +36,7 @@ int main() {
 
 	// === WORK SPACE ===
 	cout << "Start..." << endl;
-	// for (int i = 0; i < num_threads; ++i)
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < num_threads; ++i)
 		worker_threads.emplace_back(worker_thread, h_iocp);
 	// === ========== ===
 

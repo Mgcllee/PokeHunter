@@ -48,7 +48,7 @@ int main()
 		msg.size = sizeof(CS_LOGIN_PACK);
 		msg.type = CS_LOGIN;
 
-		cout << "[메시지전송]: ";
+		cout << "ID: ";
 		getline(cin, sent);
 		if (sent == "") continue;	// + 문자입력 길이제한 필요
 		for (int i = 0; i < CHAR_SIZE; ++i) {
@@ -58,6 +58,19 @@ int main()
 			}
 			else
 				msg.id[i] = sent[i];
+		}
+
+		sent.clear();
+		cout << "PW: ";
+		getline(cin, sent);
+		if (sent == "") continue;	// + 문자입력 길이제한 필요
+		for (int i = 0; i < CHAR_SIZE; ++i) {
+			if (sent[i] == NULL) {
+				msg.pw[i] = '\0';
+				break;
+			}
+			else
+				msg.pw[i] = sent[i];
 		}
 
 		send(clientSocket, (char*)&msg, msg.size, NULL);
