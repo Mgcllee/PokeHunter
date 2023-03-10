@@ -39,12 +39,12 @@ public:
 class SESSION {
 	OVER_EXP _recv_over;
 
+	char _name[CHAR_SIZE];
 public:
 	SOCKET _socket;
 	int _prev_size;	// 재조립에서 사용
 	short _uid;		// 서버용 플레이어 고유 ID
 	
-	char _name[CHAR_SIZE];
 	
 	char direction;
 	int _x, _y, _z;
@@ -77,6 +77,13 @@ public:
 	{
 		OVER_EXP* sdata = new OVER_EXP{ reinterpret_cast<char*>(packet) };
 		WSASend(_socket, &sdata->_wsabuf, 1, 0, 0, &sdata->_over, 0);
+	}
+
+	char* get_name() {
+		return _name;
+	}
+	void set_name(const char* in) {
+		strncpy_s(_name, CHAR_SIZE, in, sizeof(in));
 	}
 };
 

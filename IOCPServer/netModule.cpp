@@ -12,10 +12,16 @@ void process_packet(short c_uid, char* packet)
 	{
 		CS_LOGIN_PACK* p = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 		short new_c_uid = -1;
+		char db_name[CHAR_SIZE];
 
-		if (Login_UDB(p->id, p->pw, new_c_uid) && new_c_uid != -1) {
+		if (Login_UDB(p->id, p->pw, new_c_uid, db_name) && new_c_uid != -1) {
 			// Login Sucssess
 			
+			clients[c_uid].set_name(db_name);
+
+			// cout << "ADDR: " << reinterpret_cast<void*>(clients[c_uid].get_name()) << endl;
+			
+			/*
 			SC_LOGIN_SUCCESS_PACK ok_pack;
 			ok_pack.size = sizeof(ok_pack);
 			ok_pack.type = SC_LOGIN_SUCCESS;
@@ -45,8 +51,9 @@ void process_packet(short c_uid, char* packet)
 					clients[new_c_uid].do_send(&old_info_pack);
 				}
 			}
-
-			cout << "Login Success!\nID: " << p->id << "\nPW: " << p->pw << "\nName: " << clients[c_uid]._name << endl;
+			*/
+			
+			cout << "Login Success! Name: " << clients[c_uid].get_name() << endl;
 		}
 		else if(new_c_uid != -1){
 			SC_LOGIN_FAIL_PACK fail_pack;

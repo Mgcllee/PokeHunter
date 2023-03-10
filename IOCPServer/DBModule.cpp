@@ -30,7 +30,7 @@ void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode)
 	}
 }
 
-bool Login_UDB(char* id, char* pass, short& c_uid) {
+bool Login_UDB(char* id, char* pass, short& c_uid, char* db_name) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
@@ -104,8 +104,11 @@ bool Login_UDB(char* id, char* pass, short& c_uid) {
 									if (-1 == c_uid) {
 										c_uid = get_player_uid();
 									}
-									
-									strncpy_s(clients[c_uid]._name, c_name_buf.c_str(), sizeof(c_name_buf));
+
+									strncpy_s(db_name, CHAR_SIZE, c_name_buf.c_str(), c_name_buf.length());
+									// clients[c_uid].set_name(c_name_buf.c_str());
+									// cout << "ADDR: " << reinterpret_cast<void*>(clients[c_uid].get_name()) << endl;
+
 
 									return true;
 								}
