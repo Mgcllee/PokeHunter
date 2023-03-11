@@ -45,11 +45,11 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 	SQLWCHAR quick_item[CHAR_MIN_SIZE];
 	SQLWCHAR quick_skill[4];
 
-	// SQLLEN cbName = 0, cbId = 0, cbPass = 0, cbskin = 0, cbpet = 0, cbitem = 0, cbskill = 0;
 	SQLLEN sqllen{};
 
-	char db_name_buf[CHAR_SIZE], db_id_buf[CHAR_SIZE], db_pass_buf[CHAR_SIZE],
-		db_skin[CHAR_MIN_SIZE], db_pet[CHAR_MIN_SIZE], db_item[CHAR_MIN_SIZE], db_skill[4];
+	char db_name_buf[CHAR_SIZE], db_id_buf[CHAR_SIZE], db_pass_buf[CHAR_SIZE];	// char size: CHAR_SIZE
+	char db_skin[CHAR_MIN_SIZE], db_pet[CHAR_MIN_SIZE], db_item[CHAR_MIN_SIZE];	// char size: CAHR_MIN_SIZE
+	char db_skill[4];															// char size: 4
 	int strSize;
 
 	setlocale(LC_ALL, "Korean");
@@ -96,7 +96,6 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 								strSize = WideCharToMultiByte(CP_ACP, 0, PASS, -1, NULL, 0, NULL, NULL);
 								WideCharToMultiByte(CP_ACP, 0, PASS, -1, db_pass_buf, strSize, 0, 0);
 
-								//=============================================================================
 								strSize = WideCharToMultiByte(CP_ACP, 0, player_skin, -1, NULL, 0, NULL, NULL);
 								WideCharToMultiByte(CP_ACP, 0, player_skin, -1, db_skin, strSize, 0, 0);
 
@@ -108,8 +107,6 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 								
 								strSize = WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, NULL, 0, NULL, NULL);
 								WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, db_skill, strSize, 0, 0);
-								/**/
-								//=============================================================================
 
 								string c_name_buf = db_name_buf;
 								string c_id_buf = db_id_buf;
@@ -127,8 +124,11 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 									}
 
 									strncpy_s(in_name, CHAR_SIZE, c_name_buf.c_str(), c_name_buf.length());
-									
-									cout << "Skin: " << db_skin << "	Pet: " << db_pet << "	Item: " << db_item << "		Skill: " << db_skill << endl;
+									in_skin = db_skin[0];
+									in_pet = db_pet[0];
+									in_quickItem = db_item[0];
+									strncpy_s(in_quickSkill, 4, db_skill, 4);
+
 									return true;
 								}
 							}

@@ -19,9 +19,7 @@ void process_packet(short c_uid, char* packet)
 			// Login Sucssess
 			
 			clients[c_uid].set_name(db_name);
-			// cout << "ADDR: " << reinterpret_cast<void*>(clients[c_uid].get_name()) << endl;
 			
-			/*
 			SC_LOGIN_SUCCESS_PACK ok_pack;
 			ok_pack.size = sizeof(ok_pack);
 			ok_pack.type = SC_LOGIN_SUCCESS;
@@ -50,16 +48,15 @@ void process_packet(short c_uid, char* packet)
 				// 새로운 클라이언트에게 자기 자신의 정보는 보낼 필요 없음(위 반복문과 중복됨)
 				if (new_c_uid != c._uid) {
 					old_info_pack.name;
-					strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
+					// strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
 
 					// 새로운 클라이언트에게 전송
 					clients[new_c_uid].do_send(&old_info_pack);
 				}
-			}*/
+			}
 			
-			/*cout << "Login Success! Name: " << clients[c_uid].get_name() << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num << 
-				"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;*/
-			cout << "Login Success! Name: " << db_name << endl;
+			cout << "Login Success! Name: " << clients[c_uid].get_name() << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num << 
+				"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;
 		}
 		else {
 			SC_LOGIN_FAIL_PACK fail_pack;

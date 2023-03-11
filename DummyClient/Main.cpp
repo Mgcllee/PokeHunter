@@ -74,6 +74,12 @@ int main()
 		}
 
 		send(clientSocket, (char*)&msg, msg.size, NULL);
+		
+		SC_LOGIN_INFO_PACK info_pack;
+		recv(clientSocket, (char*)&info_pack, sizeof(SC_LOGIN_INFO_PACK), NULL);
+
+		cout << "Login Success! Name: " << info_pack.name << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num <<
+			"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;
 	}
 	closesocket(clientSocket);
 	WSACleanup();
