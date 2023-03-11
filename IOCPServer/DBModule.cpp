@@ -40,26 +40,16 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 	SQLWCHAR ID[CHAR_SIZE];
 	SQLWCHAR PASS[CHAR_SIZE];
 
-	SQLWCHAR player_skin[CHAR_SIZE];
-	SQLWCHAR player_pet[CHAR_SIZE];
-	SQLWCHAR quick_item[CHAR_SIZE];
-	SQLWCHAR quick_skill[CHAR_SIZE];
+	SQLWCHAR player_skin[CHAR_MIN_SIZE];
+	SQLWCHAR player_pet[CHAR_MIN_SIZE];
+	SQLWCHAR quick_item[CHAR_MIN_SIZE];
+	SQLWCHAR quick_skill[4];
 
-	SQLLEN cbName = 0, cbId = 0, cbPass = 0, cbskin = 0, cbpet = 0, cbitem = 0, cbskill = 0;
+	// SQLLEN cbName = 0, cbId = 0, cbPass = 0, cbskin = 0, cbpet = 0, cbitem = 0, cbskill = 0;
+	SQLLEN sqllen{};
 
 	char db_name_buf[CHAR_SIZE], db_id_buf[CHAR_SIZE], db_pass_buf[CHAR_SIZE],
 		db_skin[CHAR_MIN_SIZE], db_pet[CHAR_MIN_SIZE], db_item[CHAR_MIN_SIZE], db_skill[4];
-
-	memset(db_name_buf, NULL, CHAR_SIZE);
-	memset(db_id_buf, NULL, CHAR_SIZE);
-	memset(db_pass_buf, NULL, CHAR_SIZE);
-
-	memset(db_skin, NULL, CHAR_MIN_SIZE);
-	memset(db_pet, NULL, CHAR_MIN_SIZE);
-	memset(db_item, NULL, CHAR_MIN_SIZE);
-
-	memset(db_skill, NULL, 4);
-
 	int strSize;
 
 	setlocale(LC_ALL, "Korean");
@@ -80,14 +70,13 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)L"SELECT NAME, ID, PASS, PLAYER_SKIN, PLAYER_PET, QUICK_ITEM, QUICK_SKILL FROM userInfo", SQL_NTS);
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-
-						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, &NAME, CHAR_SIZE, &cbName);
-						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &ID, CHAR_SIZE, &cbId);
-						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &PASS, CHAR_SIZE, &cbPass);
-						retcode = SQLBindCol(hstmt, 4, SQL_C_WCHAR, &player_skin, CHAR_SIZE, &cbskin);
-						retcode = SQLBindCol(hstmt, 5, SQL_C_WCHAR, &player_pet, CHAR_SIZE, &cbpet);
-						retcode = SQLBindCol(hstmt, 6, SQL_C_WCHAR, &quick_item, CHAR_SIZE, &cbitem);
-						retcode = SQLBindCol(hstmt, 7, SQL_C_WCHAR, &quick_skill, CHAR_SIZE, &cbskill);
+						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, &NAME, CHAR_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &ID, CHAR_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &PASS, CHAR_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 4, SQL_C_WCHAR, &player_skin, CHAR_MIN_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 5, SQL_C_WCHAR, &player_pet, CHAR_MIN_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 6, SQL_C_WCHAR, &quick_item, CHAR_MIN_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 7, SQL_C_WCHAR, &quick_skill, 4, &sqllen);
 
 						for (int i = 0; ; ++i) {
 							retcode = SQLFetch(hstmt);
@@ -119,6 +108,7 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 								
 								strSize = WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, NULL, 0, NULL, NULL);
 								WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, db_skill, strSize, 0, 0);
+								/**/
 								//=============================================================================
 
 								string c_name_buf = db_name_buf;
@@ -138,10 +128,7 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 
 									strncpy_s(in_name, CHAR_SIZE, c_name_buf.c_str(), c_name_buf.length());
 									
-									// db_skill error!
-
 									cout << "Skin: " << db_skin << "	Pet: " << db_pet << "	Item: " << db_item << "		Skill: " << db_skill << endl;
-
 									return true;
 								}
 							}
