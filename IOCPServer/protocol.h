@@ -6,6 +6,7 @@ constexpr int BUF_SIZE					= 128;
 constexpr int PORT_NUM					= 7777;
 
 constexpr short CHAR_SIZE				= 20;
+constexpr short CHAR_MIN_SIZE			= 10;
 
 constexpr char CS_LOGIN					= 0;
 constexpr char CS_MOVE					= 1;

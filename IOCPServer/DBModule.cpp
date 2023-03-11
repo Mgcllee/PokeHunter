@@ -30,7 +30,7 @@ void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode)
 	}
 }
 
-bool Login_UDB(char* id, char* pass, short& c_uid, char* db_name) {
+bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char& in_skin, char& in_pet, char& in_quickItem, char* in_quickSkill) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
@@ -40,10 +40,27 @@ bool Login_UDB(char* id, char* pass, short& c_uid, char* db_name) {
 	SQLWCHAR ID[CHAR_SIZE];
 	SQLWCHAR PASS[CHAR_SIZE];
 
-	SQLINTEGER PET;
-	SQLINTEGER T_PLAYER;
+	SQLWCHAR player_skin[CHAR_SIZE];
+	SQLWCHAR player_pet[CHAR_SIZE];
+	SQLWCHAR quick_item[CHAR_SIZE];
+	SQLWCHAR quick_skill[CHAR_SIZE];
 
-	SQLLEN cbName = 0, cbId = 0, cbPass = 0;
+	SQLLEN cbName = 0, cbId = 0, cbPass = 0, cbskin = 0, cbpet = 0, cbitem = 0, cbskill = 0;
+
+	char db_name_buf[CHAR_SIZE], db_id_buf[CHAR_SIZE], db_pass_buf[CHAR_SIZE],
+		db_skin[CHAR_MIN_SIZE], db_pet[CHAR_MIN_SIZE], db_item[CHAR_MIN_SIZE], db_skill[4];
+
+	memset(db_name_buf, NULL, CHAR_SIZE);
+	memset(db_id_buf, NULL, CHAR_SIZE);
+	memset(db_pass_buf, NULL, CHAR_SIZE);
+
+	memset(db_skin, NULL, CHAR_MIN_SIZE);
+	memset(db_pet, NULL, CHAR_MIN_SIZE);
+	memset(db_item, NULL, CHAR_MIN_SIZE);
+
+	memset(db_skill, NULL, 4);
+
+	int strSize;
 
 	setlocale(LC_ALL, "Korean");
 
@@ -60,13 +77,17 @@ bool Login_UDB(char* id, char* pass, short& c_uid, char* db_name) {
 
 				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)L"SELECT NAME, ID, PASS FROM userInfo", SQL_NTS);
+					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)L"SELECT NAME, ID, PASS, PLAYER_SKIN, PLAYER_PET, QUICK_ITEM, QUICK_SKILL FROM userInfo", SQL_NTS);
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 
-						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, NAME, CHAR_SIZE, &cbName);
-						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &ID, 4, &cbId);
-						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &PASS, 4, &cbPass);
+						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, &NAME, CHAR_SIZE, &cbName);
+						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &ID, CHAR_SIZE, &cbId);
+						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &PASS, CHAR_SIZE, &cbPass);
+						retcode = SQLBindCol(hstmt, 4, SQL_C_WCHAR, &player_skin, CHAR_SIZE, &cbskin);
+						retcode = SQLBindCol(hstmt, 5, SQL_C_WCHAR, &player_pet, CHAR_SIZE, &cbpet);
+						retcode = SQLBindCol(hstmt, 6, SQL_C_WCHAR, &quick_item, CHAR_SIZE, &cbitem);
+						retcode = SQLBindCol(hstmt, 7, SQL_C_WCHAR, &quick_skill, CHAR_SIZE, &cbskill);
 
 						for (int i = 0; ; ++i) {
 							retcode = SQLFetch(hstmt);
@@ -77,9 +98,6 @@ bool Login_UDB(char* id, char* pass, short& c_uid, char* db_name) {
 
 							if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
 							{
-								char db_name_buf[CHAR_SIZE], db_id_buf[CHAR_SIZE], db_pass_buf[CHAR_SIZE];
-								int strSize;
-
 								strSize = WideCharToMultiByte(CP_ACP, 0, NAME, -1, NULL, 0, NULL, NULL);
 								WideCharToMultiByte(CP_ACP, 0, NAME, -1, db_name_buf, strSize, 0, 0);
 
@@ -89,26 +107,40 @@ bool Login_UDB(char* id, char* pass, short& c_uid, char* db_name) {
 								strSize = WideCharToMultiByte(CP_ACP, 0, PASS, -1, NULL, 0, NULL, NULL);
 								WideCharToMultiByte(CP_ACP, 0, PASS, -1, db_pass_buf, strSize, 0, 0);
 
+								//=============================================================================
+								strSize = WideCharToMultiByte(CP_ACP, 0, player_skin, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, player_skin, -1, db_skin, strSize, 0, 0);
+
+								strSize = WideCharToMultiByte(CP_ACP, 0, player_pet, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, player_pet, -1, db_pet, strSize, 0, 0);
+
+								strSize = WideCharToMultiByte(CP_ACP, 0, quick_item, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, quick_item, -1, db_item, strSize, 0, 0);
+								
+								strSize = WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, db_skill, strSize, 0, 0);
+								//=============================================================================
+
 								string c_name_buf = db_name_buf;
-								c_name_buf.erase(remove(c_name_buf.begin(), c_name_buf.end(), ' '), c_name_buf.end());
-
 								string c_id_buf = db_id_buf;
-								c_id_buf.erase(remove(c_id_buf.begin(), c_id_buf.end(), ' '), c_id_buf.end());
-
 								string c_pass_buf = db_pass_buf;
+
+								c_name_buf.erase(remove(c_name_buf.begin(), c_name_buf.end(), ' '), c_name_buf.end());
+								c_id_buf.erase(remove(c_id_buf.begin(), c_id_buf.end(), ' '), c_id_buf.end());
 								c_pass_buf.erase(remove(c_pass_buf.begin(), c_pass_buf.end(), ' '), c_pass_buf.end());
 
-								if (strncmp(c_id_buf.c_str(), id, c_id_buf.length()) == 0
-									&& strncmp(c_pass_buf.c_str(), pass, c_pass_buf.length()) == 0) {
+								if (strncmp(c_id_buf.c_str(), in_id, c_id_buf.length()) == 0 && c_id_buf.length() == strlen(in_id)
+									&& strncmp(c_pass_buf.c_str(), in_pass, c_pass_buf.length()) == 0 && c_pass_buf.length() == strlen(in_pass)) {
 
-									if (-1 == c_uid) {
-										c_uid = get_player_uid();
+									if (-1 == in_c_uid) {
+										in_c_uid = get_player_uid();
 									}
 
-									strncpy_s(db_name, CHAR_SIZE, c_name_buf.c_str(), c_name_buf.length());
-									// clients[c_uid].set_name(c_name_buf.c_str());
-									// cout << "ADDR: " << reinterpret_cast<void*>(clients[c_uid].get_name()) << endl;
+									strncpy_s(in_name, CHAR_SIZE, c_name_buf.c_str(), c_name_buf.length());
+									
+									// db_skill error!
 
+									cout << "Skin: " << db_skin << "	Pet: " << db_pet << "	Item: " << db_item << "		Skill: " << db_skill << endl;
 
 									return true;
 								}
@@ -123,7 +155,7 @@ bool Login_UDB(char* id, char* pass, short& c_uid, char* db_name) {
 						return false;
 					}
 
-					// Process data  
+					// Process data
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 						SQLCancel(hstmt);
 						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
@@ -143,7 +175,6 @@ bool Login_UDB(char* id, char* pass, short& c_uid, char* db_name) {
 	}
 	return false;
 }
-
 
 bool write_DB(int game_id, int pos_x, int pos_y) {
 	SQLHENV henv;
@@ -209,4 +240,3 @@ bool write_DB(int game_id, int pos_x, int pos_y) {
 	}
 	return false;
 }
-

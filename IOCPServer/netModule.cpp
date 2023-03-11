@@ -12,13 +12,13 @@ void process_packet(short c_uid, char* packet)
 	{
 		CS_LOGIN_PACK* p = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 		short new_c_uid = -1;
-		char db_name[CHAR_SIZE];
+		char db_name[CHAR_SIZE], db_skill[4];
+		char db_skin, db_pet, db_item;
 
-		if (Login_UDB(p->id, p->pw, new_c_uid, db_name) && new_c_uid != -1) {
+		if (Login_UDB(p->id, p->pw, new_c_uid, db_name, db_skin, db_pet, db_item, db_skill) && new_c_uid != -1) {
 			// Login Sucssess
 			
 			clients[c_uid].set_name(db_name);
-
 			// cout << "ADDR: " << reinterpret_cast<void*>(clients[c_uid].get_name()) << endl;
 			
 			/*
@@ -30,6 +30,11 @@ void process_packet(short c_uid, char* packet)
 			SC_LOGIN_INFO_PACK info_pack;
 			info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 			info_pack.type = SC_LOGIN_INFO;
+			strncpy_s(info_pack.name, sizeof(info_pack.name), clients[c_uid].get_name(), sizeof(clients[c_uid].get_name()));
+			info_pack._player_skin = db_skin;
+			info_pack._pet_num = db_pet;
+			info_pack.q_item = db_item;
+			strncpy_s(info_pack.q_skill, sizeof(info_pack.q_skill), db_skill, sizeof(db_skill));
 
 			// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
 			for (SESSION& c : clients) {
@@ -50,12 +55,13 @@ void process_packet(short c_uid, char* packet)
 					// 새로운 클라이언트에게 전송
 					clients[new_c_uid].do_send(&old_info_pack);
 				}
-			}
-			*/
+			}*/
 			
-			cout << "Login Success! Name: " << clients[c_uid].get_name() << endl;
+			/*cout << "Login Success! Name: " << clients[c_uid].get_name() << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num << 
+				"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;*/
+			cout << "Login Success! Name: " << db_name << endl;
 		}
-		else if(new_c_uid != -1){
+		else {
 			SC_LOGIN_FAIL_PACK fail_pack;
 			fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
 			fail_pack.type = SC_LOGIN_FAIL;
@@ -63,7 +69,7 @@ void process_packet(short c_uid, char* packet)
 
 			cout << "Login Fail!" << endl;
 		}
-	}
+ 	}
 	break;
 	case CS_SEARCHING_PARTY:
 	{
