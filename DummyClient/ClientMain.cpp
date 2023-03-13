@@ -75,11 +75,21 @@ int main()
 
 		send(clientSocket, (char*)&msg, msg.size, NULL);
 		
-		SC_LOGIN_INFO_PACK info_pack;
-		recv(clientSocket, (char*)&info_pack, sizeof(SC_LOGIN_INFO_PACK), NULL);
+		SC_LOGIN_SUCCESS_PACK ok_pack;
+		recv(clientSocket, (char*)&ok_pack, sizeof(SC_LOGIN_SUCCESS_PACK), NULL);
+		if (SC_LOGIN_SUCCESS == ok_pack.type) {
+			SC_LOGIN_INFO_PACK info_pack;
+			recv(clientSocket, (char*)&info_pack, sizeof(SC_LOGIN_INFO_PACK), NULL);
 
-		cout << "Login Success! Name: " << info_pack.name << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num <<
-			"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;
+			cout << "Login Success! Name: " << info_pack.name << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num <<
+				"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;
+		}
+		else if(SC_LOGIN_FAIL == ok_pack.type){
+			cout << "Login fail\n";
+		}
+		else {
+			cout << "packet type error\nPACKET TYPE: " << ok_pack.type << endl;
+		}
 	}
 	closesocket(clientSocket);
 	WSACleanup();

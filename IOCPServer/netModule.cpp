@@ -16,15 +16,13 @@ void process_packet(short c_uid, char* packet)
 		char db_skin, db_pet, db_item;
 
 		if (Login_UDB(p->id, p->pw, new_c_uid, db_name, db_skin, db_pet, db_item, db_skill) && new_c_uid != -1) {
-			// Login Sucssess
-			
 			clients[c_uid].set_name(db_name);
 			
 			SC_LOGIN_SUCCESS_PACK ok_pack;
 			ok_pack.size = sizeof(ok_pack);
 			ok_pack.type = SC_LOGIN_SUCCESS;
 			clients[new_c_uid].do_send(&ok_pack);
-
+			
 			SC_LOGIN_INFO_PACK info_pack;
 			info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 			info_pack.type = SC_LOGIN_INFO;
@@ -33,12 +31,13 @@ void process_packet(short c_uid, char* packet)
 			info_pack._pet_num = db_pet;
 			info_pack.q_item = db_item;
 			strncpy_s(info_pack.q_skill, sizeof(info_pack.q_skill), db_skill, sizeof(db_skill));
-
+		
 			// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
 			for (SESSION& c : clients) {
 				c.do_send(&info_pack);
 			}
 
+			/*
 			SC_LOGIN_INFO_PACK old_info_pack;
 			old_info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 			old_info_pack.type = SC_LOGIN_INFO;
@@ -54,9 +53,12 @@ void process_packet(short c_uid, char* packet)
 					clients[new_c_uid].do_send(&old_info_pack);
 				}
 			}
-			
+
 			cout << "Login Success! Name: " << clients[c_uid].get_name() << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num << 
 				"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;
+			*/
+
+			cout << "Name: " << db_name << "\nPlayer Skin: " << db_skin << "\nPlayer Pet: " << db_pet << "\nItem: " << db_item << "		Skill: " << db_skill << endl;
 		}
 		else {
 			SC_LOGIN_FAIL_PACK fail_pack;
@@ -184,7 +186,6 @@ void worker_thread(HANDLE h_iocp)
 			short new_c_uid = get_player_uid();
 
 			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
-				// clients[new_c_uid]._uid = new_c_uid;
 				clients[new_c_uid]._socket = g_c_socket;
 
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, NULL, 0);
@@ -199,7 +200,8 @@ void worker_thread(HANDLE h_iocp)
 				cout << "NEW PLAYER!" << endl;
 			}
 			else {					// 접속 실패
-
+				cout << "connect fail\n";
+				break;
 			}
 		}
 		break;

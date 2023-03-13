@@ -4,7 +4,11 @@
 
 int get_player_uid() {
 	for (int i = 0; i < MAX_USER; ++i) {
-		if (clients[i]._socket == NULL) {
+		if (g_c_socket == clients[i]._socket) {
+			cout << "twice clients\n";
+			return -1;
+		}
+		else if (clients[i]._socket == NULL) {
 			return i;
 		}
 	}
