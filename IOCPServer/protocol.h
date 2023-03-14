@@ -36,16 +36,16 @@ constexpr char SC_LOGOUT_SUCCESS		= 20;
 #pragma pack (push, 1)
 
 struct CS_LOGIN_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	char id[CHAR_SIZE];
 	char pw[CHAR_SIZE];
 };
 
 struct CS_MOVE_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	short x;
 	short y;
@@ -53,52 +53,52 @@ struct CS_MOVE_PACK {
 };
 
 struct CS_SEARCHING_PARTY_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 struct CS_PARTY_INFO_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	char party_num;
 };
 
 struct CS_JOIN_PARTY_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	char party_num;
 };
 
 struct CS_LEAVE_PARTY_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	char party_num;
 	char name[CHAR_SIZE];
 };
 
 struct CS_LOGOUT_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	char name[CHAR_SIZE];
 };
 
 struct SC_LOGIN_FAIL_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 struct SC_LOGIN_SUCCESS_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 struct SC_LOGIN_INFO_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 	char name[CHAR_SIZE];
 	
 	// short x, y, z, direction;
@@ -113,8 +113,8 @@ struct SC_LOGIN_INFO_PACK {
 };
 
 struct SC_MOVE_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	short x;
 	short y;
@@ -122,49 +122,49 @@ struct SC_MOVE_PACK {
 };
 
 struct SC_PARTY_LIST_INFO_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	char _name[CHAR_SIZE];	// 파티 이름
 	char _staff_member;		// 파티인원 (1~4명)
 };
 
 struct SC_PARTY_INFO_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 
 	char _mem[4][CHAR_SIZE];	// 비어있어도 사용
 	char _mem_pet[4];
 };
 
 struct SC_JOIN_PARTY_FAIL_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 struct SC_JOIN_PARTY_SUCCESS_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 struct SC_LEAVE_PARTY_FAIL_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 struct SC_LEAVE_PARTY_SUCCESS_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 struct SC_LOGOUT_FAIL_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 struct SC_LOGOUT_SUCCESS_PACK {
-	unsigned char size;
-	unsigned char type;
+	char size;
+	char type;
 };
 
 #pragma pack (pop)

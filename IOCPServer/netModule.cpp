@@ -21,20 +21,31 @@ void process_packet(short c_uid, char* packet)
 			SC_LOGIN_SUCCESS_PACK ok_pack;
 			ok_pack.size = sizeof(ok_pack);
 			ok_pack.type = SC_LOGIN_SUCCESS;
-			clients[new_c_uid].do_send(&ok_pack);
-			
+
+			for (SESSION& c : clients) {
+				if (0 == strcmp(c.get_name(), clients[c_uid].get_name())) {
+					c.do_send(&ok_pack);
+					cout << "Send Ok Packet!\n";
+				}
+			}
+
+			cout << "Send OK Packet!\n";
+
 			SC_LOGIN_INFO_PACK info_pack;
 			info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 			info_pack.type = SC_LOGIN_INFO;
-			strncpy_s(info_pack.name, sizeof(info_pack.name), clients[c_uid].get_name(), sizeof(clients[c_uid].get_name()));
+			strncpy_s(info_pack.name, sizeof(info_pack.name), clients[c_uid].get_name() + '\0', sizeof(clients[c_uid].get_name()) + 1);
 			info_pack._player_skin = db_skin;
 			info_pack._pet_num = db_pet;
 			info_pack.q_item = db_item;
-			strncpy_s(info_pack.q_skill, sizeof(info_pack.q_skill), db_skill, sizeof(db_skill));
+			strncpy_s(info_pack.q_skill, sizeof(info_pack.q_skill), db_skill + '\0', sizeof(db_skill) + 1);
 		
 			// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
 			for (SESSION& c : clients) {
-				c.do_send(&info_pack);
+				if (0 != strcmp(c.get_name(), "empty")) {
+					c.do_send(&info_pack);
+					cout << "Send Info Packet!\n";
+				}
 			}
 
 			/*
@@ -58,7 +69,7 @@ void process_packet(short c_uid, char* packet)
 				"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;
 			*/
 
-			cout << "Name: " << db_name << "\nPlayer Skin: " << db_skin << "\nPlayer Pet: " << db_pet << "\nItem: " << db_item << "		Skill: " << db_skill << endl;
+			// cout << "Name: " << db_name << "\nPlayer Skin: " << db_skin << "\nPlayer Pet: " << db_pet << "\nItem: " << db_item << "		Skill: " << db_skill << endl;
 		}
 		else {
 			SC_LOGIN_FAIL_PACK fail_pack;
@@ -175,9 +186,12 @@ void worker_thread(HANDLE h_iocp)
 			if (ex_over->c_type == ACCEPT) {
 				cout << "Accept error\n";
 			}
-			else continue;
+			else {
+				cout << "GQCS Error on client[" << key << "]\t";
+				// disconnect client
+			}
 		}
-		if ((0 == num_bytes) && (ex_over->c_type == RECV)) continue;
+		// if ((0 == num_bytes) && (ex_over->c_type == RECV)) continue;
 
 		switch (ex_over->c_type) {
 		case ACCEPT:	// accept new client
@@ -210,6 +224,7 @@ void worker_thread(HANDLE h_iocp)
 			// 패킷 재조립
 			int remain_data = num_bytes + clients[key]._prev_size;
 			char* p = ex_over->_send_buf;
+
 			while (remain_data > 0) {
 				int packet_size = p[0];
 				if (packet_size <= remain_data) {
@@ -219,7 +234,9 @@ void worker_thread(HANDLE h_iocp)
 				}
 				else break;
 			}
+
 			clients[key]._prev_size = remain_data;
+
 			if (remain_data > 0) {
 				memcpy(ex_over->_send_buf, p, remain_data);
 			}
@@ -228,7 +245,8 @@ void worker_thread(HANDLE h_iocp)
 		break;
 		case SEND:		// send new message
 		{
-
+			cout << "SEND\n";
+			delete ex_over;
 		}
 		break;
 		}

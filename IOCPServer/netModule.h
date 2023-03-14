@@ -13,18 +13,17 @@ enum TYPE { ACCEPT, RECV, SEND };
 
 class OVER_EXP {
 public:
-	WSAOVERLAPPED _over;
-	WSABUF _wsabuf;
-	char _send_buf[BUF_SIZE];
-	TYPE c_type = RECV;
-	int _ai_target_obj;
+	WSAOVERLAPPED	_over;
+	TYPE			c_type;
+	WSABUF			_wsabuf;
+	char			_send_buf[BUF_SIZE];
 
 	OVER_EXP()
 	{
+		ZeroMemory(&_over, sizeof(_over));
 		_wsabuf.len = BUF_SIZE;
 		_wsabuf.buf = _send_buf;
 		c_type = RECV;
-		ZeroMemory(&_over, sizeof(_over));
 	}
 	OVER_EXP(char* packet)
 	{
@@ -45,14 +44,10 @@ public:
 	int _prev_size;	// 재조립에서 사용
 	short _uid;		// 서버용 플레이어 고유 ID
 	
-	
 	char direction;
 	int _x, _y, _z;
-	// character ability and skin ...
-	// player item ...
 
 	char _pet_num;
-	// pet ability
 
 	SESSION() {
 		_socket = 0;
@@ -70,13 +65,14 @@ public:
 		memset(&_recv_over._over, 0, sizeof(_recv_over._over));
 		_recv_over._wsabuf.len = BUF_SIZE - _prev_size;
 		_recv_over._wsabuf.buf = _recv_over._send_buf + _prev_size;
+		_recv_over.c_type = RECV;
 		WSARecv(_socket, &_recv_over._wsabuf, 1, 0, &recv_flag, &_recv_over._over, 0);
 	}
 
 	void do_send(void* packet)
 	{
-		OVER_EXP* sdata = new OVER_EXP{ reinterpret_cast<char*>(packet) };
-		WSASend(_socket, &sdata->_wsabuf, 1, 0, 0, &sdata->_over, 0);
+		OVER_EXP* send_over = new OVER_EXP{ reinterpret_cast<char*>(packet) };
+		WSASend(_socket, &send_over->_wsabuf, 1, 0, 0, &send_over->_over, 0);
 	}
 
 	char* get_name() {
