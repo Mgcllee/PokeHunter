@@ -30,6 +30,8 @@ constexpr char SC_LEAVE_PARTY_FAIL		= 17;
 constexpr char SC_LEAVE_PARTY_SUCCESS	= 18;
 constexpr char SC_LOGOUT_FAIL			= 19;
 constexpr char SC_LOGOUT_SUCCESS		= 20;
+constexpr char SC_ITEM_INFO				= 21;
+
 
 
 
@@ -41,6 +43,11 @@ struct CS_LOGIN_PACK {
 
 	char id[CHAR_SIZE];
 	char pw[CHAR_SIZE];
+};
+
+struct CS_QUEST_INVENTORY_PACK {
+	char size;
+	char type;
 };
 
 struct CS_MOVE_PACK {
@@ -108,8 +115,8 @@ struct SC_LOGIN_INFO_PACK {
 	char _player_skin;
 	char _pet_num;
 	
-	char q_item;
-	char q_skill[4];
+	char _q_item;
+	char _q_skill[4];
 };
 
 struct SC_MOVE_PACK {
@@ -165,6 +172,14 @@ struct SC_LOGOUT_FAIL_PACK {
 struct SC_LOGOUT_SUCCESS_PACK {
 	char size;
 	char type;
+};
+
+struct SC_ITEM_INFO_PACK {
+	char size;
+	char type;
+
+	char _name[CHAR_SIZE];
+	char _cnt;
 };
 
 #pragma pack (pop)

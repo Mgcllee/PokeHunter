@@ -37,8 +37,8 @@ void process_packet(short c_uid, char* packet)
 			strncpy_s(info_pack.name, sizeof(info_pack.name), clients[c_uid].get_name() + '\0', sizeof(clients[c_uid].get_name()) + 1);
 			info_pack._player_skin = db_skin;
 			info_pack._pet_num = db_pet;
-			info_pack.q_item = db_item;
-			strncpy_s(info_pack.q_skill, sizeof(info_pack.q_skill), db_skill + '\0', sizeof(db_skill) + 1);
+			info_pack._q_item = db_item;
+			strncpy_s(info_pack._q_skill, sizeof(info_pack._q_skill), db_skill + '\0', sizeof(db_skill) + 1);
 		
 			// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
 			for (SESSION& c : clients) {
@@ -48,7 +48,6 @@ void process_packet(short c_uid, char* packet)
 				}
 			}
 
-			/*
 			SC_LOGIN_INFO_PACK old_info_pack;
 			old_info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 			old_info_pack.type = SC_LOGIN_INFO;
@@ -65,11 +64,7 @@ void process_packet(short c_uid, char* packet)
 				}
 			}
 
-			cout << "Login Success! Name: " << clients[c_uid].get_name() << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num << 
-				"	Item: " << info_pack.q_item << "	Skill: " << info_pack.q_skill << endl;
-			*/
-
-			// cout << "Name: " << db_name << "\nPlayer Skin: " << db_skin << "\nPlayer Pet: " << db_pet << "\nItem: " << db_item << "		Skill: " << db_skill << endl;
+			cout << "Login Success!\n";
 		}
 		else {
 			SC_LOGIN_FAIL_PACK fail_pack;
@@ -77,7 +72,7 @@ void process_packet(short c_uid, char* packet)
 			fail_pack.type = SC_LOGIN_FAIL;
 			clients[new_c_uid].do_send(&fail_pack);
 
-			cout << "Login Fail!" << endl;
+			cout << "Login Fail!\n";
 		}
  	}
 	break;
