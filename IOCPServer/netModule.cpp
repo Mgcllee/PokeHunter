@@ -76,6 +76,11 @@ void process_packet(short c_uid, char* packet)
 		}
  	}
 	break;
+	case CS_QUEST_INVENTORY:
+	{
+		
+	}
+	break;
 	case CS_SEARCHING_PARTY:
 	{
 		//send party list

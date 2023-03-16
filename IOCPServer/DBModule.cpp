@@ -167,6 +167,101 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 	return false;
 }
 
+bool Get_IDB(char& in_c_uid) {
+	SQLHENV henv;
+	SQLHDBC hdbc;
+	SQLHSTMT hstmt = 0;
+	SQLRETURN retcode;
+
+	SQLWCHAR NAME[CHAR_SIZE], ItemName[CHAR_SIZE], ItemCnt[CHAR_MIN_SIZE];
+
+	SQLLEN sqllen{};
+
+	char db_name_buf[CHAR_SIZE], db_itemName_buf[CHAR_SIZE], db_itemCnt[CHAR_MIN_SIZE];
+	int strSize;
+
+	setlocale(LC_ALL, "Korean");
+
+	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
+	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
+
+		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+			retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
+
+			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
+				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEIDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
+
+				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+
+					string QUERY = "SELECT NAME, ID, PASS, PLAYER_SKIN, PLAYER_PET, QUICK_ITEM, QUICK_SKILL FROM ";
+					QUERY.append(clients[in_c_uid].get_name());
+
+					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(QUERY.c_str()), SQL_NTS);
+
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, &NAME, CHAR_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &ItemName, CHAR_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &ItemCnt, CHAR_MIN_SIZE, &sqllen);
+
+						for (int i = 0; ; ++i) {
+							retcode = SQLFetch(hstmt);
+							if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) {
+								// error 검출기
+								show_error(hstmt, SQL_HANDLE_STMT, retcode);
+							}
+
+							if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
+							{
+								strSize = WideCharToMultiByte(CP_ACP, 0, NAME, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, NAME, -1, db_name_buf, strSize, 0, 0);
+
+								strSize = WideCharToMultiByte(CP_ACP, 0, ItemName, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, ItemName, -1, db_itemName_buf, strSize, 0, 0);
+
+								strSize = WideCharToMultiByte(CP_ACP, 0, ItemCnt, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, ItemCnt, -1, db_itemCnt, strSize, 0, 0);
+
+								if (0 == strncmp(db_name_buf, clients[in_c_uid].get_name(), sizeof(clients[in_c_uid].get_name()))) {
+
+									
+
+									return true;
+								}
+							}
+							else
+								return false;
+						}
+					}
+					else {
+						// error 검출기
+						show_error(hstmt, SQL_HANDLE_STMT, retcode);
+						return false;
+					}
+
+					// Process data
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						SQLCancel(hstmt);
+						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+					}
+
+					SQLDisconnect(hdbc);
+				}
+				else {
+					// error 검출기
+					show_error(hdbc, SQL_HANDLE_DBC, retcode);
+					return false;
+				}
+				SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+			}
+		}
+		SQLFreeHandle(SQL_HANDLE_ENV, henv);
+	}
+	return false;
+}
+
 bool write_DB(int game_id, int pos_x, int pos_y) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
