@@ -2,6 +2,7 @@
 
 #include "DBModule.h"
 
+
 int get_player_uid() {
 	for (int i = 0; i < MAX_USER; ++i) {
 		if (g_c_socket == clients[i]._socket) {
@@ -167,17 +168,30 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 	return false;
 }
 
-bool Get_IDB(char& in_c_uid) {
+string Get_ItemID(const char* db_table_name) {
+	if (0 == strcmp(db_table_name, "USERinventoryDB_Collection")) {
+		return "CT";
+	}
+	else if (0 == strcmp(db_table_name, "USERinventoryDB_Install")) {
+		return "IS";
+	}
+	else if (0 == strcmp(db_table_name, "USERinventoryDB_Launcher")) {
+		return "LC";
+	}
+	else if (0 == strcmp(db_table_name, "USERinventoryDB_Potion")) {
+		return "PT";
+	}
+}
+
+bool Get_IDB(char& in_c_uid, char* db_table_name) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
-
-	SQLWCHAR NAME[CHAR_SIZE], ItemName[CHAR_SIZE], ItemCnt[CHAR_MIN_SIZE];
-
+	SQLWCHAR ItemCnt[9];
 	SQLLEN sqllen{};
 
-	char db_name_buf[CHAR_SIZE], db_itemName_buf[CHAR_SIZE], db_itemCnt[CHAR_MIN_SIZE];
+	char db_itemCnt[CHAR_MIN_SIZE];
 	int strSize;
 
 	setlocale(LC_ALL, "Korean");
@@ -195,16 +209,19 @@ bool Get_IDB(char& in_c_uid) {
 
 				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 
-					string QUERY = "SELECT NAME, ID, PASS, PLAYER_SKIN, PLAYER_PET, QUICK_ITEM, QUICK_SKILL FROM ";
+					string QUERY = "SELECT * FROM ";
+					QUERY.append(db_table_name);
+					QUERY.append(" WHERE NAME='");
 					QUERY.append(clients[in_c_uid].get_name());
+					QUERY.append("'");
 
 					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
 					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(QUERY.c_str()), SQL_NTS);
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, &NAME, CHAR_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &ItemName, CHAR_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &ItemCnt, CHAR_MIN_SIZE, &sqllen);
+						for (int i = 0; i < 9; ++i) {
+							retcode = SQLBindCol(hstmt, i, SQL_C_WCHAR, &ItemCnt[i], 1, &sqllen);
+						}
 
 						for (int i = 0; ; ++i) {
 							retcode = SQLFetch(hstmt);
@@ -215,21 +232,25 @@ bool Get_IDB(char& in_c_uid) {
 
 							if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
 							{
-								strSize = WideCharToMultiByte(CP_ACP, 0, NAME, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, NAME, -1, db_name_buf, strSize, 0, 0);
+								for (int i = 0; i < 9; ++i) {
+									strSize = WideCharToMultiByte(CP_ACP, 0, &ItemCnt[i], -1, NULL, 0, NULL, NULL);
+									WideCharToMultiByte(CP_ACP, 0, &ItemCnt[i], -1, db_itemCnt, strSize, 0, 0);
 
-								strSize = WideCharToMultiByte(CP_ACP, 0, ItemName, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, ItemName, -1, db_itemName_buf, strSize, 0, 0);
+									if (0 != ItemCnt[i]) {
+										SC_ITEM_INFO_PACK item_pack;
+										item_pack.size = sizeof(SC_ITEM_INFO_PACK);
+										item_pack.type = SC_ITEM_INFO;
+										strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(db_table_name) + to_string(1)).c_str(), 4);
+										item_pack._cnt = (char)ItemCnt[i];
 
-								strSize = WideCharToMultiByte(CP_ACP, 0, ItemCnt, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, ItemCnt, -1, db_itemCnt, strSize, 0, 0);
-
-								if (0 == strncmp(db_name_buf, clients[in_c_uid].get_name(), sizeof(clients[in_c_uid].get_name()))) {
-
-									
-
-									return true;
+										
+									}
 								}
+
+								
+
+
+								return true;
 							}
 							else
 								return false;
