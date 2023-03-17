@@ -5,6 +5,9 @@ constexpr int MAX_PARTY					= 100;
 constexpr int BUF_SIZE					= 128;
 constexpr int PORT_NUM					= 7777;
 
+constexpr short MAX_ITEM_CATEGORY		= 4;
+constexpr short MAX_ITEM_COUNT			= 9;
+
 constexpr short CHAR_SIZE				= 20;
 constexpr short CHAR_MIN_SIZE			= 10;
 
@@ -14,7 +17,6 @@ constexpr char CS_SEARCHING_PARTY		= 2;
 constexpr char CS_PARTY_INFO			= 3;
 constexpr char CS_JOIN_PARTY			= 4;
 constexpr char CS_LEAVE_PARTY			= 5;
-
 constexpr char CS_QUEST_INVENTORY		= 6;
 
 constexpr char CS_LOGOUT				= 9;

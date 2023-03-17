@@ -78,7 +78,40 @@ void process_packet(short c_uid, char* packet)
 	break;
 	case CS_QUEST_INVENTORY:
 	{
-		
+		Get_IDB(c_uid);
+
+		for (short i = 0; i < MAX_ITEM_COUNT; ++i) {
+
+			SC_ITEM_INFO_PACK item_pack;
+			item_pack.size = sizeof(SC_ITEM_INFO_PACK);
+			item_pack.type = SC_ITEM_INFO;
+
+			if (0 < clients[c_uid].Collection[i]) {
+				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(1, false) + format("{0:0>2}", i)).c_str(), 4);
+				item_pack._cnt = clients[c_uid].Collection[i];
+			}
+			if (0 < clients[c_uid].Install[i]) {
+				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(2, false) + format("{0:0>2}", i)).c_str(), 4);
+				item_pack._cnt = clients[c_uid].Install[i];
+			}
+			if (0 < clients[c_uid].Launcher[i]) {
+				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(3, false) + format("{0:0>2}", i)).c_str(), 4);
+				item_pack._cnt = clients[c_uid].Launcher[i];
+			}
+			if (0 < clients[c_uid].Potion[i]) {
+				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(4, false) + format("{0:0>2}", i)).c_str(), 4);
+				item_pack._cnt = clients[c_uid].Potion[i];
+			}
+
+			clients[c_uid].do_send(&item_pack);
+		}
+
+		SC_ITEM_INFO_PACK item_pack;
+		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
+		item_pack.type = SC_ITEM_INFO;
+		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
+		item_pack._cnt = 0;
+		clients[c_uid].do_send(&item_pack);
 	}
 	break;
 	case CS_SEARCHING_PARTY:

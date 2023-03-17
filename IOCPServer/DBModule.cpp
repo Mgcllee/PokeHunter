@@ -168,27 +168,47 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 	return false;
 }
 
-string Get_ItemID(const char* db_table_name) {
-	if (0 == strcmp(db_table_name, "USERinventoryDB_Collection")) {
-		return "CT";
+string Get_ItemID(short item_ID, bool full_name) {
+	if (false != full_name) {
+		switch (item_ID) {
+		case 1:
+			return "CT";
+			break;
+		case 2:
+			return "IS";
+			break;
+		case 3:
+			return "LC";
+			break;
+		case 4:
+			return "PT";
+			break;
+		}
 	}
-	else if (0 == strcmp(db_table_name, "USERinventoryDB_Install")) {
-		return "IS";
-	}
-	else if (0 == strcmp(db_table_name, "USERinventoryDB_Launcher")) {
-		return "LC";
-	}
-	else if (0 == strcmp(db_table_name, "USERinventoryDB_Potion")) {
-		return "PT";
+	else {
+		switch (item_ID) {
+		case 1:
+			return "USERinventoryDB_Collection";
+			break;
+		case 2:
+			return "USERinventoryDB_Install";
+			break;
+		case 3:
+			return "USERinventoryDB_Launcher";
+			break;
+		case 4:
+			return "USERinventoryDB_Potion";
+			break;
+		}
 	}
 }
 
-bool Get_IDB(char& in_c_uid, char* db_table_name) {
+bool Get_IDB(short in_c_uid) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
-	SQLWCHAR ItemCnt[9];
+	SQLWCHAR ItemCnt[MAX_ITEM_COUNT];
 	SQLLEN sqllen{};
 
 	char db_itemCnt[CHAR_MIN_SIZE];
@@ -208,67 +228,57 @@ bool Get_IDB(char& in_c_uid, char* db_table_name) {
 				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEIDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
 
 				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+					
+					for (short item_index = 0; item_index < MAX_ITEM_CATEGORY; ++item_index) {
+						string QUERY = "SELECT * FROM ";
+						QUERY.append(Get_ItemID(item_index, true).c_str());
+						QUERY.append(" WHERE NAME='");
+						QUERY.append(clients[in_c_uid].get_name());
+						QUERY.append("'");
 
-					string QUERY = "SELECT * FROM ";
-					QUERY.append(db_table_name);
-					QUERY.append(" WHERE NAME='");
-					QUERY.append(clients[in_c_uid].get_name());
-					QUERY.append("'");
+						retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(QUERY.c_str()), SQL_NTS);
 
-					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(QUERY.c_str()), SQL_NTS);
-
-					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						for (int i = 0; i < 9; ++i) {
-							retcode = SQLBindCol(hstmt, i, SQL_C_WCHAR, &ItemCnt[i], 1, &sqllen);
-						}
-
-						for (int i = 0; ; ++i) {
-							retcode = SQLFetch(hstmt);
-							if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) {
-								// error 검출기
-								show_error(hstmt, SQL_HANDLE_STMT, retcode);
+						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+							for (int i = 0; i < MAX_ITEM_COUNT; ++i) {
+								retcode = SQLBindCol(hstmt, i, SQL_C_WCHAR, &ItemCnt[i], 1, &sqllen);
 							}
 
-							if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
-							{
-								for (int i = 0; i < 9; ++i) {
-									strSize = WideCharToMultiByte(CP_ACP, 0, &ItemCnt[i], -1, NULL, 0, NULL, NULL);
-									WideCharToMultiByte(CP_ACP, 0, &ItemCnt[i], -1, db_itemCnt, strSize, 0, 0);
+							for (int i = 0; ; ++i) {
+								retcode = SQLFetch(hstmt);
+								if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) show_error(hstmt, SQL_HANDLE_STMT, retcode);
 
-									if (0 != ItemCnt[i]) {
-										SC_ITEM_INFO_PACK item_pack;
-										item_pack.size = sizeof(SC_ITEM_INFO_PACK);
-										item_pack.type = SC_ITEM_INFO;
-										strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(db_table_name) + to_string(1)).c_str(), 4);
-										item_pack._cnt = (char)ItemCnt[i];
+								if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
+								{
+									for (int dbi = 0; dbi < MAX_ITEM_COUNT; ++dbi) {
+										strSize = WideCharToMultiByte(CP_ACP, 0, &ItemCnt[dbi], -1, NULL, 0, NULL, NULL);
+										WideCharToMultiByte(CP_ACP, 0, &ItemCnt[dbi], -1, db_itemCnt, strSize, 0, 0);
 
-										
+										if (0 != ItemCnt[dbi]) {
+											// clients[in_c_uid].set_item(Get_ItemID(db_table_name).c_str(), (char)i, (short)ItemCnt[i]);
+											clients[in_c_uid].set_item(Get_ItemID(item_index, false).c_str(), (char)i, (short)ItemCnt[i]);
+										}
 									}
+									return true;
 								}
-
-								
-
-
-								return true;
+								else
+									return false;
 							}
-							else
-								return false;
 						}
-					}
-					else {
-						// error 검출기
-						show_error(hstmt, SQL_HANDLE_STMT, retcode);
-						return false;
-					}
+						else {
+							// error 검출기
+							show_error(hstmt, SQL_HANDLE_STMT, retcode);
+							return false;
+						}
 
-					// Process data
-					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						SQLCancel(hstmt);
-						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-					}
+						// Process data
+						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+							SQLCancel(hstmt);
+							SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+						}
 
-					SQLDisconnect(hdbc);
+						SQLDisconnect(hdbc);
+					}
 				}
 				else {
 					// error 검출기

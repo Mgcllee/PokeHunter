@@ -35,6 +35,8 @@ public:
 	}
 };
 
+
+
 class SESSION {
 	OVER_EXP _recv_over;
 
@@ -42,18 +44,18 @@ class SESSION {
 public:
 	SOCKET _socket;
 	int _prev_size;	// 재조립에서 사용
-	short _uid;		// 서버용 플레이어 고유 ID
-	
-	char direction;
-	int _x, _y, _z;
 
+	short _uid;		// 서버용 플레이어 고유 ID	
 	char _pet_num;
+
+	char Collection[9];
+	char Install[9];
+	char Launcher[9];
+	char Potion[9];
 
 	SESSION() {
 		_socket = 0;
 		_uid = -1;
-		_x = _y = _z = -9999;
-		direction = 1;
 		strncpy_s(_name, "empty", strlen("empty"));
 		_prev_size = 0;
 		_pet_num = -1;
@@ -80,6 +82,21 @@ public:
 	}
 	void set_name(const char* in) {
 		strncpy_s(_name, CHAR_SIZE, in, sizeof(in));
+	}
+
+	void set_item(const char* in_item_name, short index, char cnt) {
+		if (0 == strcmp(in_item_name, "CT")) {
+			Collection[index] = cnt;
+		}
+		else if (0 == strcmp(in_item_name, "IS")) {
+			Install[index] = cnt;
+		}
+		else if (0 == strcmp(in_item_name, "LC")) {
+			Launcher[index] = cnt;
+		}
+		else if (0 == strcmp(in_item_name, "PT")) {
+			Potion[index] = cnt;
+		}
 	}
 };
 
