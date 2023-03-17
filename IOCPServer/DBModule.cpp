@@ -167,6 +167,61 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 	}
 	return false;
 }
+bool Logout_UDB(short in_c_uid)
+{
+	SQLHENV henv;
+	SQLHDBC hdbc;
+	SQLHSTMT hstmt = 0;
+	SQLRETURN retcode;
+	string sql_order = string("UPDATE userInfo SET PLAYER_SKIN='").append(&clients[in_c_uid]._player_skin).append("', PLAYER_PET='").append(&clients[in_c_uid]._pet_num)
+						.append("', QUICK_ITEM='").append(&clients[in_c_uid]._q_item).append("', QUICK_SKILL='").append(clients[in_c_uid]._q_skill).append("'")
+					 + string(" WHERE NAME='").append(clients[in_c_uid].get_name()).append("'");
+
+	setlocale(LC_ALL, "Korean");
+	
+	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
+	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
+		
+		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+			retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
+			
+			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
+				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEUDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
+  
+				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(sql_order.c_str()), SQL_NTS);
+
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						// cout << "SQL 실행 완료" << endl;
+						return true;
+					} 
+					else {
+						show_error(hstmt, SQL_HANDLE_STMT, retcode);
+						return false;
+					}
+
+					// Process data  
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						SQLCancel(hstmt);
+						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+					}
+
+					SQLDisconnect(hdbc);
+				}
+				else {
+					show_error(hdbc, SQL_HANDLE_DBC, retcode);
+					return false;
+				}
+				SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+			}
+		}
+		SQLFreeHandle(SQL_HANDLE_ENV, henv);
+	}
+	return false;
+}
 
 string Get_ItemID(short item_ID, bool full_name) {
 	if (false != full_name) {
@@ -282,6 +337,72 @@ bool Get_IDB(short in_c_uid) {
 				}
 				else {
 					// error 검출기
+					show_error(hdbc, SQL_HANDLE_DBC, retcode);
+					return false;
+				}
+				SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+			}
+		}
+		SQLFreeHandle(SQL_HANDLE_ENV, henv);
+	}
+	return false;
+}
+bool Set_IDB(short in_c_uid)
+{
+	SQLHENV henv;
+	SQLHDBC hdbc;
+	SQLHSTMT hstmt = 0;
+	SQLRETURN retcode;
+	
+
+	setlocale(LC_ALL, "Korean");
+
+	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
+	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
+
+		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+			retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
+
+			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
+				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEIDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
+
+				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+
+					for(int i = 0; i < MAX_ITEM_CATEGORY; ++i)
+					{
+						string sql_order = string("UPDATE ").append(Get_ItemID(i, true))
+							.append(" SET ");
+						for(short j = 0; j < MAX_ITEM_COUNT; ++j)
+						{
+							sql_order.append(Get_ItemID(i, false)).append(format("{0:0>2}='", j)).append(&(clients[in_c_uid].get_item_arrayName(i))[j]).append("', ");
+						}
+						sql_order.append("\b\b WHERE NAME='").append(clients[i].get_name()).append("'");
+
+						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(sql_order.c_str()), SQL_NTS);
+
+						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+							// cout << "SQL 실행 완료" << endl;
+							return true;
+						}
+						else {
+							show_error(hstmt, SQL_HANDLE_STMT, retcode);
+							return false;
+						}
+					}
+					
+
+					// Process data  
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						SQLCancel(hstmt);
+						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+					}
+
+					SQLDisconnect(hdbc);
+				}
+				else {
 					show_error(hdbc, SQL_HANDLE_DBC, retcode);
 					return false;
 				}

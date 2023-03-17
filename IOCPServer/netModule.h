@@ -47,11 +47,16 @@ public:
 
 	short _uid;		// 서버용 플레이어 고유 ID	
 	char _pet_num;
+	char _player_skin;
 
 	char Collection[9];
 	char Install[9];
 	char Launcher[9];
 	char Potion[9];
+
+	char _q_item;
+	char _q_skill[4];
+
 
 	SESSION() {
 		_socket = 0;
@@ -96,6 +101,25 @@ public:
 		}
 		else if (0 == strcmp(in_item_name, "PT")) {
 			Potion[index] = cnt;
+		}
+	}
+
+	char* get_item_arrayName(short num)
+	{
+		switch(num)
+		{
+		case 1:
+			return Collection;
+			break;
+		case 2:
+			return Install;
+			break;
+		case 3:
+			return Launcher;
+			break;
+		case 4:
+			return Potion;
+			break;
 		}
 	}
 };
