@@ -31,11 +31,11 @@ int main() {
 
 	err_code = AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
 
-	vector<thread> worker_threads;
+	std::vector<std::thread> worker_threads;
 	int num_threads = std::thread::hardware_concurrency();	// PC�� ����ھ� ����
 
 	// === WORK SPACE ===
-	cout << "Start..." << endl;
+	std::cout << "Start..." << std::endl;
 	for (int i = 0; i < num_threads; ++i)
 		worker_threads.emplace_back(worker_thread, h_iocp);
 	// === ====  ==== ===

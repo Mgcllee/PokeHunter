@@ -84,7 +84,7 @@ int main()
 			recv(clientSocket, (char*)&info_pack, sizeof(SC_LOGIN_INFO_PACK), NULL);
 
 			cout << "Login Success!\nName: " << info_pack.name << endl << "Skin: " << info_pack._player_skin << "		Pet: " << info_pack._pet_num <<
-				"	Item: " << info_pack.q_item << "	Skill: " << (char*)info_pack.q_skill << endl;
+				"	Item: " << info_pack._q_item << "	Skill: " << (char*)info_pack._q_skill << endl;
 		}
 		else if(SC_LOGIN_FAIL == ok_pack.type){
 			cout << "Login fail\n";

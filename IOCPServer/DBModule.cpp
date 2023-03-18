@@ -6,7 +6,7 @@
 int get_player_uid() {
 	for (int i = 0; i < MAX_USER; ++i) {
 		if (g_c_socket == clients[i]._socket) {
-			cout << "twice clients\n";
+			std::cout << "twice clients\n";
 			return -1;
 		}
 		else if (clients[i]._socket == NULL) {
@@ -113,9 +113,9 @@ bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char&
 								strSize = WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, NULL, 0, NULL, NULL);
 								WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, db_skill, strSize, 0, 0);
 
-								string c_name_buf = db_name_buf;
-								string c_id_buf = db_id_buf;
-								string c_pass_buf = db_pass_buf;
+								std::string c_name_buf = db_name_buf;
+								std::string c_id_buf = db_id_buf;
+								std::string c_pass_buf = db_pass_buf;
 
 								c_name_buf.erase(remove(c_name_buf.begin(), c_name_buf.end(), ' '), c_name_buf.end());
 								c_id_buf.erase(remove(c_id_buf.begin(), c_id_buf.end(), ' '), c_id_buf.end());
@@ -173,9 +173,9 @@ bool Logout_UDB(short in_c_uid)
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
-	string sql_order = string("UPDATE userInfo SET PLAYER_SKIN='").append(&clients[in_c_uid]._player_skin).append("', PLAYER_PET='").append(&clients[in_c_uid]._pet_num)
+	std::string sql_order = std::string("UPDATE userInfo SET PLAYER_SKIN='").append(&clients[in_c_uid]._player_skin).append("', PLAYER_PET='").append(&clients[in_c_uid]._pet_num)
 						.append("', QUICK_ITEM='").append(&clients[in_c_uid]._q_item).append("', QUICK_SKILL='").append(clients[in_c_uid]._q_skill).append("'")
-					 + string(" WHERE NAME='").append(clients[in_c_uid].get_name()).append("'");
+					 + std::string(" WHERE NAME='").append(clients[in_c_uid].get_name()).append("'");
 
 	setlocale(LC_ALL, "Korean");
 	
@@ -223,7 +223,7 @@ bool Logout_UDB(short in_c_uid)
 	return false;
 }
 
-string Get_ItemID(short item_ID, bool full_name) {
+std::string Get_ItemID(short item_ID, bool full_name) {
 	if (false != full_name) {
 		switch (item_ID) {
 		case 1:
@@ -285,7 +285,7 @@ bool Get_IDB(short in_c_uid) {
 				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 					
 					for (short item_index = 0; item_index < MAX_ITEM_CATEGORY; ++item_index) {
-						string QUERY = "SELECT * FROM ";
+						std::string QUERY = "SELECT * FROM ";
 						QUERY.append(Get_ItemID(item_index, true).c_str());
 						QUERY.append(" WHERE NAME='");
 						QUERY.append(clients[in_c_uid].get_name());
@@ -373,11 +373,11 @@ bool Set_IDB(short in_c_uid)
 
 					for(int i = 0; i < MAX_ITEM_CATEGORY; ++i)
 					{
-						string sql_order = string("UPDATE ").append(Get_ItemID(i, true))
+						std::string sql_order = std::string("UPDATE ").append(Get_ItemID(i, true))
 							.append(" SET ");
 						for(short j = 0; j < MAX_ITEM_COUNT; ++j)
 						{
-							sql_order.append(Get_ItemID(i, false)).append(format("{0:0>2}='", j)).append(&(clients[in_c_uid].get_item_arrayName(i))[j]).append("', ");
+							sql_order.append(Get_ItemID(i, false)).append(std::format("{0:0>2}='", j)).append(&(clients[in_c_uid].get_item_arrayName(i))[j]).append("', ");
 						}
 						sql_order.append("\b\b WHERE NAME='").append(clients[i].get_name()).append("'");
 

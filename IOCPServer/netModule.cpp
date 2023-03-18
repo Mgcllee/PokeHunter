@@ -2,8 +2,8 @@
 
 #include "DBModule.h"
 
-array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
-array<PARTY, MAX_PARTY> partys;
+std::array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
+std::array<PARTY, MAX_PARTY> partys;
 
 void process_packet(short c_uid, char* packet)
 {
@@ -25,11 +25,11 @@ void process_packet(short c_uid, char* packet)
 			for (SESSION& c : clients) {
 				if (0 == strcmp(c.get_name(), clients[c_uid].get_name())) {
 					c.do_send(&ok_pack);
-					cout << "Send Ok Packet!\n";
+					std::cout << "Send Ok Packet!\n";
 				}
 			}
 
-			cout << "Send OK Packet!\n";
+			std::cout << "Send OK Packet!\n";
 
 			SC_LOGIN_INFO_PACK info_pack;
 			info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
@@ -44,7 +44,7 @@ void process_packet(short c_uid, char* packet)
 			for (SESSION& c : clients) {
 				if (0 != strcmp(c.get_name(), "empty")) {
 					c.do_send(&info_pack);
-					cout << "Send Info Packet!\n";
+					std::cout << "Send Info Packet!\n";
 				}
 			}
 
@@ -64,7 +64,7 @@ void process_packet(short c_uid, char* packet)
 				}
 			}
 
-			cout << "Login Success!\n";
+			std::cout << "Login Success!\n";
 		}
 		else {
 			SC_LOGIN_FAIL_PACK fail_pack;
@@ -72,7 +72,7 @@ void process_packet(short c_uid, char* packet)
 			fail_pack.type = SC_LOGIN_FAIL;
 			clients[new_c_uid].do_send(&fail_pack);
 
-			cout << "Login Fail!\n";
+			std::cout << "Login Fail!\n";
 		}
  	}
 	break;
@@ -87,19 +87,19 @@ void process_packet(short c_uid, char* packet)
 			item_pack.type = SC_ITEM_INFO;
 
 			if (0 < clients[c_uid].Collection[i]) {
-				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(1, false) + format("{0:0>2}", i)).c_str(), 4);
+				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(1, false) + std::format("{0:0>2}", i)).c_str(), 4);
 				item_pack._cnt = clients[c_uid].Collection[i];
 			}
 			if (0 < clients[c_uid].Install[i]) {
-				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(2, false) + format("{0:0>2}", i)).c_str(), 4);
+				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(2, false) + std::format("{0:0>2}", i)).c_str(), 4);
 				item_pack._cnt = clients[c_uid].Install[i];
 			}
 			if (0 < clients[c_uid].Launcher[i]) {
-				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(3, false) + format("{0:0>2}", i)).c_str(), 4);
+				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(3, false) + std::format("{0:0>2}", i)).c_str(), 4);
 				item_pack._cnt = clients[c_uid].Launcher[i];
 			}
 			if (0 < clients[c_uid].Potion[i]) {
-				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(4, false) + format("{0:0>2}", i)).c_str(), 4);
+				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(4, false) + std::format("{0:0>2}", i)).c_str(), 4);
 				item_pack._cnt = clients[c_uid].Potion[i];
 			}
 
@@ -132,8 +132,8 @@ void process_packet(short c_uid, char* packet)
 
 		short party_num = static_cast<int>(party_info->party_num);
 		
-		array<char[CHAR_SIZE], 4> member;
-		array<char, 4> pets;
+		std::array<char[CHAR_SIZE], 4> member;
+		std::array<char, 4> pets;
 		partys[party_num].get_party_info(member, pets);
 
 		// get partys[party_num] info
@@ -217,10 +217,10 @@ void worker_thread(HANDLE h_iocp)
 		// error 검출기
 		if (FALSE == ret) {
 			if (ex_over->c_type == ACCEPT) {
-				cout << "Accept error\n";
+				std::cout << "Accept error\n";
 			}
 			else {
-				cout << "GQCS Error on client[" << key << "]\t";
+				std::cout << "GQCS Error on client[" << key << "]\t";
 				// disconnect client
 			}
 		}
@@ -244,10 +244,10 @@ void worker_thread(HANDLE h_iocp)
 				AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
 
 				// Dummy Client 확인용
-				cout << "NEW PLAYER!" << endl;
+				std::cout << "NEW PLAYER!\n";
 			}
 			else {					// 접속 실패
-				cout << "connect fail\n";
+				std::cout << "connect fail\n";
 				break;
 			}
 		}
@@ -278,7 +278,7 @@ void worker_thread(HANDLE h_iocp)
 		break;
 		case SEND:		// send new message
 		{
-			cout << "SEND\n";
+			std::cout << "SEND\n";
 			delete ex_over;
 		}
 		break;

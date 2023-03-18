@@ -126,8 +126,8 @@ public:
 
 class PARTY {
 private:
-	array<char[CHAR_SIZE], 4> member;
-	array<char, 4> pets;
+	std::array<char[CHAR_SIZE], 4> member;
+	std::array<char, 4> pets;
 
 public:
 	PARTY() {
@@ -170,7 +170,7 @@ public:
 		return false;
 	}
 
-	void get_party_info(array<char[CHAR_SIZE], 4>& in_member, array<char, 4>& in_pet) {
+	void get_party_info(std::array<char[CHAR_SIZE], 4>& in_member, std::array<char, 4>& in_pet) {
 		for (int i = 0; i < 4; ++i) {
 			if (0 != strcmp(member[i], "emtpy")) {
 				strncpy_s(in_member[i], sizeof(in_member[i]), member[i], sizeof(member[i]));
@@ -196,8 +196,8 @@ extern OVER_EXP g_a_over;
 extern HANDLE h_iocp;
 extern SOCKET g_s_socket, g_c_socket;
 
-extern array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
-extern array<PARTY, MAX_PARTY> partys;
+extern std::array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
+extern std::array<PARTY, MAX_PARTY> partys;
 
 void worker_thread(HANDLE h_iocp);
 void process_packet(short c_uid, char* packet);
