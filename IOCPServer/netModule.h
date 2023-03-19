@@ -10,6 +10,7 @@
 #pragma comment(lib, "MSWSock.lib")
 
 enum TYPE { ACCEPT, RECV, SEND };
+enum CLIENT_STATE { ST_FREE, ST_ALLOC, ST_INGAME };
 
 class OVER_EXP {
 public:
@@ -35,8 +36,6 @@ public:
 	}
 };
 
-
-
 class SESSION {
 	OVER_EXP _recv_over;
 
@@ -57,6 +56,8 @@ public:
 	char _q_item;
 	char _q_skill[4];
 
+	CLIENT_STATE _state;
+	std::mutex _lock;
 
 	SESSION() {
 		_socket = 0;
@@ -64,6 +65,7 @@ public:
 		strncpy_s(_name, "empty", strlen("empty"));
 		_prev_size = 0;
 		_pet_num = -1;
+		_state = ST_FREE;
 	}
 
 	void do_recv()
@@ -201,3 +203,5 @@ extern std::array<PARTY, MAX_PARTY> partys;
 
 void worker_thread(HANDLE h_iocp);
 void process_packet(short c_uid, char* packet);
+
+void disconnect(short c_uid);

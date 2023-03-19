@@ -18,13 +18,24 @@ void process_packet(short c_uid, char* packet)
 		if (Login_UDB(p->id, p->pw, new_c_uid, db_name, db_skin, db_pet, db_item, db_skill) && new_c_uid != -1) {
 			clients[c_uid].set_name(db_name);
 			
+			{
+				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+				clients[c_uid]._state = ST_INGAME;
+			}
+
 			SC_LOGIN_SUCCESS_PACK ok_pack;
 			ok_pack.size = sizeof(ok_pack);
 			ok_pack.type = SC_LOGIN_SUCCESS;
 
-			for (SESSION& c : clients) {
-				if (0 == strcmp(c.get_name(), clients[c_uid].get_name())) {
-					c.do_send(&ok_pack);
+			for (SESSION& cl : clients) {
+				{
+					std::lock_guard<std::mutex> ll{ cl._lock };
+					if (ST_INGAME != cl._state) continue;
+					// 클라이언트의 상태가 INGAME이 아니라면 패킷을 보낼 필요가 없음
+				}
+
+				if (0 == strcmp(cl.get_name(), clients[c_uid].get_name())) {
+					cl.do_send(&ok_pack);
 					std::cout << "Send Ok Packet!\n";
 				}
 			}
@@ -41,10 +52,13 @@ void process_packet(short c_uid, char* packet)
 			strncpy_s(info_pack._q_skill, sizeof(info_pack._q_skill), db_skill + '\0', sizeof(db_skill) + 1);
 		
 			// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
-			for (SESSION& c : clients) {
-				if (0 != strcmp(c.get_name(), "empty")) {
-					c.do_send(&info_pack);
-					std::cout << "Send Info Packet!\n";
+			for (SESSION& cl : clients) {
+				if (0 != strcmp(cl.get_name(), "empty")) {
+					// 송신 불필요 대상
+					if (ST_INGAME != cl._state)	continue;
+					if (c_uid == cl._uid)		continue;
+					// 송신 필요 대상
+					cl.do_send(&info_pack);
 				}
 			}
 
@@ -53,17 +67,19 @@ void process_packet(short c_uid, char* packet)
 			old_info_pack.type = SC_LOGIN_INFO;
 
 			// 새로운 클라이언트에게 기존 클라이언트들 정보를 전부 전송
-			for (SESSION& c : clients) {
+			for (SESSION& cl : clients) {
 				// 새로운 클라이언트에게 자기 자신의 정보는 보낼 필요 없음(위 반복문과 중복됨)
-				if (new_c_uid != c._uid) {
+				if (new_c_uid != cl._uid) {
 					old_info_pack.name;
 					// strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
+
+					if (ST_INGAME != cl._state)	continue;
+					if (c_uid == cl._uid)				continue;
 
 					// 새로운 클라이언트에게 전송
 					clients[new_c_uid].do_send(&old_info_pack);
 				}
 			}
-
 			std::cout << "Login Success!\n";
 		}
 		else {
@@ -205,6 +221,27 @@ void process_packet(short c_uid, char* packet)
 	}
 }
 
+void disconnect(short c_uid)
+{
+	for (SESSION& cl : clients) {
+		{
+			std::lock_guard<std::mutex> ll(cl._lock);
+			if (ST_INGAME == cl._state) continue;
+		}
+		if (c_uid == cl._uid) {
+			// logout logic
+			continue;
+		}
+
+		// send logout packet
+	}
+
+	// client 정보 정리
+	closesocket(clients[c_uid]._socket);
+	std::lock_guard<std::mutex> ll(clients[c_uid]._lock);
+	clients[c_uid]._state = ST_FREE;
+}
+
 void worker_thread(HANDLE h_iocp)
 {
 	while (true) {
@@ -233,6 +270,11 @@ void worker_thread(HANDLE h_iocp)
 			short new_c_uid = get_player_uid();
 
 			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
+				{
+					std::lock_guard<std::mutex> ll{ clients[new_c_uid]._lock };
+					clients[new_c_uid]._state = ST_ALLOC;
+				}
+
 				clients[new_c_uid]._socket = g_c_socket;
 
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, NULL, 0);

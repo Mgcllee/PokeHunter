@@ -5,13 +5,9 @@
 
 int get_player_uid() {
 	for (int i = 0; i < MAX_USER; ++i) {
-		if (g_c_socket == clients[i]._socket) {
-			std::cout << "twice clients\n";
-			return -1;
-		}
-		else if (clients[i]._socket == NULL) {
+		std::lock_guard <std::mutex> ll{ clients[i]._lock };
+		if (clients[i]._socket == NULL)
 			return i;
-		}
 	}
 	return -1;
 }
