@@ -15,6 +15,7 @@ void process_packet(short c_uid, char* packet)
 		char db_name[CHAR_SIZE], db_skill[4];
 		char db_skin, db_pet, db_item;
 
+		// AWS Cognito 에서 인증된 사용자만 입장
 		if (Login_UDB(p->id, p->pw, new_c_uid, db_name, db_skin, db_pet, db_item, db_skill) && new_c_uid != -1) {
 			clients[c_uid].set_name(db_name);
 			
@@ -39,8 +40,6 @@ void process_packet(short c_uid, char* packet)
 					std::cout << "Send Ok Packet!\n";
 				}
 			}
-
-			std::cout << "Send OK Packet!\n";
 
 			SC_LOGIN_INFO_PACK info_pack;
 			info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
@@ -69,7 +68,7 @@ void process_packet(short c_uid, char* packet)
 			// 새로운 클라이언트에게 기존 클라이언트들 정보를 전부 전송
 			for (SESSION& cl : clients) {
 				// 새로운 클라이언트에게 자기 자신의 정보는 보낼 필요 없음(위 반복문과 중복됨)
-				if (new_c_uid != cl._uid) {
+				if (new_c_uid != cl._uid) { 
 					old_info_pack.name;
 					// strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
 
