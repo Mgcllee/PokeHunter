@@ -416,7 +416,7 @@ bool write_DB(int game_id, int pos_x, int pos_y) {
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
 	SQLWCHAR szName[CHAR_SIZE];
-	SQLINTEGER user_id, POSITION_X, POSITION_Y;
+	SQLINTEGER user_id{}, POSITION_X{}, POSITION_Y{};
 
 	SQLLEN cbName = 0, cb_pos_x = 0, cb_pos_y = 0, cb_id = 0;
 

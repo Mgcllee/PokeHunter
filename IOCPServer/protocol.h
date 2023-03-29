@@ -13,26 +13,31 @@ constexpr short CHAR_MIN_SIZE			= 10;
 
 constexpr char CS_LOGIN					= 0;
 constexpr char CS_MOVE					= 1;
-constexpr char CS_SEARCHING_PARTY		= 2;
-constexpr char CS_PARTY_INFO			= 3;
-constexpr char CS_JOIN_PARTY			= 4;
-constexpr char CS_LEAVE_PARTY			= 5;
-constexpr char CS_QUEST_INVENTORY		= 6;
 
+constexpr char CS_PARTY_SEARCHING		= 2;
+constexpr char CS_PARTY_INFO			= 3;
+constexpr char CS_PARTY_READY			= 4;
+constexpr char CS_PARTY_JOIN			= 5;
+constexpr char CS_PARTY_LEAVE			= 6;
+
+constexpr char CS_QUEST_INVENTORY		= 7;
 constexpr char CS_LOGOUT				= 9;
 
 constexpr char SC_LOGIN_FAIL			= 10;
 constexpr char SC_LOGIN_SUCCESS			= 11;
 constexpr char SC_LOGIN_INFO			= 12;
+
 constexpr char SC_PARTY_LIST_INFO		= 13;
 constexpr char SC_PARTY_INFO			= 14;
-constexpr char SC_JOIN_PARTY_FAIL		= 15;
-constexpr char SC_JOIN_PARTY_SUCCESS	= 16;
-constexpr char SC_LEAVE_PARTY_FAIL		= 17;
-constexpr char SC_LEAVE_PARTY_SUCCESS	= 18;
-constexpr char SC_LOGOUT_FAIL			= 19;
-constexpr char SC_LOGOUT_SUCCESS		= 20;
-constexpr char SC_ITEM_INFO				= 21;
+constexpr char SC_PARTY_START			= 15;
+constexpr char SC_PARTY_JOIN_FAIL		= 16;
+constexpr char SC_PARTY_JOIN_SUCCESS	= 17;
+constexpr char SC_PARTY_LEAVE_FAIL		= 18;
+constexpr char SC_PARTY_LEAVE_SUCCESS	= 19;
+
+constexpr char SC_LOGOUT_FAIL			= 20;
+constexpr char SC_LOGOUT_SUCCESS		= 21;
+constexpr char SC_ITEM_INFO				= 22;
 
 
 
@@ -61,7 +66,7 @@ struct CS_MOVE_PACK {
 	short z;
 };
 
-struct CS_SEARCHING_PARTY_PACK {
+struct CS_PARTY_SEARCHING_PACK {
 	char size;
 	char type;
 };
@@ -73,14 +78,14 @@ struct CS_PARTY_INFO_PACK {
 	char party_num;
 };
 
-struct CS_JOIN_PARTY_PACK {
+struct CS_PARTY_JOIN_PACK {
 	char size;
 	char type;
 
 	char party_num;
 };
 
-struct CS_LEAVE_PARTY_PACK {
+struct CS_PARTY_LEAVE_PACK {
 	char size;
 	char type;
 
@@ -146,22 +151,22 @@ struct SC_PARTY_INFO_PACK {
 	char _mem_pet[4];
 };
 
-struct SC_JOIN_PARTY_FAIL_PACK {
+struct SC_PARTY_JOIN_FAIL_PACK {
 	char size;
 	char type;
 };
 
-struct SC_JOIN_PARTY_SUCCESS_PACK {
+struct SC_PARTY_JOIN_SUCCESS_PACK {
 	char size;
 	char type;
 };
 
-struct SC_LEAVE_PARTY_FAIL_PACK {
+struct SC_PARTY_LEAVE_FAIL_PACK {
 	char size;
 	char type;
 };
 
-struct SC_LEAVE_PARTY_SUCCESS_PACK {
+struct SC_PARTY_LEAVE_SUCCESS_PACK {
 	char size;
 	char type;
 };

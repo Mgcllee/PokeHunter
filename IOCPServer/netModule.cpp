@@ -129,12 +129,13 @@ void process_packet(short c_uid, char* packet)
 		clients[c_uid].do_send(&item_pack);
 	}
 	break;
-	case CS_SEARCHING_PARTY:
+	case CS_PARTY_SEARCHING:
 	{
 		//send party list
 		SC_PARTY_LIST_INFO_PACK party_list;
 		party_list.size = sizeof(SC_PARTY_LIST_INFO_PACK);
 		party_list.type = SC_PARTY_LIST_INFO;
+
 		strcpy_s(party_list._name, "TEST PARTY");
 		party_list._staff_member = 1;	// char«¸ ¡÷¿«
 
@@ -167,9 +168,9 @@ void process_packet(short c_uid, char* packet)
 		clients[c_uid].do_send(&in_party);
 	}
 	break;
-	case CS_JOIN_PARTY:
+	case CS_PARTY_JOIN:
 	{
-		CS_JOIN_PARTY_PACK* new_staff = reinterpret_cast<CS_JOIN_PARTY_PACK*>(packet);
+		CS_PARTY_JOIN_PACK* new_staff = reinterpret_cast<CS_PARTY_JOIN_PACK*>(packet);
 
 		char* staff_name{};
 		char staff_pet = static_cast<char>(1);
@@ -178,22 +179,22 @@ void process_packet(short c_uid, char* packet)
 		partys[new_staff->party_num].new_member(staff_name, staff_pet);
 	}
 	break;
-	case CS_LEAVE_PARTY:
+	case CS_PARTY_LEAVE:
 	{
-		CS_LEAVE_PARTY_PACK* old_staff = reinterpret_cast<CS_LEAVE_PARTY_PACK*>(packet);
+		CS_PARTY_LEAVE_PACK* old_staff = reinterpret_cast<CS_PARTY_LEAVE_PACK*>(packet);
 
 		// checking_DB(old_staff->name, c_uid);
 		
 		if (/*checking data && save data*/ partys[old_staff->party_num].out_party_staff(old_staff->name)) {
-			SC_LEAVE_PARTY_SUCCESS_PACK leave_pack;
-			leave_pack.size = sizeof(SC_LEAVE_PARTY_SUCCESS_PACK);
-			leave_pack.type = SC_LEAVE_PARTY_SUCCESS;
+			SC_PARTY_LEAVE_SUCCESS_PACK leave_pack;
+			leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
+			leave_pack.type = SC_PARTY_LEAVE_SUCCESS;
 			clients[c_uid].do_send(&leave_pack);
 		}
 		else {
-			SC_LEAVE_PARTY_FAIL_PACK fail_leave_pack;
-			fail_leave_pack.size = sizeof(SC_LEAVE_PARTY_FAIL_PACK);
-			fail_leave_pack.type = SC_LEAVE_PARTY_FAIL;
+			SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
+			fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
+			fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
 			clients[c_uid].do_send(&fail_leave_pack);
 		}
 	}

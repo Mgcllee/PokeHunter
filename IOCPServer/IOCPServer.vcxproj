@@ -139,7 +139,25 @@
     <ClInclude Include="protocol.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets" Condition="Exists('..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-Lambda.redist.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-Lambda.redist.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.redist.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-Lambda.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.targets" Condition="Exists('..\packages\AWSSDKCPP-Lambda.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-Lambda.symbols.0.12.20150331.12\build\native\AWSSDKCPP-Lambda.symbols.targets" Condition="Exists('..\packages\AWSSDKCPP-Lambda.symbols.0.12.20150331.12\build\native\AWSSDKCPP-Lambda.symbols.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-Lambda.redist.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Lambda.redist.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-Lambda.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Lambda.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-Lambda.symbols.0.12.20150331.12\build\native\AWSSDKCPP-Lambda.symbols.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Lambda.symbols.0.12.20150331.12\build\native\AWSSDKCPP-Lambda.symbols.targets'))" />
+  </Target>
 </Project>
