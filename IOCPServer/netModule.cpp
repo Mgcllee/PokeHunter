@@ -132,12 +132,12 @@ void process_packet(short c_uid, char* packet)
 	case CS_PARTY_SEARCHING:
 	{
 		//send party list
-		SC_PARTY_LIST_INFO_PACK party_list;
-		party_list.size = sizeof(SC_PARTY_LIST_INFO_PACK);
+		SC_PARTIES_INFO_PACK party_list;
+		party_list.size = sizeof(SC_PARTIES_INFO_PACK);
 		party_list.type = SC_PARTY_LIST_INFO;
 
 		strcpy_s(party_list._name, "TEST PARTY");
-		party_list._staff_member = 1;	// char형 주의
+		party_list._staff_count = 1;	// char형 주의
 
 		clients[c_uid].do_send(&party_list);
 	}
@@ -168,7 +168,12 @@ void process_packet(short c_uid, char* packet)
 		clients[c_uid].do_send(&in_party);
 	}
 	break;
-	case CS_PARTY_JOIN:
+	case CS_PARTY_READY:	// 파티 시작 준비완료
+	{
+
+	}
+	break;
+	case CS_PARTY_JOIN:		// 파티가 Survival Stage에 입장한다는 신호
 	{
 		CS_PARTY_JOIN_PACK* new_staff = reinterpret_cast<CS_PARTY_JOIN_PACK*>(packet);
 
@@ -176,16 +181,14 @@ void process_packet(short c_uid, char* packet)
 		char staff_pet = static_cast<char>(1);
 		strncpy_s(staff_name, sizeof(staff_name), "empty", sizeof("empty"));
 
-		partys[new_staff->party_num].new_member(staff_name, staff_pet);
+		// partys[new_staff->party_num].new_member();
 	}
 	break;
 	case CS_PARTY_LEAVE:
 	{
 		CS_PARTY_LEAVE_PACK* old_staff = reinterpret_cast<CS_PARTY_LEAVE_PACK*>(packet);
 
-		// checking_DB(old_staff->name, c_uid);
-		
-		if (/*checking data && save data*/ partys[old_staff->party_num].out_party_staff(old_staff->name)) {
+		if (/*checking data && save data*/ partys[old_staff->party_num].leave_member(old_staff->name)) {
 			SC_PARTY_LEAVE_SUCCESS_PACK leave_pack;
 			leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
 			leave_pack.type = SC_PARTY_LEAVE_SUCCESS;

@@ -16,6 +16,7 @@
 
 enum TYPE { ACCEPT, RECV, SEND };
 enum CLIENT_STATE { ST_FREE, ST_ALLOC, ST_INGAME };
+enum PLAYER_STATE { ST_HOME, ST_NOTREADY, ST_READY, ST_STAGE };
 
 class OVER_EXP {
 public:
@@ -64,7 +65,39 @@ public:
 	CLIENT_STATE _state;
 	std::mutex _lock;
 
+	PLAYER_STATE _player_state;
+
 	SESSION() {
+		_socket = 0;
+		_uid = -1;
+		strncpy_s(_name, "empty", strlen("empty"));
+		_prev_size = 0;
+		_pet_num = -1;
+		_state = ST_FREE;
+	}
+
+	SESSION& operator=(SESSION& ref) {
+		strncpy_s(this->_name, ref.get_name(), strlen(ref.get_name()));
+		this->_socket = ref._socket;
+		this->_prev_size = ref._prev_size;
+
+		this->_uid = ref._uid;
+		this->_pet_num = ref._pet_num;
+		this->_player_skin = ref._player_skin;
+
+		strncpy_s(this->Collection, ref.Collection, strlen(ref.Collection));
+		strncpy_s(this->Install, ref.Install, strlen(ref.Install));
+		strncpy_s(this->Launcher, ref.Launcher, strlen(ref.Launcher));
+		strncpy_s(this->Potion, ref.Potion, strlen(ref.Potion));
+
+		this->_q_item = ref._q_item;
+		strncpy_s(this->_q_skill, ref._q_skill, strlen(ref._q_skill));
+
+		this->_state = ref._state;
+		this->_player_state = ref._player_state;
+	}
+
+	void clear() {
 		_socket = 0;
 		_uid = -1;
 		strncpy_s(_name, "empty", strlen("empty"));
@@ -133,69 +166,56 @@ public:
 
 class PARTY {
 private:
-	std::array<char[CHAR_SIZE], 4> member;
-	std::array<char, 4> pets;
+	char party_name[CHAR_SIZE];
+	std::array<SESSION, 4> member;
+	short mem_count{};
 
 public:
 	PARTY() {
-		for (char* name : member) {
-			strncpy_s(name, sizeof(name), "empty", sizeof("empty"));
-		}
-		for (char p : pets) {
-			p = -1;
-		}
+		
 	}
 	~PARTY() {
-		// free(&member);
-		// free(&pets);
+		
 	}
 
 	short get_member_count() {
-		short count = 0;
-		for (char* name : member) {
-			if (0 != strcmp(name, "empty")) {
-				count += 1;
-			}
-		}
-		return count;
+		return mem_count;
 	}
 
-	bool new_member(char* in_name, char in_pet_num) {
-		for (int i = 0; i < member.size(); ++i) {
-			if (0 == strcmp(member[i], "empty")) {	// 빈자리 발견
-				
-				strncpy_s(member[i], sizeof(member[i]), in_name, sizeof(in_name));
-				
-				if (0 <= in_pet_num) {
-					pets[i] = in_pet_num;
-				}
+	bool new_member(SESSION& new_mem) {
+		if (mem_count >= 4) return false;
 
+		for (SESSION& mem : member) {
+			if (0 == strcmp(mem.get_name(), "empty")) {
+				mem = new_mem;
+				mem_count += 1;
+				return true;
+			}
+		}
+	}
+
+	bool leave_member(char* mem_name) {
+		if (mem_count <= 0) return false;
+
+		for (SESSION& mem : member) {
+			if (0 == strcmp(mem.get_name(), mem_name)) {
+				mem.clear();
+				mem_count -= 1;
 				return true;
 			}
 		}
 
+		// 탐색된 파티원 중 입력된 파티원 정보 없음
 		return false;
 	}
 
 	void get_party_info(std::array<char[CHAR_SIZE], 4>& in_member, std::array<char, 4>& in_pet) {
 		for (int i = 0; i < 4; ++i) {
-			if (0 != strcmp(member[i], "emtpy")) {
-				strncpy_s(in_member[i], sizeof(in_member[i]), member[i], sizeof(member[i]));
-				in_pet[i] = pets[i];
+			if (0 != strcmp(member[i].get_name(), "emtpy")) {
+				strncpy_s(in_member[i], member[i].get_name(), sizeof(member[i]).get_name());
+				in_pet[i] = member[i]._pet_num;
 			}
 		}
-	}
-
-	// staff leave party
-	bool out_party_staff(char* in_name) {
-		for (int i = 0; i < 4; ++i) {
-			if (0 == strcmp(in_name, member[i])) {
-				strncpy_s(member[i], sizeof(member[i]), "empty", sizeof("empty"));
-				pets[i] = -1;
-				return true;
-			}
-		}
-		return false;
 	}
 };
 

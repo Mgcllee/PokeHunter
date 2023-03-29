@@ -115,10 +115,6 @@ struct SC_LOGIN_INFO_PACK {
 	char type;
 	char name[CHAR_SIZE];
 	
-	// short x, y, z, direction;
-	// character ability and skin ...
-	// player item ...
-
 	char _player_skin;
 	char _pet_num;
 	
@@ -135,19 +131,19 @@ struct SC_MOVE_PACK {
 	short z;
 };
 
-struct SC_PARTY_LIST_INFO_PACK {
+struct SC_PARTIES_INFO_PACK {	// 파티의 요약정보
 	char size;
 	char type;
 
-	char _name[CHAR_SIZE];	// 파티 이름
-	char _staff_member;		// 파티인원 (1~4명)
+	char _name[CHAR_SIZE];		// 파티의 이름
+	char _staff_count;			// 파티원 수
 };
 
-struct SC_PARTY_INFO_PACK {
+struct SC_PARTY_INFO_PACK {		// (최대 4인) 파티원의 정보
 	char size;
 	char type;
 
-	char _mem[4][CHAR_SIZE];	// 비어있어도 사용
+	char _mem[4][CHAR_SIZE];
 	char _mem_pet[4];
 };
 
