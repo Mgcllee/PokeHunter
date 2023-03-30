@@ -192,6 +192,9 @@ public:
 				return true;
 			}
 		}
+		
+		// leave_member()가 작동오류를 했거나, 초기화가 문제임
+		return false;
 	}
 
 	bool leave_member(char* mem_name) {
