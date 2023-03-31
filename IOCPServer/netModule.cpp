@@ -93,14 +93,16 @@ void process_packet(short c_uid, char* packet)
 	break;
 	case CS_QUEST_INVENTORY:
 	{
+		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
 		Get_IDB(c_uid);
 
+		// 재사용할 아이템 패킷
+		// 재사용시, Zeromemory로 초기화 필요한지 확인 필요.(데이터 오류 방지)
+		SC_ITEM_INFO_PACK item_pack;
+		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
+		item_pack.type = SC_ITEM_INFO;
+
 		for (short i = 0; i < MAX_ITEM_COUNT; ++i) {
-
-			SC_ITEM_INFO_PACK item_pack;
-			item_pack.size = sizeof(SC_ITEM_INFO_PACK);
-			item_pack.type = SC_ITEM_INFO;
-
 			if (0 < clients[c_uid].Collection[i]) {
 				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(1, false) + std::format("{0:0>2}", i)).c_str(), 4);
 				item_pack._cnt = clients[c_uid].Collection[i];
@@ -117,15 +119,10 @@ void process_packet(short c_uid, char* packet)
 				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(4, false) + std::format("{0:0>2}", i)).c_str(), 4);
 				item_pack._cnt = clients[c_uid].Potion[i];
 			}
-
 			clients[c_uid].do_send(&item_pack);
 		}
-
-		SC_ITEM_INFO_PACK item_pack;
-		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
-		item_pack.type = SC_ITEM_INFO;
+		// name을 theEnd로 보내서 아이템 전송이 종료됨을 알림(패킷을 재사용)
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
-		item_pack._cnt = 0;
 		clients[c_uid].do_send(&item_pack);
 	}
 	break;

@@ -306,7 +306,6 @@ bool Get_IDB(short in_c_uid) {
 										WideCharToMultiByte(CP_ACP, 0, &ItemCnt[dbi], -1, db_itemCnt, strSize, 0, 0);
 
 										if (0 != ItemCnt[dbi]) {
-											// clients[in_c_uid].set_item(Get_ItemID(db_table_name).c_str(), (char)i, (short)ItemCnt[i]);
 											clients[in_c_uid].set_item(Get_ItemID(item_index, false).c_str(), (char)i, (short)ItemCnt[i]);
 										}
 									}
