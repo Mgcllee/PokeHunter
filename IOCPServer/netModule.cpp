@@ -94,14 +94,19 @@ void process_packet(short c_uid, char* packet)
 	case CS_QUEST_INVENTORY:
 	{
 		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
-		Get_IDB(c_uid);
+		// Get_IDB(c_uid);
 
 		// 재사용할 아이템 패킷
 		// 재사용시, Zeromemory로 초기화 필요한지 확인 필요.(데이터 오류 방지)
 		SC_ITEM_INFO_PACK item_pack;
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 		item_pack.type = SC_ITEM_INFO;
+		strncpy_s(item_pack._name, CHAR_SIZE, "TestItem", strlen("TestItem"));
+		item_pack._cnt = 7;
 
+		clients[c_uid].do_send(&item_pack);
+
+		/*
 		for (short i = 0; i < MAX_ITEM_COUNT; ++i) {
 			if (0 < clients[c_uid].Collection[i]) {
 				strncpy_s(item_pack._name, CHAR_SIZE, (Get_ItemID(1, false) + std::format("{0:0>2}", i)).c_str(), 4);
@@ -121,9 +126,11 @@ void process_packet(short c_uid, char* packet)
 			}
 			clients[c_uid].do_send(&item_pack);
 		}
+
 		// name을 theEnd로 보내서 아이템 전송이 종료됨을 알림(패킷을 재사용)
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);
+		*/
 	}
 	break;
 	case CS_PARTY_SEARCHING:
@@ -133,7 +140,7 @@ void process_packet(short c_uid, char* packet)
 		party_list.size = sizeof(SC_PARTIES_INFO_PACK);
 		party_list.type = SC_PARTY_LIST_INFO;
 
-		strcpy_s(party_list._name, "TEST PARTY");
+		strncpy_s(party_list._name, "TEST PARTY", strlen("TEST PARTY"));
 		party_list._staff_count = 1;	// char형 주의
 
 		clients[c_uid].do_send(&party_list);
