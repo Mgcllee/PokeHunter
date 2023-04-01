@@ -21,6 +21,7 @@ constexpr char CS_PARTY_JOIN			= 5;
 constexpr char CS_PARTY_LEAVE			= 6;
 
 constexpr char CS_QUEST_INVENTORY		= 7;
+constexpr char CS_SAVE_INVENTORY		= 8;
 constexpr char CS_LOGOUT				= 9;
 
 constexpr char SC_LOGIN_FAIL			= 10;
@@ -55,6 +56,14 @@ struct CS_LOGIN_PACK {
 struct CS_QUEST_INVENTORY_PACK {
 	char size;
 	char type;
+};
+
+struct CS_SAVE_INVENTORY_PACK {
+	char size;
+	char type;
+
+	char _name[CHAR_SIZE];
+	char _cnt;
 };
 
 struct CS_MOVE_PACK {
