@@ -3,7 +3,7 @@
 constexpr int MAX_USER					= 100;
 constexpr int MAX_PARTY					= 100;
 constexpr int BUF_SIZE					= 128;
-constexpr int PORT_NUM					= 7777;
+constexpr int PORT_NUM					= 9999;
 
 constexpr short MAX_ITEM_CATEGORY		= 4;
 constexpr short MAX_ITEM_COUNT			= 9;

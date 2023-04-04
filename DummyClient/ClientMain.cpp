@@ -13,6 +13,9 @@ using namespace std;
 void ShowErrorMessage(string message)
 {
 	cout << "[오류발생]: " << message << '\n';
+
+	cout << "ErrorCode: " << WSAGetLastError();
+
 	system("pause");
 	exit(1);
 }

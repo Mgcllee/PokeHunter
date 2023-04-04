@@ -269,7 +269,7 @@ void worker_thread(HANDLE h_iocp)
 				// disconnect client
 			}
 		}
-		// if ((0 == num_bytes) && (ex_over->c_type == RECV)) continue;
+		if ((0 == num_bytes) && (ex_over->c_type == RECV)) continue;
 
 		switch (ex_over->c_type) {
 		case ACCEPT:	// accept new client
