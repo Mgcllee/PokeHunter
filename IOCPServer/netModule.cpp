@@ -94,7 +94,7 @@ void process_packet(short c_uid, char* packet)
 	case CS_QUEST_INVENTORY:
 	{
 		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
-		// Get_IDB(c_uid);
+		Get_IDB(c_uid);
 
 		// 재사용할 아이템 패킷
 		// 재사용시, Zeromemory로 초기화 필요한지 확인 필요.(데이터 오류 방지)
@@ -102,20 +102,22 @@ void process_packet(short c_uid, char* packet)
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 		item_pack.type = SC_ITEM_INFO;
 
+		// IDB Test Packet
+		/*
 		strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
 		item_pack._cnt = 99;
 		clients[c_uid].do_send(&item_pack);
-
-		strncpy_s(item_pack._name, CHAR_SIZE, "potion", strlen("potion"));
+		strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
 		item_pack._cnt = 99;
 		clients[c_uid].do_send(&item_pack);
-
-		strncpy_s(item_pack._name, CHAR_SIZE, "trap", strlen("trap"));
+		strncpy_s(item_pack._name, CHAR_SIZE, "firebullet", strlen("firebullet"));
 		item_pack._cnt = 99;
 		clients[c_uid].do_send(&item_pack);
+		*/
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);
+		std::cout << "Send inventory data\n";
 	}
 	break;
 	case CS_SAVE_INVENTORY:
