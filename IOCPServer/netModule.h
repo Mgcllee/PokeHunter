@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "stdafx.h"
 #include "protocol.h"
@@ -48,9 +48,9 @@ class SESSION {
 	char _name[CHAR_SIZE];
 public:
 	SOCKET _socket;
-	int _prev_size;	// ÀçÁ¶¸³¿¡¼­ »ç¿ë
+	int _prev_size;	// ì¬ì¡°ë¦½ì—ì„œ ì‚¬ìš©
 
-	short _uid;		// ¼­¹ö¿ë ÇÃ·¹ÀÌ¾î °íÀ¯ ID	
+	short _uid;		// ì„œë²„ìš© í”Œë ˆì´ì–´ ê³ ìœ  ID	
 	char _pet_num;
 	char _player_skin;
 
@@ -61,6 +61,9 @@ public:
 
 	char _q_item;
 	char _q_skill[4];
+
+	char _party_num;		// íŒŒí‹° ê³ ìœ  ë²ˆí˜¸
+	char _party_staff_num;	// íŒŒí‹° ë‚´ ë©¤ë²„ ë²ˆí˜¸
 
 	CLIENT_STATE _state;
 	std::mutex _lock;
@@ -167,7 +170,6 @@ public:
 class PARTY {
 private:
 	char party_name[CHAR_SIZE];
-	std::array<SESSION, 4> member;
 	short mem_count{};
 
 public:
@@ -177,6 +179,8 @@ public:
 	~PARTY() {
 		
 	}
+
+	std::array<SESSION, 4> member;
 
 	short get_member_count() {
 		return mem_count;
@@ -193,7 +197,7 @@ public:
 			}
 		}
 		
-		// leave_member()°¡ ÀÛµ¿¿À·ù¸¦ Çß°Å³ª, ÃÊ±âÈ­°¡ ¹®Á¦ÀÓ
+		// leave_member()ê°€ ì‘ë™ì˜¤ë¥˜ë¥¼ í–ˆê±°ë‚˜, ì´ˆê¸°í™”ê°€ ë¬¸ì œì„
 		return false;
 	}
 
@@ -208,7 +212,7 @@ public:
 			}
 		}
 
-		// Å½»öµÈ ÆÄÆ¼¿ø Áß ÀÔ·ÂµÈ ÆÄÆ¼¿ø Á¤º¸ ¾øÀ½
+		// íƒìƒ‰ëœ íŒŒí‹°ì› ì¤‘ ì…ë ¥ëœ íŒŒí‹°ì› ì •ë³´ ì—†ìŒ
 		return false;
 	}
 
@@ -226,7 +230,7 @@ extern OVER_EXP g_a_over;
 extern HANDLE h_iocp;
 extern SOCKET g_s_socket, g_c_socket;
 
-extern std::array<SESSION, MAX_USER> clients;	// ÇÃ·¹ÀÌ¾î's ÄÁÅ×ÀÌ³Ê
+extern std::array<SESSION, MAX_USER> clients;	// í”Œë ˆì´ì–´'s ì»¨í…Œì´ë„ˆ
 extern std::array<PARTY, MAX_PARTY> partys;
 
 void worker_thread(HANDLE h_iocp);

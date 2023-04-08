@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 
 #include "DBModule.h"
 
-std::array<SESSION, MAX_USER> clients;	// ÇÃ·¹ÀÌ¾î's ÄÁÅ×ÀÌ³Ê
+std::array<SESSION, MAX_USER> clients;	// í”Œë ˆì´ì–´'s ì»¨í…Œì´ë„ˆ
 std::array<PARTY, MAX_PARTY> partys;
 
 void process_packet(short c_uid, char* packet)
@@ -15,7 +15,7 @@ void process_packet(short c_uid, char* packet)
 		char db_name[CHAR_SIZE], db_skill[4];
 		char db_skin, db_pet, db_item;
 
-		// AWS Cognito ¿¡¼­ ÀÎÁõµÈ »ç¿ëÀÚ¸¸ ÀÔÀå
+		// AWS Cognito ì—ì„œ ì¸ì¦ëœ ì‚¬ìš©ìë§Œ ì…ì¥
 		if (Login_UDB(p->id, p->pw, new_c_uid, db_name, db_skin, db_pet, db_item, db_skill) && new_c_uid != -1) {
 			clients[c_uid].set_name(db_name);
 			
@@ -32,7 +32,7 @@ void process_packet(short c_uid, char* packet)
 				{
 					std::lock_guard<std::mutex> ll{ cl._lock };
 					if (ST_INGAME != cl._state) continue;
-					// Å¬¶óÀÌ¾ğÆ®ÀÇ »óÅÂ°¡ INGAMEÀÌ ¾Æ´Ï¶ó¸é ÆĞÅ¶À» º¸³¾ ÇÊ¿ä°¡ ¾øÀ½
+					// í´ë¼ì´ì–¸íŠ¸ì˜ ìƒíƒœê°€ INGAMEì´ ì•„ë‹ˆë¼ë©´ íŒ¨í‚·ì„ ë³´ë‚¼ í•„ìš”ê°€ ì—†ìŒ
 				}
 
 				if (0 == strcmp(cl.get_name(), clients[c_uid].get_name())) {
@@ -50,13 +50,13 @@ void process_packet(short c_uid, char* packet)
 			info_pack._q_item = db_item;
 			strncpy_s(info_pack._q_skill, sizeof(info_pack._q_skill), db_skill + '\0', sizeof(db_skill) + 1);
 		
-			// »õ·Î Á¢¼ÓÇÑ Å¬¶óÀÌ¾ğÆ® Á¤º¸¸¦ ´Ù¸¥ ±âÁ¸ Å¬¶óÀÌ¾ğÆ®µé¿¡°Ô Àü¼Û
+			// ìƒˆë¡œ ì ‘ì†í•œ í´ë¼ì´ì–¸íŠ¸ ì •ë³´ë¥¼ ë‹¤ë¥¸ ê¸°ì¡´ í´ë¼ì´ì–¸íŠ¸ë“¤ì—ê²Œ ì „ì†¡
 			for (SESSION& cl : clients) {
 				if (0 != strcmp(cl.get_name(), "empty")) {
-					// ¼Û½Å ºÒÇÊ¿ä ´ë»ó
+					// ì†¡ì‹  ë¶ˆí•„ìš” ëŒ€ìƒ
 					if (ST_INGAME != cl._state)	continue;
 					if (c_uid == cl._uid)		continue;
-					// ¼Û½Å ÇÊ¿ä ´ë»ó
+					// ì†¡ì‹  í•„ìš” ëŒ€ìƒ
 					cl.do_send(&info_pack);
 				}
 			}
@@ -65,9 +65,9 @@ void process_packet(short c_uid, char* packet)
 			old_info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 			old_info_pack.type = SC_LOGIN_INFO;
 
-			// »õ·Î¿î Å¬¶óÀÌ¾ğÆ®¿¡°Ô ±âÁ¸ Å¬¶óÀÌ¾ğÆ®µé Á¤º¸¸¦ ÀüºÎ Àü¼Û
+			// ìƒˆë¡œìš´ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê¸°ì¡´ í´ë¼ì´ì–¸íŠ¸ë“¤ ì •ë³´ë¥¼ ì „ë¶€ ì „ì†¡
 			for (SESSION& cl : clients) {
-				// »õ·Î¿î Å¬¶óÀÌ¾ğÆ®¿¡°Ô ÀÚ±â ÀÚ½ÅÀÇ Á¤º¸´Â º¸³¾ ÇÊ¿ä ¾øÀ½(À§ ¹İº¹¹®°ú Áßº¹µÊ)
+				// ìƒˆë¡œìš´ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ìê¸° ìì‹ ì˜ ì •ë³´ëŠ” ë³´ë‚¼ í•„ìš” ì—†ìŒ(ìœ„ ë°˜ë³µë¬¸ê³¼ ì¤‘ë³µë¨)
 				if (new_c_uid != cl._uid) { 
 					old_info_pack.name;
 					// strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
@@ -75,7 +75,7 @@ void process_packet(short c_uid, char* packet)
 					if (ST_INGAME != cl._state)	continue;
 					if (c_uid == cl._uid)				continue;
 
-					// »õ·Î¿î Å¬¶óÀÌ¾ğÆ®¿¡°Ô Àü¼Û
+					// ìƒˆë¡œìš´ í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ì „ì†¡
 					clients[new_c_uid].do_send(&old_info_pack);
 				}
 			}
@@ -93,27 +93,26 @@ void process_packet(short c_uid, char* packet)
 	break;
 	case CS_QUEST_INVENTORY:
 	{
-		// DB¿¡¼­ c_uid¿¡ ÇØ´çÇÏ´Â ¾ÆÀÌÅÛ Á¤º¸ °¡Á®¿À±â
-		Get_IDB(c_uid);
+		// DBì—ì„œ c_uidì— í•´ë‹¹í•˜ëŠ” ì•„ì´í…œ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
+		// Get_IDB(c_uid);
 
-		// Àç»ç¿ëÇÒ ¾ÆÀÌÅÛ ÆĞÅ¶
-		// Àç»ç¿ë½Ã, Zeromemory·Î ÃÊ±âÈ­ ÇÊ¿äÇÑÁö È®ÀÎ ÇÊ¿ä.(µ¥ÀÌÅÍ ¿À·ù ¹æÁö)
+		// ì¬ì‚¬ìš©í•  ì•„ì´í…œ íŒ¨í‚·
+		// ì¬ì‚¬ìš©ì‹œ, Zeromemoryë¡œ ì´ˆê¸°í™” í•„ìš”í•œì§€ í™•ì¸ í•„ìš”.(ë°ì´í„° ì˜¤ë¥˜ ë°©ì§€)
 		SC_ITEM_INFO_PACK item_pack;
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 		item_pack.type = SC_ITEM_INFO;
 
-		// IDB Test Packet
-		/*
 		strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
 		item_pack._cnt = 99;
 		clients[c_uid].do_send(&item_pack);
+
 		strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
 		item_pack._cnt = 99;
 		clients[c_uid].do_send(&item_pack);
+
 		strncpy_s(item_pack._name, CHAR_SIZE, "firebullet", strlen("firebullet"));
 		item_pack._cnt = 99;
 		clients[c_uid].do_send(&item_pack);
-		*/
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);
@@ -124,33 +123,52 @@ void process_packet(short c_uid, char* packet)
 	{
 		CS_SAVE_INVENTORY_PACK* save_pack = reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet);
 		
-		// DB ÀúÀå ³¡
+		// DB ì €ì¥ ë
 		if (0 == strcmp(save_pack->_name, "theEnd")) {
 			save_pack->_name;
 			save_pack->_cnt;
 		}
 		else {
-			// DB¿¡¼­ c_uid¿¡ ÇØ´çÇÏ´Â ¾ÆÀÌÅÛ Á¤º¸ ÀúÀåÇÏ±â
+			// DBì—ì„œ c_uidì— í•´ë‹¹í•˜ëŠ” ì•„ì´í…œ ì •ë³´ ì €ì¥í•˜ê¸°
 			// Get_IDB(c_uid);
 		}
 	}
 	break;
 	case CS_PARTY_SEARCHING:
 	{
-		//send party list
 		SC_PARTIES_INFO_PACK party_list;
 		party_list.size = sizeof(SC_PARTIES_INFO_PACK);
 		party_list.type = SC_PARTY_LIST_INFO;
 
-		strncpy_s(party_list._name, "TEST PARTY", strlen("TEST PARTY"));
-		party_list._staff_count = 1;	// charÇü ÁÖÀÇ
-
+		strncpy_s(party_list._name, "ì–´ì„œì˜¤ê³ ", strlen("ì–´ì„œì˜¤ê³ "));
+		party_list._staff_count = 3;	// charí˜• ì£¼ì˜
 		clients[c_uid].do_send(&party_list);
+
+		strncpy_s(party_list._name, "ì‘ê°€ê³ ", strlen("ì‘ê°€ê³ "));
+		party_list._staff_count = 2;	// charí˜• ì£¼ì˜
+		clients[c_uid].do_send(&party_list);
+
+		strncpy_s(party_list._name, "ë¡¥?", strlen("ë¡¥?"));
+		party_list._staff_count = 1;	// charí˜• ì£¼ì˜
+		clients[c_uid].do_send(&party_list);
+
+		strncpy_s(party_list._name, "ë‹¹ì¥ì¶œë°œ!", strlen("ë‹¹ì¥ì¶œë°œ!"));
+		party_list._staff_count = 4;	// charí˜• ì£¼ì˜
+		clients[c_uid].do_send(&party_list);
+
+		strncpy_s(party_list._name, "í•˜ì‹¤ë¶„?", strlen("í•˜ì‹¤ë¶„?"));
+		party_list._staff_count = 4;	// charí˜• ì£¼ì˜
+		clients[c_uid].do_send(&party_list);
+
+		strncpy_s(party_list._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
+		clients[c_uid].do_send(&party_list);
+
+		std::cout << "Send Party List!\n";
 	}
 	break;
 	case CS_PARTY_INFO:
 	{
-		// ÇÃ·¹ÀÌ¾î°¡ ÆÄÆ¼·ë¿¡ ÀÔÀå
+		// í”Œë ˆì´ì–´ê°€ íŒŒí‹°ë£¸ì— ì…ì¥
 		CS_PARTY_INFO_PACK* party_info = reinterpret_cast<CS_PARTY_INFO_PACK*>(packet);
 
 		short party_num = static_cast<int>(party_info->party_num);
@@ -175,20 +193,45 @@ void process_packet(short c_uid, char* packet)
 		clients[c_uid].do_send(&in_party);
 	}
 	break;
-	case CS_PARTY_READY:	// ÆÄÆ¼ ½ÃÀÛ ÁØºñ¿Ï·á
+	case CS_PARTY_READY:	// íŒŒí‹° ì‹œì‘ ì¤€ë¹„ì™„ë£Œ
 	{
+		clients[c_uid]._player_state = ST_READY;
 
+		SC_PARTY_STAFF_READY_PACK ready_pack;
+		ready_pack.size = sizeof(SC_PARTY_STAFF_READY_PACK);
+		ready_pack.type = SC_PARTY_STAFF_READY;
+		ready_pack._staff_num = clients[c_uid]._party_staff_num;
+
+		for (SESSION& cl : partys[clients[c_uid]._party_num].member) {
+			if (cl._party_staff_num == clients[c_uid]._party_staff_num) continue;
+			else cl.do_send(&ready_pack);
+		}
 	}
 	break;
-	case CS_PARTY_JOIN:		// ÆÄÆ¼°¡ Survival Stage¿¡ ÀÔÀåÇÑ´Ù´Â ½ÅÈ£
+	case CS_PARTY_JOIN:		// íŒŒí‹°ê°€ Survival Stageì— ì…ì¥í•œë‹¤ëŠ” ì‹ í˜¸(ì„œë²„ì—ì„œ ì „ì†¡í•¨)
 	{
-		CS_PARTY_JOIN_PACK* new_staff = reinterpret_cast<CS_PARTY_JOIN_PACK*>(packet);
+		char staff_ready_num = 0;
 
-		char* staff_name{};
-		char staff_pet = static_cast<char>(1);
-		strncpy_s(staff_name, sizeof(staff_name), "empty", sizeof("empty"));
+		for (SESSION& cl : partys[clients[c_uid]._party_num].member) {
+			if (ST_READY == cl._player_state) staff_ready_num += 1;
+		}
 
-		// partys[new_staff->party_num].new_member();
+		if (partys[clients[c_uid]._party_num].member.size() == staff_ready_num) {
+			SC_PARTY_JOIN_SUCCESS_PACK fail_pack;
+			fail_pack.size = sizeof(SC_PARTY_JOIN_SUCCESS_PACK);
+			fail_pack.type = SC_PARTY_JOIN_SUCCESS;
+			for (SESSION& cl : partys[clients[c_uid]._party_num].member) {
+				cl.do_send(&fail_pack);
+			}
+		}
+		else {
+			SC_PARTY_JOIN_FAIL_PACK fail_pack;
+			fail_pack.size = sizeof(SC_PARTY_JOIN_FAIL_PACK);
+			fail_pack.type = SC_PARTY_JOIN_FAIL;
+			for (SESSION& cl : partys[clients[c_uid]._party_num].member) {
+				cl.do_send(&fail_pack);
+			}
+		}
 	}
 	break;
 	case CS_PARTY_LEAVE:
@@ -246,7 +289,7 @@ void disconnect(short c_uid)
 		// send logout packet
 	}
 
-	// client Á¤º¸ Á¤¸®
+	// client ì •ë³´ ì •ë¦¬
 	closesocket(clients[c_uid]._socket);
 	std::lock_guard<std::mutex> ll(clients[c_uid]._lock);
 	clients[c_uid]._state = ST_FREE;
@@ -261,7 +304,7 @@ void worker_thread(HANDLE h_iocp)
 		BOOL ret = GetQueuedCompletionStatus(h_iocp, &num_bytes, &key, &over, INFINITE);
 		OVER_EXP* ex_over = reinterpret_cast<OVER_EXP*>(over);
 
-		// error °ËÃâ±â
+		// error ê²€ì¶œê¸°
 		if (FALSE == ret) {
 			if (ex_over->c_type == ACCEPT) {
 				std::cout << "Accept error\n";
@@ -276,10 +319,10 @@ void worker_thread(HANDLE h_iocp)
 		switch (ex_over->c_type) {
 		case ACCEPT:	// accept new client
 		{
-			// newClient °íÀ¯¹øÈ£ ºÎ¿©, °ÔÀÓÁ¤º¸ ÀÔ·Â, ¿¬°á
+			// newClient ê³ ìœ ë²ˆí˜¸ ë¶€ì—¬, ê²Œì„ì •ë³´ ì…ë ¥, ì—°ê²°
 			short new_c_uid = get_player_uid();
 
-			if (-1 != new_c_uid) { // Á¢¼Ó ¼º°ø, Á¤º¸ ¹Ş±â
+			if (-1 != new_c_uid) { // ì ‘ì† ì„±ê³µ, ì •ë³´ ë°›ê¸°
 				{
 					std::lock_guard<std::mutex> ll{ clients[new_c_uid]._lock };
 					clients[new_c_uid]._state = ST_ALLOC;
@@ -295,10 +338,10 @@ void worker_thread(HANDLE h_iocp)
 				int addr_size = sizeof(SOCKADDR_IN);
 				AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
 
-				// Dummy Client È®ÀÎ¿ë
+				// Dummy Client í™•ì¸ìš©
 				std::cout << "NEW PLAYER!\n";
 			}
-			else {					// Á¢¼Ó ½ÇÆĞ
+			else {					// ì ‘ì† ì‹¤íŒ¨
 				std::cout << "connect fail\n";
 				break;
 			}
@@ -306,7 +349,7 @@ void worker_thread(HANDLE h_iocp)
 		break;
 		case RECV:		// get new message
 		{
-			// ÆĞÅ¶ ÀçÁ¶¸³
+			// íŒ¨í‚· ì¬ì¡°ë¦½
 			int remain_data = num_bytes + clients[key]._prev_size;
 			char* p = ex_over->_send_buf;
 

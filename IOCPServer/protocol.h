@@ -30,15 +30,16 @@ constexpr char SC_LOGIN_INFO			= 12;
 
 constexpr char SC_PARTY_LIST_INFO		= 13;
 constexpr char SC_PARTY_INFO			= 14;
-constexpr char SC_PARTY_START			= 15;
-constexpr char SC_PARTY_JOIN_FAIL		= 16;
-constexpr char SC_PARTY_JOIN_SUCCESS	= 17;
-constexpr char SC_PARTY_LEAVE_FAIL		= 18;
-constexpr char SC_PARTY_LEAVE_SUCCESS	= 19;
+constexpr char SC_PARTY_STAFF_READY		= 15;
+constexpr char SC_PARTY_START			= 16;
+constexpr char SC_PARTY_JOIN_FAIL		= 17;
+constexpr char SC_PARTY_JOIN_SUCCESS	= 18;
+constexpr char SC_PARTY_LEAVE_FAIL		= 19;
+constexpr char SC_PARTY_LEAVE_SUCCESS	= 20;
 
-constexpr char SC_LOGOUT_FAIL			= 20;
-constexpr char SC_LOGOUT_SUCCESS		= 21;
-constexpr char SC_ITEM_INFO				= 22;
+constexpr char SC_LOGOUT_FAIL			= 21;
+constexpr char SC_LOGOUT_SUCCESS		= 22;
+constexpr char SC_ITEM_INFO				= 23;
 
 
 
@@ -131,15 +132,6 @@ struct SC_LOGIN_INFO_PACK {
 	char _q_skill[4];
 };
 
-struct SC_MOVE_PACK {
-	char size;
-	char type;
-
-	short x;
-	short y;
-	short z;
-};
-
 struct SC_PARTIES_INFO_PACK {	// 파티의 요약정보
 	char size;
 	char type;
@@ -164,6 +156,13 @@ struct SC_PARTY_JOIN_FAIL_PACK {
 struct SC_PARTY_JOIN_SUCCESS_PACK {
 	char size;
 	char type;
+};
+
+struct SC_PARTY_STAFF_READY_PACK {
+	char size;
+	char type;
+
+	char _staff_num;
 };
 
 struct SC_PARTY_LEAVE_FAIL_PACK {
