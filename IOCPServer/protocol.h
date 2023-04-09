@@ -85,7 +85,12 @@ struct CS_PARTY_INFO_PACK {
 	char size;
 	char type;
 
-	char party_num;
+	char party_num;			// client에서 선택한 파티번호(UI번호)
+};
+
+struct CS_PARTY_READY_PACK {
+	char size;
+	char type;
 };
 
 struct CS_PARTY_JOIN_PACK {
@@ -140,12 +145,13 @@ struct SC_PARTIES_INFO_PACK {	// 파티의 요약정보
 	char _staff_count;			// 파티원 수
 };
 
-struct SC_PARTY_INFO_PACK {		// (최대 4인) 파티원의 정보
+struct SC_PARTY_INFO_PACK {		// 각 파티원의 세부 정보
 	char size;
 	char type;
 
-	char _mem[4][CHAR_SIZE];
-	char _mem_pet[4];
+	char _mem[CHAR_SIZE];
+	char _mem_pet;
+	char _mem_state;
 };
 
 struct SC_PARTY_JOIN_FAIL_PACK {

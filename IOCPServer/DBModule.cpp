@@ -252,6 +252,7 @@ std::string Get_ItemID(short item_ID, bool full_name) {
 			break;
 		}
 	}
+	return "Empty";
 }
 
 bool Get_IDB(short in_c_uid) {

@@ -3,7 +3,7 @@
 #include "DBModule.h"
 
 std::array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
-std::array<PARTY, MAX_PARTY> partys;
+std::array<PARTY, MAX_USER> parties;			// 총 파티 개수
 
 void process_packet(short c_uid, char* packet)
 {
@@ -52,7 +52,7 @@ void process_packet(short c_uid, char* packet)
 		
 			// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
 			for (SESSION& cl : clients) {
-				if (0 != strcmp(cl.get_name(), "empty")) {
+				if (0 != strcmp(cl.get_name(), "Empty")) {
 					// 송신 불필요 대상
 					if (ST_INGAME != cl._state)	continue;
 					if (c_uid == cl._uid)		continue;
@@ -140,87 +140,136 @@ void process_packet(short c_uid, char* packet)
 		party_list.size = sizeof(SC_PARTIES_INFO_PACK);
 		party_list.type = SC_PARTY_LIST_INFO;
 
-		strncpy_s(party_list._name, "어서오고", strlen("어서오고"));
-		party_list._staff_count = 3;	// char형 주의
+		/*
+		for (PARTY& pt : parties) {
+			if (0 == strcmp(pt._name, "Empty") && 0 == pt._mem_count) 
+				continue;
+
+			strncpy_s(party_list._name, pt._name, strlen(pt._name));
+			party_list._staff_count = pt._mem_count;
+			clients[c_uid].do_send(&party_list);
+		}
+		*/
+
+		strncpy_s(party_list._name, "임시방", strlen("임시방"));
+		party_list._staff_count = 0;
 		clients[c_uid].do_send(&party_list);
 
-		strncpy_s(party_list._name, "응가고", strlen("응가고"));
-		party_list._staff_count = 2;	// char형 주의
+		strncpy_s(party_list._name, "HiBye", strlen("HiBye"));
+		party_list._staff_count = 4;
 		clients[c_uid].do_send(&party_list);
 
-		strncpy_s(party_list._name, "롥?", strlen("롥?"));
-		party_list._staff_count = 1;	// char형 주의
-		clients[c_uid].do_send(&party_list);
-
-		strncpy_s(party_list._name, "당장출발!", strlen("당장출발!"));
-		party_list._staff_count = 4;	// char형 주의
-		clients[c_uid].do_send(&party_list);
-
-		strncpy_s(party_list._name, "하실분?", strlen("하실분?"));
-		party_list._staff_count = 4;	// char형 주의
+		strncpy_s(party_list._name, "초보환영", strlen("초보환영"));
+		party_list._staff_count = 4;
 		clients[c_uid].do_send(&party_list);
 
 		strncpy_s(party_list._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&party_list);
-
 		std::cout << "Send Party List!\n";
 	}
 	break;
 	case CS_PARTY_INFO:
 	{
-		// 플레이어가 파티룸에 입장
+		// 플레이어가 파티룸에 입장, 동시에 파티에 참여
 		CS_PARTY_INFO_PACK* party_info = reinterpret_cast<CS_PARTY_INFO_PACK*>(packet);
+		clients[c_uid]._party_num = static_cast<int>(party_info->party_num);
+		clients[c_uid]._player_state = ST_NOTREADY;
 
-		short party_num = static_cast<int>(party_info->party_num);
-		
-		std::array<char[CHAR_SIZE], 4> member;
-		std::array<char, 4> pets;
-		partys[party_num].get_party_info(member, pets);
-
-		// get partys[party_num] info
 		SC_PARTY_INFO_PACK in_party;
 		in_party.size = sizeof(SC_PARTY_INFO_PACK);
 		in_party.type = SC_PARTY_INFO;
 
-		if (0 <= party_num) {
-			short staff_member = partys[party_num].get_member_count();
-			for (int i = 0; i < staff_member; ++i) {
-				strncpy_s(in_party._mem[i], sizeof(in_party._mem[i]), member[i], sizeof(member[i]));
-				in_party._mem_pet[i] = pets[i];
+		for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
+			if (-1 == cl._uid) {
+				/*strncpy_s(in_party._mem, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
+				in_party._mem_pet = clients[c_uid]._pet_num;
+				in_party._mem_state = clients[c_uid]._player_state;*/
+				strncpy_s(in_party._mem, CHAR_SIZE, "뷁", CHAR_SIZE);
+				in_party._mem_pet = 1;
+				in_party._mem_state = ST_NOTREADY;
+				clients[c_uid].do_send(&in_party);
+				break;	// 마지막에 넣으므로 더 이상 반복할 필요가 없다.
+			}
+			else {
+				strncpy_s(in_party._mem, CHAR_SIZE, cl._name, CHAR_SIZE);
+				in_party._mem_pet = cl._pet_num;
+				in_party._mem_state = cl._player_state;
+				clients[c_uid].do_send(&in_party);
 			}
 		}
 
+		// Test Data
+		/*
+		strncpy_s(in_party._mem, CHAR_SIZE, "명철", strlen("명철"));
+		in_party._mem_pet = 3;
+		in_party._mem_state = ST_NOTREADY;
 		clients[c_uid].do_send(&in_party);
+
+		strncpy_s(in_party._mem, CHAR_SIZE, "현석", strlen("현석"));
+		in_party._mem_pet = 2;
+		in_party._mem_state = ST_READY;
+		clients[c_uid].do_send(&in_party);
+
+		strncpy_s(in_party._mem, CHAR_SIZE, "희재", strlen("희재"));
+		in_party._mem_pet = 1;
+		in_party._mem_state = ST_NOTREADY;
+		clients[c_uid].do_send(&in_party);
+		*/
+
+		strncpy_s(in_party._mem, CHAR_SIZE, "theEnd", strlen("theEnd"));
+		clients[c_uid].do_send(&in_party);
+
+		std::cout << "Send Party info\n";
 	}
 	break;
 	case CS_PARTY_READY:	// 파티 시작 준비완료
 	{
+		char ready_member = 0;
 		clients[c_uid]._player_state = ST_READY;
 
-		SC_PARTY_STAFF_READY_PACK ready_pack;
-		ready_pack.size = sizeof(SC_PARTY_STAFF_READY_PACK);
-		ready_pack.type = SC_PARTY_STAFF_READY;
-		ready_pack._staff_num = clients[c_uid]._party_staff_num;
+		for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
+			if (c_uid == cl._uid) continue;
 
-		for (SESSION& cl : partys[clients[c_uid]._party_num].member) {
-			if (cl._party_staff_num == clients[c_uid]._party_staff_num) continue;
-			else cl.do_send(&ready_pack);
+			if (ST_READY == cl._player_state)
+				ready_member += 1;
+		}
+
+		if (ready_member == parties[clients[c_uid]._party_num].member.size()) {
+			SC_PARTY_JOIN_SUCCESS_PACK ok_pack;
+			ok_pack.size = sizeof(SC_PARTY_JOIN_SUCCESS_PACK);
+			ok_pack.type = SC_PARTY_JOIN_SUCCESS;
+
+			for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
+				cl.do_send(&ok_pack);
+			}
+		}
+		else {
+			SC_PARTY_JOIN_FAIL_PACK fail_pack;
+			fail_pack.size = sizeof(SC_PARTY_JOIN_FAIL_PACK);
+			fail_pack.size = SC_PARTY_JOIN_FAIL;
+
+			for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
+				cl.do_send(&fail_pack);
+			}
 		}
 	}
 	break;
 	case CS_PARTY_JOIN:		// 파티가 Survival Stage에 입장한다는 신호(서버에서 전송함)
 	{
 		char staff_ready_num = 0;
+		CS_PARTY_JOIN_PACK* join_pack = reinterpret_cast<CS_PARTY_JOIN_PACK*>(packet);
+		
+		for (SESSION& cl : parties[join_pack->party_num].member) {
+			if (c_uid == cl._uid) continue;
 
-		for (SESSION& cl : partys[clients[c_uid]._party_num].member) {
-			if (ST_READY == cl._player_state) staff_ready_num += 1;
+
 		}
 
-		if (partys[clients[c_uid]._party_num].member.size() == staff_ready_num) {
+		if (parties[clients[c_uid]._party_num].member.size() == staff_ready_num) {
 			SC_PARTY_JOIN_SUCCESS_PACK fail_pack;
 			fail_pack.size = sizeof(SC_PARTY_JOIN_SUCCESS_PACK);
 			fail_pack.type = SC_PARTY_JOIN_SUCCESS;
-			for (SESSION& cl : partys[clients[c_uid]._party_num].member) {
+			for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
 				cl.do_send(&fail_pack);
 			}
 		}
@@ -228,7 +277,7 @@ void process_packet(short c_uid, char* packet)
 			SC_PARTY_JOIN_FAIL_PACK fail_pack;
 			fail_pack.size = sizeof(SC_PARTY_JOIN_FAIL_PACK);
 			fail_pack.type = SC_PARTY_JOIN_FAIL;
-			for (SESSION& cl : partys[clients[c_uid]._party_num].member) {
+			for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
 				cl.do_send(&fail_pack);
 			}
 		}
@@ -238,7 +287,7 @@ void process_packet(short c_uid, char* packet)
 	{
 		CS_PARTY_LEAVE_PACK* old_staff = reinterpret_cast<CS_PARTY_LEAVE_PACK*>(packet);
 
-		if (/*checking data && save data*/ partys[old_staff->party_num].leave_member(old_staff->name)) {
+		if (/*checking data && save data*/ parties[old_staff->party_num].leave_member(old_staff->name)) {
 			SC_PARTY_LEAVE_SUCCESS_PACK leave_pack;
 			leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
 			leave_pack.type = SC_PARTY_LEAVE_SUCCESS;
@@ -373,7 +422,7 @@ void worker_thread(HANDLE h_iocp)
 		break;
 		case SEND:		// send new message
 		{
-			std::cout << "SEND\n";
+			// std::cout << "SEND\n";	// 필요시에만 사용할 것.
 			delete ex_over;
 		}
 		break;

@@ -44,12 +44,12 @@ public:
 
 class SESSION {
 	OVER_EXP _recv_over;
-
-	char _name[CHAR_SIZE];
 public:
 	SOCKET _socket;
 	int _prev_size;	// 재조립에서 사용
 
+
+	char _name[CHAR_SIZE];
 	short _uid;		// 서버용 플레이어 고유 ID	
 	char _pet_num;
 	char _player_skin;
@@ -73,7 +73,7 @@ public:
 	SESSION() {
 		_socket = 0;
 		_uid = -1;
-		strncpy_s(_name, "empty", strlen("empty"));
+		strncpy_s(_name, "Empty", strlen("Empty"));
 		_prev_size = 0;
 		_pet_num = -1;
 		_state = ST_FREE;
@@ -103,7 +103,7 @@ public:
 	void clear() {
 		_socket = 0;
 		_uid = -1;
-		strncpy_s(_name, "empty", strlen("empty"));
+		strncpy_s(_name, "Empty", strlen("Empty"));
 		_prev_size = 0;
 		_pet_num = -1;
 		_state = ST_FREE;
@@ -168,31 +168,30 @@ public:
 };
 
 class PARTY {
-private:
-	char party_name[CHAR_SIZE];
-	short mem_count{};
-
 public:
-	PARTY() {
-		
-	}
-	~PARTY() {
-		
-	}
-
+	char _name[CHAR_SIZE];
+	short _mem_count{};
 	std::array<SESSION, 4> member;
 
+	PARTY() {
+		strncpy_s(_name, CHAR_SIZE, "Empty", strlen("Empty"));
+		_mem_count = 0;
+	}
+	~PARTY() {
+
+	}
+
 	short get_member_count() {
-		return mem_count;
+		return _mem_count;
 	}
 
 	bool new_member(SESSION& new_mem) {
-		if (mem_count >= 4) return false;
+		if (_mem_count >= 4) return false;
 
 		for (SESSION& mem : member) {
-			if (0 == strcmp(mem.get_name(), "empty")) {
+			if (0 == strcmp(mem.get_name(), "Empty")) {
 				mem = new_mem;
-				mem_count += 1;
+				_mem_count += 1;
 				return true;
 			}
 		}
@@ -202,12 +201,12 @@ public:
 	}
 
 	bool leave_member(char* mem_name) {
-		if (mem_count <= 0) return false;
+		if (_mem_count <= 0) return false;
 
 		for (SESSION& mem : member) {
 			if (0 == strcmp(mem.get_name(), mem_name)) {
 				mem.clear();
-				mem_count -= 1;
+				_mem_count -= 1;
 				return true;
 			}
 		}
@@ -231,7 +230,7 @@ extern HANDLE h_iocp;
 extern SOCKET g_s_socket, g_c_socket;
 
 extern std::array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
-extern std::array<PARTY, MAX_PARTY> partys;
+extern std::array<PARTY, MAX_PARTY> parties;
 
 void worker_thread(HANDLE h_iocp);
 void process_packet(short c_uid, char* packet);
