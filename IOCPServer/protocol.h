@@ -50,7 +50,7 @@ struct CS_AWS_TOKEN_PACK {
 	char size;
 	char type;
 
-	char Token[100];
+	char Token[110];
 	char Token_size;
 };
 

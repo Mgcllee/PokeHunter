@@ -65,6 +65,9 @@ public:
 	char _party_num;		// 파티 고유 번호
 	char _party_staff_num;	// 파티 내 멤버 번호
 
+	std::string IdToken;
+	short IdTokenLenght;
+
 	CLIENT_STATE _state;
 	std::mutex _lock;
 

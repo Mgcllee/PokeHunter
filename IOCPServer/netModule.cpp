@@ -94,9 +94,16 @@ void process_packet(short c_uid, char* packet)
 	case CS_AWS_TOKEN:
 	{
 		CS_AWS_TOKEN_PACK* token_pack = reinterpret_cast<CS_AWS_TOKEN_PACK*>(packet);
-		std::cout << "ID Token Length: " << token_pack->Token_size << std::endl;
-		std::cout << "ID Token Length sizeof() : " << sizeof(token_pack->Token) << std::endl;
-		std::cout << "ID Token: " << token_pack->Token << std::endl;
+		
+		if (0 == strcmp(token_pack->Token, "theEnd")) {
+			std::cout << "ID Token Length: " << strlen(clients[c_uid].IdToken.c_str()) << std::endl;
+			std::cout << "ID Token: " << clients[c_uid].IdToken;
+		}
+		else {
+			std::string tokenBuffer;
+			tokenBuffer.assign(token_pack->Token, (int)token_pack->Token_size);
+			clients[c_uid].IdToken.append(tokenBuffer);
+		}
 	}
 	break;
 	case CS_QUEST_INVENTORY:
