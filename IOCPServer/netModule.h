@@ -9,11 +9,6 @@
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 
-//#include <aws/core/aws.h>
-//#include <aws/lambda/model/Runtime.h>
-//using namespace Aws::Lambda::Model;
-//const Aws::String;	// get userName
-
 enum TYPE { ACCEPT, RECV, SEND };
 enum CLIENT_STATE { ST_FREE, ST_ALLOC, ST_INGAME };
 enum PLAYER_STATE { ST_HOME, ST_NOTREADY, ST_READY, ST_STAGE };

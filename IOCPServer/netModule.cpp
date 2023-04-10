@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "DBModule.h"
+#include "AWSModule.h"
 
 std::array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
 std::array<PARTY, MAX_USER> parties;			// 총 파티 개수
@@ -96,8 +97,13 @@ void process_packet(short c_uid, char* packet)
 		CS_AWS_TOKEN_PACK* token_pack = reinterpret_cast<CS_AWS_TOKEN_PACK*>(packet);
 		
 		if (0 == strcmp(token_pack->Token, "theEnd")) {
-			std::cout << "ID Token Length: " << strlen(clients[c_uid].IdToken.c_str()) << std::endl;
-			std::cout << "ID Token: " << clients[c_uid].IdToken;
+			// std::cout << "ID Token Length: " << strlen(clients[c_uid].IdToken.c_str()) << std::endl;
+			// std::cout << "ID Token: " << clients[c_uid].IdToken;
+			
+			// Get user name in AWS Cognito
+			std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
+			// Set User name
+			strncpy_s(clients[c_uid]._name, CHAR_SIZE, nameBuffer.c_str(), strlen(nameBuffer.c_str()));
 		}
 		else {
 			std::string tokenBuffer;

@@ -105,10 +105,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\PokeHunter\PH-Server\packages\AWSSDKCPP-Core.1.6.25\build\native\include;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\include;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\PokeHunter\PH-Server\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>aws-cpp-sdk-core.lib;aws-cpp-sdk-cognito-idp.lib;aws-cpp-sdk-cognito-identity.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,12 +131,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AWSModule.cpp" />
     <ClCompile Include="DBModule.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="netModule.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AWSModule.h" />
     <ClInclude Include="DBModule.h" />
     <ClInclude Include="netModule.h" />
     <ClInclude Include="protocol.h" />
@@ -146,9 +151,12 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets')" />
     <Import Project="..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets" Condition="Exists('..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-Lambda.redist.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-Lambda.redist.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.redist.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-Lambda.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.targets" Condition="Exists('..\packages\AWSSDKCPP-Lambda.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-Lambda.symbols.0.12.20150331.12\build\native\AWSSDKCPP-Lambda.symbols.targets" Condition="Exists('..\packages\AWSSDKCPP-Lambda.symbols.0.12.20150331.12\build\native\AWSSDKCPP-Lambda.symbols.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-CognitoSync.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoSync.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.redist.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-CognitoSync.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoSync.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-CognitoIdentity.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoIdentity.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.redist.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.redist.targets')" />
+    <Import Project="..\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -156,8 +164,11 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets'))" />
     <Error Condition="!Exists('..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-Lambda.redist.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Lambda.redist.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.redist.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-Lambda.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Lambda.1.6.20150331.25\build\native\AWSSDKCPP-Lambda.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-Lambda.symbols.0.12.20150331.12\build\native\AWSSDKCPP-Lambda.symbols.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Lambda.symbols.0.12.20150331.12\build\native\AWSSDKCPP-Lambda.symbols.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoSync.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoSync.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoSync.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoSync.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoIdentity.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoIdentity.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.targets'))" />
   </Target>
 </Project>
