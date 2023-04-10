@@ -91,6 +91,14 @@ void process_packet(short c_uid, char* packet)
 		}
  	}
 	break;
+	case CS_AWS_TOKEN:
+	{
+		CS_AWS_TOKEN_PACK* token_pack = reinterpret_cast<CS_AWS_TOKEN_PACK*>(packet);
+		std::cout << "ID Token Length: " << token_pack->Token_size << std::endl;
+		std::cout << "ID Token Length sizeof() : " << sizeof(token_pack->Token) << std::endl;
+		std::cout << "ID Token: " << token_pack->Token << std::endl;
+	}
+	break;
 	case CS_QUEST_INVENTORY:
 	{
 		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
@@ -256,12 +264,12 @@ void process_packet(short c_uid, char* packet)
 	break;
 	case CS_PARTY_JOIN:		// 파티가 Survival Stage에 입장한다는 신호(서버에서 전송함)
 	{
+		/*
 		char staff_ready_num = 0;
 		CS_PARTY_JOIN_PACK* join_pack = reinterpret_cast<CS_PARTY_JOIN_PACK*>(packet);
 		
 		for (SESSION& cl : parties[join_pack->party_num].member) {
 			if (c_uid == cl._uid) continue;
-
 
 		}
 
@@ -281,6 +289,7 @@ void process_packet(short c_uid, char* packet)
 				cl.do_send(&fail_pack);
 			}
 		}
+		*/
 	}
 	break;
 	case CS_PARTY_LEAVE:
