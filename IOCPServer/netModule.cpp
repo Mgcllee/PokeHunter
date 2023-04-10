@@ -11,107 +11,102 @@ void process_packet(short c_uid, char* packet)
 	switch (packet[1]) {
 	case CS_LOGIN:
 	{
-		CS_LOGIN_PACK* p = reinterpret_cast<CS_LOGIN_PACK*>(packet);
-		short new_c_uid = -1;
-		char db_name[CHAR_SIZE], db_skill[4];
-		char db_skin, db_pet, db_item;
+		// 이 실행문 전, AWS_Access Toekn이 필요함!, user Name이 없음
+		CS_LOGIN_PACK* token_pack = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 
-		// AWS Cognito 에서 인증된 사용자만 입장
-		if (Login_UDB(p->id, p->pw, new_c_uid, db_name, db_skin, db_pet, db_item, db_skill) && new_c_uid != -1) {
-			clients[c_uid].set_name(db_name);
-			
-			{
-				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
-				clients[c_uid]._state = ST_INGAME;
-			}
-
-			SC_LOGIN_SUCCESS_PACK ok_pack;
-			ok_pack.size = sizeof(ok_pack);
-			ok_pack.type = SC_LOGIN_SUCCESS;
-
-			for (SESSION& cl : clients) {
-				{
-					std::lock_guard<std::mutex> ll{ cl._lock };
-					if (ST_INGAME != cl._state) continue;
-					// 클라이언트의 상태가 INGAME이 아니라면 패킷을 보낼 필요가 없음
-				}
-
-				if (0 == strcmp(cl.get_name(), clients[c_uid].get_name())) {
-					cl.do_send(&ok_pack);
-					std::cout << "Send Ok Packet!\n";
-				}
-			}
-
-			SC_LOGIN_INFO_PACK info_pack;
-			info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
-			info_pack.type = SC_LOGIN_INFO;
-			strncpy_s(info_pack.name, sizeof(info_pack.name), clients[c_uid].get_name() + '\0', sizeof(clients[c_uid].get_name()) + 1);
-			info_pack._player_skin = db_skin;
-			info_pack._pet_num = db_pet;
-			info_pack._q_item = db_item;
-			strncpy_s(info_pack._q_skill, sizeof(info_pack._q_skill), db_skill + '\0', sizeof(db_skill) + 1);
-		
-			// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
-			for (SESSION& cl : clients) {
-				if (0 != strcmp(cl.get_name(), "Empty")) {
-					// 송신 불필요 대상
-					if (ST_INGAME != cl._state)	continue;
-					if (c_uid == cl._uid)		continue;
-					// 송신 필요 대상
-					cl.do_send(&info_pack);
-				}
-			}
-
-			SC_LOGIN_INFO_PACK old_info_pack;
-			old_info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
-			old_info_pack.type = SC_LOGIN_INFO;
-
-			// 새로운 클라이언트에게 기존 클라이언트들 정보를 전부 전송
-			for (SESSION& cl : clients) {
-				// 새로운 클라이언트에게 자기 자신의 정보는 보낼 필요 없음(위 반복문과 중복됨)
-				if (new_c_uid != cl._uid) { 
-					old_info_pack.name;
-					// strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
-
-					if (ST_INGAME != cl._state)	continue;
-					if (c_uid == cl._uid)				continue;
-
-					// 새로운 클라이언트에게 전송
-					clients[new_c_uid].do_send(&old_info_pack);
-				}
-			}
-			std::cout << "Login Success!\n";
-		}
-		else {
-			SC_LOGIN_FAIL_PACK fail_pack;
-			fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
-			fail_pack.type = SC_LOGIN_FAIL;
-			clients[new_c_uid].do_send(&fail_pack);
-
-			std::cout << "Login Fail!\n";
-		}
- 	}
-	break;
-	case CS_AWS_TOKEN:
-	{
-		CS_AWS_TOKEN_PACK* token_pack = reinterpret_cast<CS_AWS_TOKEN_PACK*>(packet);
-		
 		if (0 == strcmp(token_pack->Token, "theEnd")) {
-			// std::cout << "ID Token Length: " << strlen(clients[c_uid].IdToken.c_str()) << std::endl;
-			// std::cout << "ID Token: " << clients[c_uid].IdToken;
-			
-			// Get user name in AWS Cognito
 			std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
-			// Set User name
-			strncpy_s(clients[c_uid]._name, CHAR_SIZE, nameBuffer.c_str(), strlen(nameBuffer.c_str()));
+			
+			// AWS Cognito 에서 인증된 사용자만 입장
+			if (Login_UDB(c_uid, nameBuffer)) {
+				{
+					std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+					clients[c_uid]._state = ST_INGAME;
+				}
+
+				SC_LOGIN_SUCCESS_PACK ok_pack;
+				ok_pack.size = sizeof(ok_pack);
+				ok_pack.type = SC_LOGIN_SUCCESS;
+				clients[c_uid].do_send(&ok_pack);
+				std::cout << "Client[" << c_uid << "] user : Send Ok Packet!\n";
+
+				// Party List, info 가 존재하기 때문에 필요없다.
+				/*
+				SC_LOGIN_INFO_PACK info_pack;
+				info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+				info_pack.type = SC_LOGIN_INFO;
+				strncpy_s(info_pack.name, sizeof(info_pack.name), clients[c_uid].get_name() + '\0', sizeof(clients[c_uid].get_name()) + 1);
+				info_pack._player_skin = db_skin;
+				info_pack._pet_num = db_pet;
+				info_pack._q_item = db_item;
+				strncpy_s(info_pack._q_skill, sizeof(info_pack._q_skill), db_skill + '\0', sizeof(db_skill) + 1);
+				// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
+				for (SESSION& cl : clients) {
+					if (0 != strcmp(cl.get_name(), "Empty")) {
+						// 송신 불필요 대상
+						if (ST_INGAME != cl._state)	continue;
+						if (c_uid == cl._uid)		continue;
+						// 송신 필요 대상
+						cl.do_send(&info_pack);
+					}
+				}
+				SC_LOGIN_INFO_PACK old_info_pack;
+				old_info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+				old_info_pack.type = SC_LOGIN_INFO;
+				// 새로운 클라이언트에게 기존 클라이언트들 정보를 전부 전송
+				for (SESSION& cl : clients) {
+					// 새로운 클라이언트에게 자기 자신의 정보는 보낼 필요 없음(위 반복문과 중복됨)
+					if (new_c_uid != cl._uid) {
+						old_info_pack.name;
+						// strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
+
+						if (ST_INGAME != cl._state)	continue;
+						if (c_uid == cl._uid)				continue;
+
+						// 새로운 클라이언트에게 전송
+						clients[new_c_uid].do_send(&old_info_pack);
+					}
+				}
+				*/
+				
+				std::cout << "Login Success!\n";
+			}
+			else {
+				SC_LOGIN_FAIL_PACK fail_pack;
+				fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
+				fail_pack.type = SC_LOGIN_FAIL;
+				clients[c_uid].do_send(&fail_pack);
+
+				std::cout << "Login Fail!\n";
+			}
 		}
 		else {
 			std::string tokenBuffer;
 			tokenBuffer.assign(token_pack->Token, (int)token_pack->Token_size);
 			clients[c_uid].IdToken.append(tokenBuffer);
 		}
-	}
+ 	}
 	break;
+	//case CS_AWS_TOKEN:
+	//{
+	//	CS_AWS_TOKEN_PACK* token_pack = reinterpret_cast<CS_AWS_TOKEN_PACK*>(packet);
+	//	
+	//	if (0 == strcmp(token_pack->Token, "theEnd")) {
+	//		// std::cout << "ID Token Length: " << strlen(clients[c_uid].IdToken.c_str()) << std::endl;
+	//		// std::cout << "ID Token: " << clients[c_uid].IdToken;
+	//		
+	//		// Get user name in AWS Cognito
+	//		std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
+	//		// Set User name
+	//		strncpy_s(clients[c_uid]._name, CHAR_SIZE, nameBuffer.c_str(), strlen(nameBuffer.c_str()));
+	//	}
+	//	else {
+	//		std::string tokenBuffer;
+	//		tokenBuffer.assign(token_pack->Token, (int)token_pack->Token_size);
+	//		clients[c_uid].IdToken.append(tokenBuffer);
+	//	}
+	//}
+	//break;
 	case CS_QUEST_INVENTORY:
 	{
 		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
@@ -205,7 +200,7 @@ void process_packet(short c_uid, char* packet)
 				/*strncpy_s(in_party._mem, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
 				in_party._mem_pet = clients[c_uid]._pet_num;
 				in_party._mem_state = clients[c_uid]._player_state;*/
-				strncpy_s(in_party._mem, CHAR_SIZE, "뷁", CHAR_SIZE);
+				strncpy_s(in_party._mem, CHAR_SIZE, "가짜인형", CHAR_SIZE);
 				in_party._mem_pet = 1;
 				in_party._mem_state = ST_NOTREADY;
 				clients[c_uid].do_send(&in_party);
@@ -239,14 +234,13 @@ void process_packet(short c_uid, char* packet)
 
 		strncpy_s(in_party._mem, CHAR_SIZE, "theEnd", strlen("theEnd"));
 		clients[c_uid].do_send(&in_party);
-
 		std::cout << "Send Party info\n";
 	}
 	break;
-	case CS_PARTY_READY:	// 파티 시작 준비완료
+	case CS_PARTY_READY:	// 파티 시작 준비완료, client에서 플레이어가 READY BTN을 누를 때 마다 송/수신
 	{
 		char ready_member = 0;
-		clients[c_uid]._player_state = ST_READY;
+		clients[c_uid]._player_state = ST_READY;	// 현재 내 플레이어는 READY로 설정
 
 		for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
 			if (c_uid == cl._uid) continue;
@@ -255,7 +249,7 @@ void process_packet(short c_uid, char* packet)
 				ready_member += 1;
 		}
 
-		if (ready_member == parties[clients[c_uid]._party_num].member.size()) {
+		if (ready_member == parties[clients[c_uid]._party_num].member.size()) {	// 전원이 준비완료가 되어 출발 신호를 파티 내 모든 클라에게 송신
 			SC_PARTY_JOIN_SUCCESS_PACK ok_pack;
 			ok_pack.size = sizeof(SC_PARTY_JOIN_SUCCESS_PACK);
 			ok_pack.type = SC_PARTY_JOIN_SUCCESS;
@@ -264,7 +258,7 @@ void process_packet(short c_uid, char* packet)
 				cl.do_send(&ok_pack);
 			}
 		}
-		else {
+		else {																	// 1명 이상의 플레이어가 준비되어 있지 않아 준비안됨 패킷을 송신
 			SC_PARTY_JOIN_FAIL_PACK fail_pack;
 			fail_pack.size = sizeof(SC_PARTY_JOIN_FAIL_PACK);
 			fail_pack.size = SC_PARTY_JOIN_FAIL;
@@ -275,7 +269,7 @@ void process_packet(short c_uid, char* packet)
 		}
 	}
 	break;
-	case CS_PARTY_JOIN:		// 파티가 Survival Stage에 입장한다는 신호(서버에서 전송함)
+	case CS_PARTY_JOIN:		// 파티가 Survival Stage에 입장한다는 신호(서버에서 전송함), 그러나 현재 필요도가 낮은 패킷이 됨?
 	{
 		/*
 		char staff_ready_num = 0;

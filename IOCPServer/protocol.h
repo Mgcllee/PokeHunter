@@ -46,20 +46,19 @@ constexpr char CS_AWS_TOKEN = 24;
 
 #pragma pack (push, 1)
 
-struct CS_AWS_TOKEN_PACK {
-	char size;
-	char type;
-
-	char Token[110];
-	char Token_size;
-};
+//struct CS_AWS_TOKEN_PACK {
+//	char size;
+//	char type;
+//	char Token[110];
+//	char Token_size;
+//};
 
 struct CS_LOGIN_PACK {
 	char size;
 	char type;
 
-	char id[CHAR_SIZE];
-	char pw[CHAR_SIZE];
+	char Token[110];
+	char Token_size;
 };
 
 struct CS_QUEST_INVENTORY_PACK {

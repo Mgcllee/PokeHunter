@@ -8,7 +8,7 @@ int get_player_uid();
 
 void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode);
 
-bool Login_UDB(char* in_id, char* in_pass, short& in_c_uid, char* in_name, char& in_skin, char& in_pet, char& in_quickItem, char* in_quickSkill);
+bool Login_UDB(short& in_uid, std::string& in_name);
 bool Logout_UDB(short in_c_uid);
 
 std::string Get_ItemID(short item_ID, bool full_name);
