@@ -30,6 +30,16 @@ void process_packet(short c_uid, char* packet)
 				clients[c_uid].do_send(&ok_pack);
 				std::cout << "Client[" << c_uid << "] user : Send Ok Packet!\n";
 
+				SC_LOGIN_INFO_PACK info_pack;
+				info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+				info_pack.type = SC_LOGIN_INFO;
+				
+				strncpy_s(info_pack.name, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
+				strncpy_s(info_pack._q_skill, CHAR_SIZE, clients[c_uid]._q_skill, CHAR_SIZE);
+				info_pack._q_item = clients[c_uid]._q_item;
+				info_pack._player_skin = clients[c_uid]._player_skin;
+				info_pack._pet_num = clients[c_uid]._pet_num;
+
 				// Party List, info 가 존재하기 때문에 필요없다.
 				/*
 				SC_LOGIN_INFO_PACK info_pack;
@@ -167,17 +177,17 @@ void process_packet(short c_uid, char* packet)
 		}
 		*/
 
+		// ====================== Test Room =========================
 		strncpy_s(party_list._name, "임시방", strlen("임시방"));
 		party_list._staff_count = 0;
 		clients[c_uid].do_send(&party_list);
-
 		strncpy_s(party_list._name, "HiBye", strlen("HiBye"));
 		party_list._staff_count = 4;
 		clients[c_uid].do_send(&party_list);
-
 		strncpy_s(party_list._name, "초보환영", strlen("초보환영"));
 		party_list._staff_count = 4;
 		clients[c_uid].do_send(&party_list);
+		//===========================================================
 
 		strncpy_s(party_list._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&party_list);
