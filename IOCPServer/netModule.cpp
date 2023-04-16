@@ -79,7 +79,7 @@ void process_packet(short c_uid, char* packet)
 				}
 				*/
 				
-				std::cout << "Login Success!\n";
+				std::cout << "Player Name: " << clients[c_uid]._name << " Login!\n";
 			}
 			else {
 				SC_LOGIN_FAIL_PACK fail_pack;
@@ -120,7 +120,7 @@ void process_packet(short c_uid, char* packet)
 	case CS_QUEST_INVENTORY:
 	{
 		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
-		// Get_IDB(c_uid);
+		Get_IDB(c_uid);
 
 		// 재사용할 아이템 패킷
 		// 재사용시, Zeromemory로 초기화 필요한지 확인 필요.(데이터 오류 방지)

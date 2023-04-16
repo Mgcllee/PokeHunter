@@ -31,172 +31,6 @@ void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode)
 	}
 }
 
-bool Login_UDB(short& in_uid, std::string& in_name) {
-	SQLHENV henv;
-	SQLHDBC hdbc;
-	SQLHSTMT hstmt = 0;
-	SQLRETURN retcode;
-
-	SQLWCHAR NAME[CHAR_SIZE];
-
-	SQLWCHAR player_skin[CHAR_MIN_SIZE];
-	SQLWCHAR player_pet[CHAR_MIN_SIZE];
-	SQLWCHAR quick_item[CHAR_MIN_SIZE];
-	SQLWCHAR quick_skill[4];
-
-	SQLLEN sqllen{};
-
-	char db_name_buf[CHAR_SIZE];	// char size: CHAR_SIZE
-	char db_skin[CHAR_MIN_SIZE], db_pet[CHAR_MIN_SIZE], db_item[CHAR_MIN_SIZE];	// char size: CAHR_MIN_SIZE
-	char db_skill[4];															// char size: 4
-	int strSize;
-
-	setlocale(LC_ALL, "Korean");
-
-	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
-	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
-
-		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-			retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
-
-			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
-				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEUDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
-
-				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)L"SELECT NAME, PLAYER_SKIN, PLAYER_PET, QUICK_ITEM, QUICK_SKILL FROM userInfo", SQL_NTS);
-
-					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, &NAME, CHAR_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &player_skin, CHAR_MIN_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &player_pet, CHAR_MIN_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 4, SQL_C_WCHAR, &quick_item, CHAR_MIN_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 5, SQL_C_WCHAR, &quick_skill, 4, &sqllen);
-
-						for (int i = 0; ; ++i) {
-							retcode = SQLFetch(hstmt);
-							if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) {
-								// error 검출기
-								show_error(hstmt, SQL_HANDLE_STMT, retcode);
-							}
-
-							if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
-							{
-								strSize = WideCharToMultiByte(CP_ACP, 0, NAME, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, NAME, -1, db_name_buf, strSize, 0, 0);
-
-								strSize = WideCharToMultiByte(CP_ACP, 0, player_skin, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, player_skin, -1, db_skin, strSize, 0, 0);
-
-								strSize = WideCharToMultiByte(CP_ACP, 0, player_pet, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, player_pet, -1, db_pet, strSize, 0, 0);
-
-								strSize = WideCharToMultiByte(CP_ACP, 0, quick_item, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, quick_item, -1, db_item, strSize, 0, 0);
-								
-								strSize = WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, NULL, 0, NULL, NULL);
-								WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, db_skill, strSize, 0, 0);
-
-								std::string c_name_buf = db_name_buf;
-								c_name_buf.erase(remove(c_name_buf.begin(), c_name_buf.end(), ' '), c_name_buf.end());
-
-								if (0 == strcmp(clients[in_uid]._name, c_name_buf.c_str())) {
-									strncpy_s(clients[in_uid]._name, CHAR_SIZE, c_name_buf.c_str(), c_name_buf.size());
-									clients[in_uid]._player_skin = db_skin[0];
-									clients[in_uid]._pet_num = db_pet[0];
-									clients[in_uid]._q_item = db_item[0];
-									strncpy_s(clients[in_uid]._q_skill, 4, db_skill, 4);
-									return true;
-								}
-							}
-							else
-								return false;
-						}
-					}
-					else {
-						show_error(hstmt, SQL_HANDLE_STMT, retcode);
-						return false;
-					}
-
-					// Process data
-					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						SQLCancel(hstmt);
-						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-					}
-
-					SQLDisconnect(hdbc);
-				}
-				else {
-					// error 검출기
-					show_error(hdbc, SQL_HANDLE_DBC, retcode);
-					return false;
-				}
-				SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
-			}
-		}
-		SQLFreeHandle(SQL_HANDLE_ENV, henv);
-	}
-	return false;
-}
-
-bool Logout_UDB(short in_c_uid)
-{
-	SQLHENV henv;
-	SQLHDBC hdbc;
-	SQLHSTMT hstmt = 0;
-	SQLRETURN retcode;
-	std::string sql_order = std::string("UPDATE userInfo SET PLAYER_SKIN='").append(&clients[in_c_uid]._player_skin).append("', PLAYER_PET='").append(&clients[in_c_uid]._pet_num)
-						.append("', QUICK_ITEM='").append(&clients[in_c_uid]._q_item).append("', QUICK_SKILL='").append(clients[in_c_uid]._q_skill).append("'")
-					 + std::string(" WHERE NAME='").append(clients[in_c_uid].get_name()).append("'");
-
-	setlocale(LC_ALL, "Korean");
-	
-	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
-	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
-		
-		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-			retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
-			
-			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
-				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEUDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
-  
-				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(sql_order.c_str()), SQL_NTS);
-
-					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						// cout << "SQL 실행 완료" << endl;
-						return true;
-					} 
-					else {
-						show_error(hstmt, SQL_HANDLE_STMT, retcode);
-						return false;
-					}
-
-					// Process data  
-					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						SQLCancel(hstmt);
-						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-					}
-
-					SQLDisconnect(hdbc);
-				}
-				else {
-					show_error(hdbc, SQL_HANDLE_DBC, retcode);
-					return false;
-				}
-				SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
-			}
-		}
-		SQLFreeHandle(SQL_HANDLE_ENV, henv);
-	}
-	return false;
-}
-
 std::string Get_ItemID(short item_ID, bool full_name) {
 	if (false != full_name) {
 		switch (item_ID) {
@@ -233,7 +67,190 @@ std::string Get_ItemID(short item_ID, bool full_name) {
 	return "Empty";
 }
 
-bool Get_IDB(short in_c_uid) {
+bool Login_UDB(short& in_uid, std::string& in_name) {
+	SQLHENV henv;
+	SQLHDBC hdbc;
+	SQLHSTMT hstmt = 0;
+	SQLRETURN retcode;
+
+	SQLWCHAR player_skin[CHAR_MIN_SIZE];
+	SQLWCHAR player_pet[CHAR_MIN_SIZE];
+	SQLWCHAR quick_item[CHAR_MIN_SIZE];
+	SQLWCHAR quick_skill[CHAR_MIN_SIZE];
+
+	SQLLEN sqllen{};
+
+	char db_name_buf[CHAR_SIZE];	// char size: CHAR_SIZE
+	char db_skin[CHAR_MIN_SIZE], db_pet[CHAR_MIN_SIZE], db_item[CHAR_MIN_SIZE];	// char size: CAHR_MIN_SIZE
+	char db_skill[CHAR_MIN_SIZE];															// char size: 4
+	int strSize;
+
+	std::string SQL_Order = "SELECT PLAYER_SKIN, PLAYER_PET, QUICK_ITEM, QUICK_SKILL FROM userInfo WHERE NAME='";
+	SQL_Order.append(" FROM " + Get_ItemID(0, true));
+	SQL_Order.append(" ");
+	SQL_Order + in_name + "'";
+
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
+	std::wstring wideStr(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), &wideStr[0], size_needed);
+	const wchar_t* wideCStr = wideStr.c_str();
+
+	setlocale(LC_ALL, "Korean");
+
+	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
+	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
+
+		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+			retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
+
+			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
+				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEUDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
+
+				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
+
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, &player_skin, CHAR_MIN_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &player_pet, CHAR_MIN_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &quick_item, CHAR_MIN_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 4, SQL_C_WCHAR, &quick_skill, CHAR_MIN_SIZE, &sqllen);
+
+						for (int i = 0; ; ++i) {
+							retcode = SQLFetch(hstmt);
+							if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) {
+								// error 검출기
+								show_error(hstmt, SQL_HANDLE_STMT, retcode);
+							}
+
+							if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
+							{
+								strSize = WideCharToMultiByte(CP_ACP, 0, player_skin, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, player_skin, -1, db_skin, strSize, 0, 0);
+
+								strSize = WideCharToMultiByte(CP_ACP, 0, player_pet, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, player_pet, -1, db_pet, strSize, 0, 0);
+
+								strSize = WideCharToMultiByte(CP_ACP, 0, quick_item, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, quick_item, -1, db_item, strSize, 0, 0);
+								
+								strSize = WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, NULL, 0, NULL, NULL);
+								WideCharToMultiByte(CP_ACP, 0, quick_skill, -1, db_skill, strSize, 0, 0);
+
+								std::string c_name_buf = db_name_buf;
+								c_name_buf.erase(remove(c_name_buf.begin(), c_name_buf.end(), ' '), c_name_buf.end());
+
+								if (0 == strcmp(clients[in_uid]._name, c_name_buf.c_str())) {
+									strncpy_s(clients[in_uid]._name, CHAR_SIZE, c_name_buf.c_str(), c_name_buf.size());
+									clients[in_uid]._player_skin = db_skin[0];
+									clients[in_uid]._pet_num = db_pet[0];
+									clients[in_uid]._q_item = db_item[0];
+									strncpy_s(clients[in_uid]._q_skill, 4, db_skill, 4);
+
+									std::cout << "[New Client!]\n" << "Name: " << clients[in_uid]._name << "\n"
+										<< "Player Skin: " << clients[in_uid]._player_skin << "\n"
+										<< "Pet Number: " << clients[in_uid]._pet_num << "\n"
+										<< "Quick item: " << clients[in_uid]._q_item << "\n"
+										<< "Quick skill: " << clients[in_uid]._q_skill << "\n";
+									return true;
+								}
+								else
+									return false;
+							}
+							else
+								return false;
+						}
+					}
+					else {
+						show_error(hstmt, SQL_HANDLE_STMT, retcode);
+						return false;
+					}
+
+					// Process data
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						SQLCancel(hstmt);
+						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+					}
+
+					SQLDisconnect(hdbc);
+				}
+				else {
+					// error 검출기
+					show_error(hdbc, SQL_HANDLE_DBC, retcode);
+					return false;
+				}
+				SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+			}
+		}
+		SQLFreeHandle(SQL_HANDLE_ENV, henv);
+	}
+	return false;
+}
+bool Logout_UDB(short& c_uid)
+{
+	SQLHENV henv;
+	SQLHDBC hdbc;
+	SQLHSTMT hstmt = 0;
+	SQLRETURN retcode;
+	std::string SQL_Order = std::string("UPDATE userInfo SET PLAYER_SKIN='").append(&clients[c_uid]._player_skin)
+						.append("', PLAYER_PET='").append(&clients[c_uid]._pet_num)
+						.append("', QUICK_ITEM='").append(&clients[c_uid]._q_item)
+						.append("', QUICK_SKILL='").append(clients[c_uid]._q_skill)
+						.append("' WHERE NAME='").append(clients[c_uid].get_name()).append("'");
+
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
+	std::wstring wideStr(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), &wideStr[0], size_needed);
+	const wchar_t* wideCStr = wideStr.c_str();
+
+	setlocale(LC_ALL, "Korean");
+	
+	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
+	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
+		
+		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+			retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
+			
+			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
+				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEUDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
+  
+				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
+
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						std::cout << clients[c_uid]._name << " player Logout SQL 실행 완료\n";
+						return true;
+					} 
+					else {
+						show_error(hstmt, SQL_HANDLE_STMT, retcode);
+						return false;
+					}
+
+					// Process data  
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						SQLCancel(hstmt);
+						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+					}
+					SQLDisconnect(hdbc);
+				}
+				else {
+					show_error(hdbc, SQL_HANDLE_DBC, retcode);
+					return false;
+				}
+				SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+			}
+		}
+		SQLFreeHandle(SQL_HANDLE_ENV, henv);
+	}
+	return false;
+}
+
+bool Get_IDB(short& c_uid) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
@@ -243,6 +260,14 @@ bool Get_IDB(short in_c_uid) {
 
 	char db_itemCnt[CHAR_MIN_SIZE];
 	int strSize;
+
+	std::string SQL_Order = "SELECT Bullet, FireBullet, IceBullet, ExplosionBullet FROM USERinventoryDB_Launcher WHERE NAME='";
+	SQL_Order + clients[c_uid]._name + "'";
+
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
+	std::wstring wideStr(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), &wideStr[0], size_needed);
+	const wchar_t* wideCStr = wideStr.c_str();
 
 	setlocale(LC_ALL, "Korean");
 
@@ -260,14 +285,8 @@ bool Get_IDB(short in_c_uid) {
 				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 					
 					for (short item_index = 0; item_index < MAX_ITEM_CATEGORY; ++item_index) {
-						std::string QUERY = "SELECT * FROM ";
-						QUERY.append(Get_ItemID(item_index, true).c_str());
-						QUERY.append(" WHERE NAME='");
-						QUERY.append(clients[in_c_uid].get_name());
-						QUERY.append("'");
-
 						retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(QUERY.c_str()), SQL_NTS);
+						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 							for (int i = 0; i < MAX_ITEM_COUNT; ++i) {
@@ -285,7 +304,7 @@ bool Get_IDB(short in_c_uid) {
 										WideCharToMultiByte(CP_ACP, 0, &ItemCnt[dbi], -1, db_itemCnt, strSize, 0, 0);
 
 										if (0 != ItemCnt[dbi]) {
-											clients[in_c_uid].set_item(Get_ItemID(item_index, false).c_str(), (char)i, (short)ItemCnt[i]);
+											clients[c_uid].set_item(Get_ItemID(item_index, false).c_str(), (char)i, (short)ItemCnt[i]);
 										}
 									}
 									return true;
@@ -321,13 +340,23 @@ bool Get_IDB(short in_c_uid) {
 	}
 	return false;
 }
-bool Set_IDB(short in_c_uid)
+bool Set_IDB(short& c_uid)
 {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
-	
+
+	std::string SQL_Order = "UPDATE userInfo SET";
+	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
+		SQL_Order.append(" <here item name(use index)>='").append("<item cnt>',");
+	}
+	SQL_Order.append("\b WHERE NAME='").append(clients[c_uid]._name).append("'");
+
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
+	std::wstring wideStr(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), &wideStr[0], size_needed);
+	const wchar_t* wideCStr = wideStr.c_str();
 
 	setlocale(LC_ALL, "Korean");
 
@@ -347,18 +376,10 @@ bool Set_IDB(short in_c_uid)
 
 					for(int i = 0; i < MAX_ITEM_CATEGORY; ++i)
 					{
-						std::string sql_order = std::string("UPDATE ").append(Get_ItemID(i, true))
-							.append(" SET ");
-						for(short j = 0; j < MAX_ITEM_COUNT; ++j)
-						{
-							sql_order.append(Get_ItemID(i, false)).append(std::format("{0:0>2}='", j)).append(&(clients[in_c_uid].get_item_arrayName(i))[j]).append("', ");
-						}
-						sql_order.append("\b\b WHERE NAME='").append(clients[i].get_name()).append("'");
-
-						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(sql_order.c_str()), SQL_NTS);
+						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-							// cout << "SQL 실행 완료" << endl;
+							std::cout << clients[c_uid]._name << " 의 Item Database save SQL 실행 완료\n";
 							return true;
 						}
 						else {
@@ -367,7 +388,6 @@ bool Set_IDB(short in_c_uid)
 						}
 					}
 					
-
 					// Process data  
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 						SQLCancel(hstmt);
@@ -388,60 +408,87 @@ bool Set_IDB(short in_c_uid)
 	return false;
 }
 
-bool write_DB(int game_id, int pos_x, int pos_y) {
+bool Get_SDB(short& c_uid) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
-	SQLWCHAR szName[CHAR_SIZE];
-	SQLINTEGER user_id{}, POSITION_X{}, POSITION_Y{};
+	SQLLEN sqllen{};
 
-	SQLLEN cbName = 0, cb_pos_x = 0, cb_pos_y = 0, cb_id = 0;
+	SQLWCHAR ItemCnt[MAX_ITEM_COUNT];
+
+	char db_itemCnt[CHAR_MIN_SIZE];
+	int strSize;
+
+	std::string SQL_Order = "SELECT Bullet, FireBullet, IceBullet, ExplosionBullet FROM USERinventoryDB_Launcher WHERE NAME='";
+	SQL_Order + clients[c_uid]._name + "'";
+
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
+	std::wstring wideStr(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), &wideStr[0], size_needed);
+	const wchar_t* wideCStr = wideStr.c_str();
 
 	setlocale(LC_ALL, "Korean");
 
-	// Allocate environment handle  
 	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
-
-	// Set the ODBC version environment attribute  
 	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
 
-		// Allocate connection handle  
 		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 			retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
 
-			// Set login timeout to 5 seconds  
 			if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 				SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
+				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"POKEIDB", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
 
-				// Connect to data source
-				retcode = SQLConnect(hdbc, (SQLWCHAR*)L"2022GAMEODBC", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
-
-				// Allocate statement handle  
 				if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-					retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
 
-					// retcode = SQLExecDirect(hstmt, (SQLWCHAR*)((L"UPDATE user_table_2018184020 SET POSITION_X = " + std::to_wstring(pos_x) + L" WHERE user_id = " + std::to_wstring(game_id)).c_str()), SQL_NTS);
-					// retcode = SQLExecDirect(hstmt, (SQLWCHAR*)((L"UPDATE user_table_2018184020 SET POSITION_Y = " + std::to_wstring(pos_y) + L" WHERE user_id = " + std::to_wstring(game_id)).c_str()), SQL_NTS);
-					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						// cout << "위치 저장 완료" << endl;
-					}
-					else {
-						// cout << "유효하지 않은 ID 입니다." << endl;
-						show_error(hstmt, SQL_HANDLE_STMT, retcode);
-						return false;
-					}
+					for (short item_index = 0; item_index < MAX_ITEM_CATEGORY; ++item_index) {
+						retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
-					// Process data  
-					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						SQLCancel(hstmt);
-						SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-					}
+						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+							for (int i = 0; i < MAX_ITEM_COUNT; ++i) {
+								retcode = SQLBindCol(hstmt, i, SQL_C_WCHAR, &ItemCnt[i], 1, &sqllen);
+							}
 
-					SQLDisconnect(hdbc);
+							for (int i = 0; ; ++i) {
+								retcode = SQLFetch(hstmt);
+								if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) show_error(hstmt, SQL_HANDLE_STMT, retcode);
+
+								if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
+								{
+									for (int dbi = 0; dbi < MAX_ITEM_COUNT; ++dbi) {
+										strSize = WideCharToMultiByte(CP_ACP, 0, &ItemCnt[dbi], -1, NULL, 0, NULL, NULL);
+										WideCharToMultiByte(CP_ACP, 0, &ItemCnt[dbi], -1, db_itemCnt, strSize, 0, 0);
+
+										if (0 != ItemCnt[dbi]) {
+											clients[c_uid].set_item(Get_ItemID(item_index, false).c_str(), (char)i, (short)ItemCnt[i]);
+										}
+									}
+									return true;
+								}
+								else
+									return false;
+							}
+						}
+						else {
+							// error 검출기
+							show_error(hstmt, SQL_HANDLE_STMT, retcode);
+							return false;
+						}
+
+						// Process data
+						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+							SQLCancel(hstmt);
+							SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+						}
+
+						SQLDisconnect(hdbc);
+					}
 				}
 				else {
+					// error 검출기
 					show_error(hdbc, SQL_HANDLE_DBC, retcode);
 					return false;
 				}
@@ -451,4 +498,7 @@ bool write_DB(int game_id, int pos_x, int pos_y) {
 		SQLFreeHandle(SQL_HANDLE_ENV, henv);
 	}
 	return false;
+}
+bool Set_SDB(short& c_uid) {
+
 }
