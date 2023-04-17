@@ -33,12 +33,12 @@ void process_packet(short c_uid, char* packet)
 				SC_LOGIN_INFO_PACK info_pack;
 				info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 				info_pack.type = SC_LOGIN_INFO;
-				
 				strncpy_s(info_pack.name, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
 				strncpy_s(info_pack._q_skill, CHAR_SIZE, clients[c_uid]._q_skill, CHAR_SIZE);
 				info_pack._q_item = clients[c_uid]._q_item;
 				info_pack._player_skin = clients[c_uid]._player_skin;
 				info_pack._pet_num = clients[c_uid]._pet_num;
+				clients[c_uid].do_send(&info_pack);
 
 				// Party List, info 가 존재하기 때문에 필요없다.
 				/*
@@ -97,30 +97,10 @@ void process_packet(short c_uid, char* packet)
 		}
  	}
 	break;
-	//case CS_AWS_TOKEN:
-	//{
-	//	CS_AWS_TOKEN_PACK* token_pack = reinterpret_cast<CS_AWS_TOKEN_PACK*>(packet);
-	//	
-	//	if (0 == strcmp(token_pack->Token, "theEnd")) {
-	//		// std::cout << "ID Token Length: " << strlen(clients[c_uid].IdToken.c_str()) << std::endl;
-	//		// std::cout << "ID Token: " << clients[c_uid].IdToken;
-	//		
-	//		// Get user name in AWS Cognito
-	//		std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
-	//		// Set User name
-	//		strncpy_s(clients[c_uid]._name, CHAR_SIZE, nameBuffer.c_str(), strlen(nameBuffer.c_str()));
-	//	}
-	//	else {
-	//		std::string tokenBuffer;
-	//		tokenBuffer.assign(token_pack->Token, (int)token_pack->Token_size);
-	//		clients[c_uid].IdToken.append(tokenBuffer);
-	//	}
-	//}
-	//break;
 	case CS_QUEST_INVENTORY:
 	{
 		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
-		Get_IDB(c_uid);
+		Get_ALL_ItemDB(c_uid);
 
 		// 재사용할 아이템 패킷
 		// 재사용시, Zeromemory로 초기화 필요한지 확인 필요.(데이터 오류 방지)
@@ -128,17 +108,40 @@ void process_packet(short c_uid, char* packet)
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 		item_pack.type = SC_ITEM_INFO;
 
-		strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
-		item_pack._cnt = 99;
-		clients[c_uid].do_send(&item_pack);
+		for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
+			for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
+				std::string item_name = Get_ItemName(category, item_num);
+				if (item_name.compare("NULL")) break;
 
-		strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
-		item_pack._cnt = 99;
-		clients[c_uid].do_send(&item_pack);
+				strncpy_s(item_pack._name, CHAR_SIZE, item_name.c_str(), strlen(item_name.c_str()));
 
+				for (int cnt_num = 0; cnt_num; ++cnt_num) {
+					item_pack._cnt = clients[c_uid].get_item_arrayName(category)[cnt_num];
+					clients[c_uid].do_send(&item_pack);
+				}
+			}
+		}
+
+		/*strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
+		for (char& L : clients[c_uid].Launcher) {
+			item_pack._cnt = L;
+			clients[c_uid].do_send(&item_pack);
+		}
+		strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
+		for (char& L : clients[c_uid].Install) {
+			item_pack._cnt = L;
+			clients[c_uid].do_send(&item_pack);
+		}
 		strncpy_s(item_pack._name, CHAR_SIZE, "firebullet", strlen("firebullet"));
-		item_pack._cnt = 99;
-		clients[c_uid].do_send(&item_pack);
+		for (char& L : clients[c_uid].Potion) {
+			item_pack._cnt = L;
+			clients[c_uid].do_send(&item_pack);
+		}
+		strncpy_s(item_pack._name, CHAR_SIZE, "firebullet", strlen("firebullet"));
+		for (char& L : clients[c_uid].Potion) {
+			item_pack._cnt = L;
+			clients[c_uid].do_send(&item_pack);
+		}*/
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);
@@ -344,6 +347,7 @@ void process_packet(short c_uid, char* packet)
 			return_client.type = SC_LOGOUT_FAIL;
 			clients[c_uid].do_send(&return_client);
 		}
+		// clients[c_uid]._recv_over.c_type = TYPE::LOGOUT;
 	}
 	break;
 	}
@@ -394,7 +398,6 @@ void worker_thread(HANDLE h_iocp)
 		switch (ex_over->c_type) {
 		case ACCEPT:	// accept new client
 		{
-			// newClient 고유번호 부여, 게임정보 입력, 연결
 			short new_c_uid = get_player_uid();
 
 			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
@@ -406,20 +409,24 @@ void worker_thread(HANDLE h_iocp)
 				clients[new_c_uid]._socket = g_c_socket;
 
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, NULL, 0);
+
 				clients[new_c_uid].do_recv();
 				g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-				ZeroMemory(&g_a_over._over, sizeof(g_a_over._over));
-				int addr_size = sizeof(SOCKADDR_IN);
-				AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
-
 				// Dummy Client 확인용
-				std::cout << "NEW PLAYER!\n";
+				std::cout << new_c_uid << "번 NEW PLAYER!\n";
+				if (clients[new_c_uid]._recv_over.c_type == RECV) {
+					std::cout << "STATE: RECV\n";
+				}
 			}
 			else {					// 접속 실패
 				std::cout << "connect fail\n";
 				break;
 			}
+
+			ZeroMemory(&g_a_over._over, sizeof(g_a_over._over));
+			int addr_size = sizeof(SOCKADDR_IN);
+			AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
 		}
 		break;
 		case RECV:		// get new message
@@ -447,11 +454,8 @@ void worker_thread(HANDLE h_iocp)
 		}
 		break;
 		case SEND:		// send new message
-		{
-			// std::cout << "SEND\n";	// 필요시에만 사용할 것.
 			delete ex_over;
-		}
-		break;
+			break;
 		}
 	}
 }

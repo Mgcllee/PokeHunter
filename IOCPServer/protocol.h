@@ -141,7 +141,7 @@ struct SC_LOGIN_INFO_PACK {
 	char _pet_num;
 	
 	char _q_item;
-	char _q_skill[4];
+	char _q_skill[CHAR_SIZE];
 };
 
 struct SC_PARTIES_INFO_PACK {	// 파티의 요약정보

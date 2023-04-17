@@ -9,7 +9,7 @@
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 
-enum TYPE { ACCEPT, RECV, SEND };
+enum TYPE { ACCEPT, RECV, SEND, LOGOUT };
 enum CLIENT_STATE { ST_FREE, ST_ALLOC, ST_INGAME };
 enum PLAYER_STATE { ST_HOME, ST_NOTREADY, ST_READY, ST_STAGE };
 
@@ -38,8 +38,8 @@ public:
 };
 
 class SESSION {
-	OVER_EXP _recv_over;
 public:
+	OVER_EXP _recv_over;
 	SOCKET _socket;
 	int _prev_size;	// 재조립에서 사용
 
@@ -49,13 +49,13 @@ public:
 	char _pet_num;
 	char _player_skin;
 
-	char Collection[9];
-	char Install[9];
 	char Launcher[9];
+	char Install[9];
 	char Potion[9];
+	char Collection[9];
 
 	char _q_item;
-	char _q_skill[4];
+	char _q_skill[CHAR_SIZE];
 
 	char _party_num;		// 파티 고유 번호
 	char _party_staff_num;	// 파티 내 멤버 번호
@@ -149,18 +149,58 @@ public:
 	{
 		switch(num)
 		{
-		case 1:
+		case 0:
 			return Collection;
 			break;
-		case 2:
+		case 1:
 			return Install;
 			break;
-		case 3:
+		case 2:
 			return Launcher;
 			break;
-		case 4:
+		case 3:
 			return Potion;
 			break;
+		}
+	}
+
+	char get_item_cnt(char* category_name, char* item_name)
+	{
+		if (0 == strcmp("LC", category_name)) {
+			if (0 == strcmp("Bullet", item_name)) {
+				return Launcher[0];
+			}
+			else if (0 == strcmp("FireBullet", item_name)) {
+				return Launcher[1];
+			}
+			else if (0 == strcmp("IceBullet", item_name)) {
+				return Launcher[2];
+			}
+			else if (0 == strcmp("ExplosionBullet", item_name)) {
+				return Launcher[3];
+			}
+		}
+		else if (0 == strcmp("IS", category_name)) {
+			if (0 == strcmp("Trap", item_name)) {
+				return Install[0];
+			}
+			else if (0 == strcmp("DummyTrap", item_name)) {
+				return Install[1];
+			}
+			else if (0 == strcmp("BindTrap", item_name)) {
+				return Install[2];
+			}
+			else if (0 == strcmp("HealTrap", item_name)) {
+				return Install[3];
+			}
+		}
+		else if (0 == strcmp("PT", category_name)) {
+			if (0 == strcmp("Potion", item_name)) {
+				return Potion[0];
+			}
+		}
+		else if (0 == strcmp("CT", category_name)) {
+
 		}
 	}
 };

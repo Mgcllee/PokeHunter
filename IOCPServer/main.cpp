@@ -2,10 +2,10 @@
 #include "netModule.h"
 
 OVER_EXP g_a_over;
-HANDLE h_iocp;
 SOCKET g_s_socket, g_c_socket;
 
 int main() {
+	HANDLE h_iocp;
 	WSADATA WSAData;
 	int err_code = WSAStartup(MAKEWORD(2, 2), &WSAData);
 
@@ -24,15 +24,15 @@ int main() {
 	int addr_size = sizeof(cl_addr);
 
 	h_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
-	CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_s_socket), h_iocp, 9999, 0);
+	CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_s_socket), h_iocp, 0, 0);
 	
 	g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 	g_a_over.c_type = ACCEPT;
 
-	err_code = AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
+	AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
 
 	std::vector<std::thread> worker_threads;
-	int num_threads = std::thread::hardware_concurrency();	// PC�� ����ھ� ����
+	int num_threads = std::thread::hardware_concurrency();
 
 	// === WORK SPACE ===
 	std::cout << "Start...\n";
