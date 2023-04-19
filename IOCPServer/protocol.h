@@ -41,17 +41,17 @@ constexpr char SC_LOGOUT_FAIL			= 21;
 constexpr char SC_LOGOUT_SUCCESS		= 22;
 constexpr char SC_ITEM_INFO				= 23;
 
-constexpr char CS_AWS_TOKEN = 24;
+constexpr char CS_TEST = 24;
 
 
 #pragma pack (push, 1)
 
-//struct CS_AWS_TOKEN_PACK {
-//	char size;
-//	char type;
-//	char Token[110];
-//	char Token_size;
-//};
+struct CS_TEST_PACK {
+	char size;
+	char type;
+
+	char BufferName[CHAR_SIZE];
+};
 
 struct CS_LOGIN_PACK {
 	char size;

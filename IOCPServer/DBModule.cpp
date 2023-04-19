@@ -143,7 +143,7 @@ std::string get_invenDB_SQL(int index) {
 	return SQL_Order;
 }
 
-bool Login_UDB(short& in_uid, std::string& in_name) {
+bool Login_UDB(int& in_uid, std::string& in_name) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
@@ -269,7 +269,7 @@ bool Login_UDB(short& in_uid, std::string& in_name) {
 	}
 	return false;
 }
-bool Logout_UDB(short& c_uid)
+bool Logout_UDB(int& c_uid)
 {
 	SQLHENV henv;
 	SQLHDBC hdbc;
@@ -331,7 +331,7 @@ bool Logout_UDB(short& c_uid)
 	return false;
 }
 
-bool Get_ALL_ItemDB(short& c_uid) {
+bool Get_ALL_ItemDB(int& c_uid) {
 	bool reVal = false;
 
 	for (int i = 1; i < MAX_ITEM_CATEGORY; ++i) {
@@ -339,7 +339,7 @@ bool Get_ALL_ItemDB(short& c_uid) {
 	}
 	return reVal;
 }
-bool Get_IDB(short& c_uid, char* itemArray, std::string SQL_Order) {
+bool Get_IDB(int& c_uid, char* itemArray, std::string SQL_Order) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
@@ -441,7 +441,7 @@ bool Get_IDB(short& c_uid, char* itemArray, std::string SQL_Order) {
 	}
 	return false;
 }
-bool Set_IDB(short& c_uid)
+bool Set_IDB(int& c_uid)
 {
 	SQLHENV henv;
 	SQLHDBC hdbc;
@@ -509,7 +509,7 @@ bool Set_IDB(short& c_uid)
 	return false;
 }
 
-bool Get_SDB(short& c_uid) {
+bool Get_SDB(int& c_uid) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
@@ -600,7 +600,7 @@ bool Get_SDB(short& c_uid) {
 	}
 	return false;
 }
-bool Set_SDB(short& c_uid) {
+bool Set_SDB(int& c_uid) {
 
 	return false;
 }

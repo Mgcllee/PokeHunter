@@ -6,9 +6,15 @@
 std::array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
 std::array<PARTY, MAX_USER> parties;			// 총 파티 개수
 
-void process_packet(short c_uid, char* packet)
+void process_packet(int c_uid, char* packet)
 {
 	switch (packet[1]) {
+	case CS_TEST:
+	{
+		CS_TEST_PACK* pack = reinterpret_cast<CS_TEST_PACK*>(packet);
+		std::cout << c_uid << ":\t" << pack->BufferName << std::endl;
+	}
+	break;
 	case CS_LOGIN:
 	{
 		// 이 실행문 전, AWS_Access Toekn이 필요함!, user Name이 없음
@@ -353,7 +359,7 @@ void process_packet(short c_uid, char* packet)
 	}
 }
 
-void disconnect(short c_uid)
+void disconnect(int c_uid)
 {
 	for (SESSION& cl : clients) {
 		{

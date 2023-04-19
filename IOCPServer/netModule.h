@@ -271,6 +271,6 @@ extern std::array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
 extern std::array<PARTY, MAX_PARTY> parties;
 
 void worker_thread(HANDLE h_iocp);
-void process_packet(short c_uid, char* packet);
+void process_packet(int c_uid, char* packet);
 
-void disconnect(short c_uid);
+void disconnect(int c_uid);
