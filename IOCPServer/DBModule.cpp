@@ -6,7 +6,7 @@
 int get_player_uid() {
 	for (int i = 0; i < MAX_USER; ++i) {
 		std::lock_guard <std::mutex> ll{ clients[i]._lock };
-		if (clients[i]._socket == NULL)
+		if ((clients[i]._state == ST_FREE) && (clients[i]._socket == NULL))
 			return i;
 	}
 	return -1;

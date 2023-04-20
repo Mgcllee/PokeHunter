@@ -57,7 +57,7 @@ struct CS_LOGIN_PACK {
 	char size;
 	char type;
 
-	char Token[110];
+	char Token[60];
 	char Token_size;
 };
 

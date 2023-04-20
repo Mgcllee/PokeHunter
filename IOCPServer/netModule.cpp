@@ -9,22 +9,17 @@ std::array<PARTY, MAX_USER> parties;			// 총 파티 개수
 void process_packet(int c_uid, char* packet)
 {
 	switch (packet[1]) {
-	case CS_TEST:
-	{
-		CS_TEST_PACK* pack = reinterpret_cast<CS_TEST_PACK*>(packet);
-		std::cout << c_uid << ":\t" << pack->BufferName << std::endl;
-	}
-	break;
 	case CS_LOGIN:
 	{
 		// 이 실행문 전, AWS_Access Toekn이 필요함!, user Name이 없음
 		CS_LOGIN_PACK* token_pack = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 
 		if (0 == strcmp(token_pack->Token, "theEnd")) {
-			std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
-			
+			// std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
+
 			// AWS Cognito 에서 인증된 사용자만 입장
-			if (Login_UDB(c_uid, nameBuffer)) {
+
+			if (true/*Login_UDB(c_uid, nameBuffer)*/) {
 				{
 					std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 					clients[c_uid]._state = ST_INGAME;
@@ -45,45 +40,6 @@ void process_packet(int c_uid, char* packet)
 				info_pack._player_skin = clients[c_uid]._player_skin;
 				info_pack._pet_num = clients[c_uid]._pet_num;
 				clients[c_uid].do_send(&info_pack);
-
-				// Party List, info 가 존재하기 때문에 필요없다.
-				/*
-				SC_LOGIN_INFO_PACK info_pack;
-				info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
-				info_pack.type = SC_LOGIN_INFO;
-				strncpy_s(info_pack.name, sizeof(info_pack.name), clients[c_uid].get_name() + '\0', sizeof(clients[c_uid].get_name()) + 1);
-				info_pack._player_skin = db_skin;
-				info_pack._pet_num = db_pet;
-				info_pack._q_item = db_item;
-				strncpy_s(info_pack._q_skill, sizeof(info_pack._q_skill), db_skill + '\0', sizeof(db_skill) + 1);
-				// 새로 접속한 클라이언트 정보를 다른 기존 클라이언트들에게 전송
-				for (SESSION& cl : clients) {
-					if (0 != strcmp(cl.get_name(), "Empty")) {
-						// 송신 불필요 대상
-						if (ST_INGAME != cl._state)	continue;
-						if (c_uid == cl._uid)		continue;
-						// 송신 필요 대상
-						cl.do_send(&info_pack);
-					}
-				}
-				SC_LOGIN_INFO_PACK old_info_pack;
-				old_info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
-				old_info_pack.type = SC_LOGIN_INFO;
-				// 새로운 클라이언트에게 기존 클라이언트들 정보를 전부 전송
-				for (SESSION& cl : clients) {
-					// 새로운 클라이언트에게 자기 자신의 정보는 보낼 필요 없음(위 반복문과 중복됨)
-					if (new_c_uid != cl._uid) {
-						old_info_pack.name;
-						// strncpy_s(old_info_pack.name, c._name, CHAR_SIZE);
-
-						if (ST_INGAME != cl._state)	continue;
-						if (c_uid == cl._uid)				continue;
-
-						// 새로운 클라이언트에게 전송
-						clients[new_c_uid].do_send(&old_info_pack);
-					}
-				}
-				*/
 				
 				std::cout << "Player Name: " << clients[c_uid]._name << " Login!\n";
 			}
@@ -98,8 +54,11 @@ void process_packet(int c_uid, char* packet)
 		}
 		else {
 			std::string tokenBuffer;
-			tokenBuffer.assign(token_pack->Token, (int)token_pack->Token_size);
+			tokenBuffer.assign(token_pack->Token, (size_t)token_pack->Token_size);
 			clients[c_uid].IdToken.append(tokenBuffer);
+			std::cout << "Client ID: [" << c_uid << "] - " << clients[c_uid].IdToken << std::endl << std::endl;
+			/*int value = WSAGetLastError();
+			std::cout << "Len: " << (int)token_pack->Token_size << "\tError: " << value << std::endl;*/
 		}
  	}
 	break;
@@ -121,7 +80,7 @@ void process_packet(int c_uid, char* packet)
 
 				strncpy_s(item_pack._name, CHAR_SIZE, item_name.c_str(), strlen(item_name.c_str()));
 
-				for (int cnt_num = 0; cnt_num; ++cnt_num) {
+				for (int cnt_num = 0; cnt_num < 9; ++cnt_num) {
 					item_pack._cnt = clients[c_uid].get_item_arrayName(category)[cnt_num];
 					clients[c_uid].do_send(&item_pack);
 				}
@@ -404,7 +363,7 @@ void worker_thread(HANDLE h_iocp)
 		switch (ex_over->c_type) {
 		case ACCEPT:	// accept new client
 		{
-			short new_c_uid = get_player_uid();
+			int new_c_uid = get_player_uid();
 
 			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
 				{
@@ -414,7 +373,7 @@ void worker_thread(HANDLE h_iocp)
 
 				clients[new_c_uid]._socket = g_c_socket;
 
-				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, NULL, 0);
+				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, new_c_uid, 0);
 
 				clients[new_c_uid].do_recv();
 				g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);

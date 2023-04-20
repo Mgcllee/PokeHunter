@@ -40,7 +40,7 @@ public:
 class SESSION {
 public:
 	OVER_EXP _recv_over;
-	SOCKET _socket;
+	SOCKET _socket = NULL;
 	int _prev_size;	// 재조립에서 사용
 
 
@@ -69,7 +69,7 @@ public:
 	PLAYER_STATE _player_state;
 
 	SESSION() {
-		_socket = 0;
+		_socket = NULL;
 		_uid = -1;
 		strncpy_s(_name, "Empty", strlen("Empty"));
 		_prev_size = 0;
