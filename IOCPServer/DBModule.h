@@ -15,7 +15,7 @@ std::string Get_ItemID(short item_ID, bool full_name);
 std::string Get_ItemName(short category, short item_ID);
 
 bool Get_ALL_ItemDB(int& c_uid);
-bool Get_IDB(int& c_uid, char* itemArray, std::string SQL_Order);
+bool Get_IDB(int& c_uid, char itemArray[], std::string SQL_Order);
 bool Set_IDB(int& in_c_uid);
 
 bool Get_SDB(int& c_uid);

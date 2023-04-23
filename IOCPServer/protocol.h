@@ -9,37 +9,39 @@ constexpr short MAX_ITEM_CATEGORY		= 4;
 constexpr short MAX_ITEM_COUNT			= 9;
 
 constexpr short CHAR_SIZE				= 20;
-constexpr short CHAR_MIN_SIZE			= 10;
 
 constexpr char CS_LOGIN					= 0;
 constexpr char CS_MOVE					= 1;
 
 constexpr char CS_PARTY_SEARCHING		= 2;
 constexpr char CS_PARTY_INFO			= 3;
-constexpr char CS_PARTY_READY			= 4;
-constexpr char CS_PARTY_JOIN			= 5;
-constexpr char CS_PARTY_LEAVE			= 6;
 
-constexpr char CS_QUEST_INVENTORY		= 7;
-constexpr char CS_SAVE_INVENTORY		= 8;
-constexpr char CS_LOGOUT				= 9;
+constexpr char CS_PARTY_ENTER			= 4;
+constexpr char SC_PARTY_ENTER_OK		= 5;
 
-constexpr char SC_LOGIN_FAIL			= 10;
-constexpr char SC_LOGIN_SUCCESS			= 11;
-constexpr char SC_LOGIN_INFO			= 12;
+constexpr char CS_PARTY_READY			= 6;
+constexpr char CS_PARTY_LEAVE			= 8;
 
-constexpr char SC_PARTY_LIST_INFO		= 13;
-constexpr char SC_PARTY_INFO			= 14;
-constexpr char SC_PARTY_STAFF_READY		= 15;
-constexpr char SC_PARTY_START			= 16;
-constexpr char SC_PARTY_JOIN_FAIL		= 17;
-constexpr char SC_PARTY_JOIN_SUCCESS	= 18;
-constexpr char SC_PARTY_LEAVE_FAIL		= 19;
-constexpr char SC_PARTY_LEAVE_SUCCESS	= 20;
+constexpr char CS_QUEST_INVENTORY		= 9;
+constexpr char CS_SAVE_INVENTORY		= 10;
+constexpr char CS_LOGOUT				= 11;
 
-constexpr char SC_LOGOUT_FAIL			= 21;
-constexpr char SC_LOGOUT_SUCCESS		= 22;
-constexpr char SC_ITEM_INFO				= 23;
+constexpr char SC_LOGIN_FAIL			= 20;
+constexpr char SC_LOGIN_SUCCESS			= 21;
+constexpr char SC_LOGIN_INFO			= 22;
+
+constexpr char SC_PARTY_LIST_INFO		= 23;
+constexpr char SC_PARTY_INFO			= 24;
+constexpr char SC_PARTY_STAFF_READY		= 25;
+constexpr char SC_PARTY_START			= 26;
+constexpr char SC_PARTY_JOIN_FAIL		= 27;
+constexpr char SC_PARTY_JOIN_SUCCESS	= 28;
+constexpr char SC_PARTY_LEAVE_FAIL		= 29;
+constexpr char SC_PARTY_LEAVE_SUCCESS	= 30;
+
+constexpr char SC_LOGOUT_FAIL			= 31;
+constexpr char SC_LOGOUT_SUCCESS		= 32;
+constexpr char SC_ITEM_INFO				= 33;
 
 constexpr char CS_TEST = 24;
 
@@ -95,16 +97,21 @@ struct CS_PARTY_INFO_PACK {
 	char party_num;			// client에서 선택한 파티번호(UI번호)
 };
 
-struct CS_PARTY_READY_PACK {
-	char size;
-	char type;
-};
-
-struct CS_PARTY_JOIN_PACK {
+struct CS_PARTY_ENTER_PACK {
 	char size;
 	char type;
 
 	char party_num;
+};
+
+struct SC_PARTY_ENTER_OK_PACK {
+	char size;
+	char type;
+};
+
+struct CS_PARTY_READY_PACK {
+	char size;
+	char type;
 };
 
 struct CS_PARTY_LEAVE_PACK {
@@ -138,7 +145,7 @@ struct SC_LOGIN_INFO_PACK {
 	char name[CHAR_SIZE];
 	
 	char _player_skin;
-	char _pet_num;
+	char _pet_num[CHAR_SIZE];
 	
 	char _q_item;
 	char _q_skill[CHAR_SIZE];
@@ -157,18 +164,15 @@ struct SC_PARTY_INFO_PACK {		// 각 파티원의 세부 정보
 	char type;
 
 	char _mem[CHAR_SIZE];
-	char _mem_pet;
+	char _mem_pet[CHAR_SIZE];
 	char _mem_state;
 };
 
-struct SC_PARTY_JOIN_FAIL_PACK {
+struct SC_PARTY_JOIN_RESULT_PACK {
 	char size;
 	char type;
-};
 
-struct SC_PARTY_JOIN_SUCCESS_PACK {
-	char size;
-	char type;
+	char _result;
 };
 
 struct SC_PARTY_STAFF_READY_PACK {
@@ -186,6 +190,10 @@ struct SC_PARTY_LEAVE_FAIL_PACK {
 struct SC_PARTY_LEAVE_SUCCESS_PACK {
 	char size;
 	char type;
+
+	char _mem[CHAR_SIZE];
+	char _mem_pet;
+	char _mem_state;
 };
 
 struct SC_LOGOUT_FAIL_PACK {

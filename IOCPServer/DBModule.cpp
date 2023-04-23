@@ -121,23 +121,27 @@ std::string Get_ItemName(short category, short item_ID) {
 		}
 		break;
 	}
-	
+	return "NULL";
 }
 
 std::string get_invenDB_SQL(int index) {
 	std::string SQL_Order;
 	switch (index) {
 	case 0:
+		// SQL_Order = "SELECT * FROM USERinventoryDB_Collection";
 		SQL_Order = "SELECT * FROM USERinventoryDB_Collection";
 		break;
 	case 1:
-		SQL_Order = "SELECT Trap, DummyTrap, BindTrap, HealTrap FROM USERinventoryDB_Install";
+		// SQL_Order = "SELECT Trap, DummyTrap, BindTrap, HealTrap FROM USERinventoryDB_Install";
+		SQL_Order = "SELECT * FROM USERinventoryDB_Install";
 		break;
 	case 2:
-		SQL_Order = "SELECT Bullet, FireBullet, IceBullet, ExplosionBullet FROM USERinventoryDB_Launcher";
+		// SQL_Order = "SELECT Bullet, FireBullet, IceBullet, ExplosionBullet FROM USERinventoryDB_Launcher";
+		SQL_Order = "SELECT * FROM USERinventoryDB_Launcher";
 		break;
 	case 3:
-		SQL_Order = "SELECT Potion FROM USERinventoryDB_Potion";
+		// SQL_Order = "SELECT Potion FROM USERinventoryDB_Potion";
+		SQL_Order = "SELECT * FROM USERinventoryDB_Potion";
 		break;
 	}
 	return SQL_Order;
@@ -149,17 +153,17 @@ bool Login_UDB(int& in_uid, std::string& in_name) {
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
 
-	SQLWCHAR player_name[CHAR_MIN_SIZE];
-	SQLWCHAR player_skin[CHAR_MIN_SIZE];
-	SQLWCHAR player_pet[CHAR_MIN_SIZE];
-	SQLWCHAR quick_item[CHAR_MIN_SIZE];
-	SQLWCHAR quick_skill[CHAR_MIN_SIZE];
+	SQLWCHAR player_name[CHAR_SIZE];
+	SQLWCHAR player_skin[CHAR_SIZE];
+	SQLWCHAR player_pet[CHAR_SIZE];
+	SQLWCHAR quick_item[CHAR_SIZE];
+	SQLWCHAR quick_skill[CHAR_SIZE];
 
 	SQLLEN sqllen{};
 
 	char db_name_buf[CHAR_SIZE];	// char size: CHAR_SIZE
-	char db_skin[CHAR_MIN_SIZE], db_pet[CHAR_MIN_SIZE], db_item[CHAR_MIN_SIZE];	// char size: CAHR_MIN_SIZE
-	char db_skill[CHAR_MIN_SIZE];															// char size: 4
+	char db_skin[CHAR_SIZE], db_pet[CHAR_SIZE], db_item[CHAR_SIZE];	// char size: CAHR_MIN_SIZE
+	char db_skill[CHAR_SIZE];															// char size: 4
 	int strSize;
 
 	std::string SQL_Order = "SELECT * FROM userInfo WHERE NAME='";
@@ -190,10 +194,10 @@ bool Login_UDB(int& in_uid, std::string& in_name) {
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 						retcode = SQLBindCol(hstmt, 1, SQL_C_WCHAR, &player_name, CHAR_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &player_skin, CHAR_MIN_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &player_pet, CHAR_MIN_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 4, SQL_C_WCHAR, &quick_item, CHAR_MIN_SIZE, &sqllen);
-						retcode = SQLBindCol(hstmt, 5, SQL_C_WCHAR, &quick_skill, CHAR_MIN_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 2, SQL_C_WCHAR, &player_skin, CHAR_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 3, SQL_C_WCHAR, &player_pet, CHAR_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 4, SQL_C_WCHAR, &quick_item, CHAR_SIZE, &sqllen);
+						retcode = SQLBindCol(hstmt, 5, SQL_C_WCHAR, &quick_skill, CHAR_SIZE, &sqllen);
 
 						for (int i = 0; ; ++i) {
 							retcode = SQLFetch(hstmt);
@@ -226,7 +230,7 @@ bool Login_UDB(int& in_uid, std::string& in_name) {
 								if (0 == c_name_buf.compare(in_name)) {
 									strncpy_s(clients[in_uid]._name, CHAR_SIZE, c_name_buf.c_str(), strlen(c_name_buf.c_str()));
 									clients[in_uid]._player_skin = db_skin[0];
-									clients[in_uid]._pet_num = db_pet[0];
+									strncpy_s(clients[in_uid]._pet_num, CHAR_SIZE, db_pet, strlen(db_pet));
 									clients[in_uid]._q_item = db_item[0];
 									strncpy_s(clients[in_uid]._q_skill, CHAR_SIZE, db_skill, strlen(db_skill));
 
@@ -276,7 +280,7 @@ bool Logout_UDB(int& c_uid)
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
 	std::string SQL_Order = std::string("UPDATE userInfo SET PLAYER_SKIN='").append(&clients[c_uid]._player_skin)
-						.append("', PLAYER_PET='").append(&clients[c_uid]._pet_num)
+						.append("', PLAYER_PET='").append(clients[c_uid]._pet_num)
 						.append("', QUICK_ITEM='").append(&clients[c_uid]._q_item)
 						.append("', QUICK_SKILL='").append(clients[c_uid]._q_skill)
 						.append("' WHERE NAME='").append(clients[c_uid].get_name()).append("'");
@@ -335,24 +339,29 @@ bool Get_ALL_ItemDB(int& c_uid) {
 	bool reVal = false;
 
 	for (int i = 1; i < MAX_ITEM_CATEGORY; ++i) {
+		std::cout << "===================================================================" << std::endl;
+		std::cout << "[Item Category]: " << i << std::endl;
 		reVal = Get_IDB(c_uid, clients[c_uid].get_item_arrayName(i), get_invenDB_SQL(i));
+		std::cout << "===================================================================" << std::endl;
 	}
 	return reVal;
 }
-bool Get_IDB(int& c_uid, char* itemArray, std::string SQL_Order) {
+bool Get_IDB(int& c_uid, char itemArray[], std::string SQL_Order) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
-	SQLWCHAR ItemCnt[MAX_ITEM_COUNT][CHAR_MIN_SIZE];
+	SQLWCHAR ItemCnt[MAX_ITEM_COUNT][CHAR_SIZE];
 	SQLLEN sqllen{};
 
-	char db_itemCnt[CHAR_MIN_SIZE];
+	char db_itemCnt[CHAR_SIZE];
 	int strSize;
 
 	SQL_Order.append(" WHERE NAME='");
 	SQL_Order.append(clients[c_uid]._name);
 	SQL_Order.append("'");
+
+	std::cout << SQL_Order << std::endl;
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);
@@ -379,8 +388,8 @@ bool Get_IDB(int& c_uid, char* itemArray, std::string SQL_Order) {
 						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-							for (int i = 0; i < sizeof(itemArray); ++i) {
-								retcode = SQLBindCol(hstmt, i + 1, SQL_C_WCHAR, ItemCnt[i], CHAR_MIN_SIZE, &sqllen);
+							for (int i = 0; i < 9; ++i) {
+								retcode = SQLBindCol(hstmt, i + 1, SQL_C_WCHAR, ItemCnt[i], CHAR_SIZE, &sqllen);
 							}
 
 							for (int i = 0; ; ++i) {
@@ -389,26 +398,19 @@ bool Get_IDB(int& c_uid, char* itemArray, std::string SQL_Order) {
 
 								if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
 								{
-									strSize = WideCharToMultiByte(CP_ACP, 0, ItemCnt[0], -1, NULL, 0, NULL, NULL);
-									WideCharToMultiByte(CP_ACP, 0, ItemCnt[0], -1, db_itemCnt, strSize, 0, 0);
+									for (int j = 1; j <= 9; ++j) {
+										// j == 0 : SQL에서 SELECT * 이므로 NAME 까지 함께 가져온다.
+										strSize = WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, NULL, 0, NULL, NULL);
+										WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, db_itemCnt, strSize, 0, 0);
 
-									if (0 == strcmp(clients[c_uid]._name, db_itemCnt)) {
-										for (int j = 1; j < sizeof(itemArray); ++j) {
-											strSize = WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, NULL, 0, NULL, NULL);
-											WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, db_itemCnt, strSize, 0, 0);
+										if (0 == atoi(db_itemCnt))	break;
+										std::cout << "Char: " << db_itemCnt << "\tAtoi: " << atoi(db_itemCnt) << std::endl;
 
-											if (nullptr != ItemCnt[j]) {
-												// std::cout << db_itemCnt << std::endl;
-
-												clients[c_uid].get_item_arrayName(item_index)[j - 1] = (char)atoi(db_itemCnt);
-											}
-										}
-
-										std::cout << "Get Player inventory item\n";
-										return true;
+										itemArray[j] = (char)atoi(db_itemCnt);
 									}
-									else
-										return false;
+
+									std::cout << "Get Player inventory item\n";
+									return true;
 								}
 								else
 									return false;
@@ -518,11 +520,11 @@ bool Get_SDB(int& c_uid) {
 
 	SQLWCHAR ItemCnt[MAX_ITEM_COUNT];
 
-	char db_itemCnt[CHAR_MIN_SIZE];
+	char db_itemCnt[CHAR_SIZE];
 	int strSize;
 
 	std::string SQL_Order = "SELECT Bullet, FireBullet, IceBullet, ExplosionBullet FROM USERinventoryDB_Launcher WHERE NAME='";
-	SQL_Order + clients[c_uid]._name + "'";
+	// SQL_Order + clients[c_uid]._name + "'";
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);
@@ -564,7 +566,7 @@ bool Get_SDB(int& c_uid) {
 										WideCharToMultiByte(CP_ACP, 0, &ItemCnt[dbi], -1, db_itemCnt, strSize, 0, 0);
 
 										if (0 != ItemCnt[dbi]) {
-											clients[c_uid].set_item(Get_ItemID(item_index, false).c_str(), (char)i, (short)ItemCnt[i]);
+											clients[c_uid].set_item(Get_ItemID(item_index, false).c_str(), static_cast<char>(i), static_cast<char>(ItemCnt[i]));
 										}
 									}
 									return true;

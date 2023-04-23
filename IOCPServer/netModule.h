@@ -45,8 +45,8 @@ public:
 
 
 	char _name[CHAR_SIZE];
-	short _uid;		// 서버용 플레이어 고유 ID	
-	char _pet_num;
+	short _uid = -1;		// 서버용 플레이어 고유 ID	
+	char _pet_num[CHAR_SIZE];
 	char _player_skin;
 
 	char Launcher[9];
@@ -57,7 +57,7 @@ public:
 	char _q_item;
 	char _q_skill[CHAR_SIZE];
 
-	char _party_num;		// 파티 고유 번호
+	char _party_num = -1;		// 파티 고유 번호
 	char _party_staff_num;	// 파티 내 멤버 번호
 
 	std::string IdToken;
@@ -73,7 +73,7 @@ public:
 		_uid = -1;
 		strncpy_s(_name, "Empty", strlen("Empty"));
 		_prev_size = 0;
-		_pet_num = -1;
+		strncpy_s(_pet_num, "NonePartner", strlen("NonePartner"));
 		_state = ST_FREE;
 	}
 
@@ -83,7 +83,7 @@ public:
 		this->_prev_size = ref._prev_size;
 
 		this->_uid = ref._uid;
-		this->_pet_num = ref._pet_num;
+		strncpy_s(this->_pet_num, ref._pet_num, strlen(ref._pet_num));
 		this->_player_skin = ref._player_skin;
 
 		strncpy_s(this->Collection, ref.Collection, strlen(ref.Collection));
@@ -96,14 +96,16 @@ public:
 
 		this->_state = ref._state;
 		this->_player_state = ref._player_state;
+
+		return *this;
 	}
 
 	void clear() {
 		_socket = 0;
 		_uid = -1;
-		strncpy_s(_name, "Empty", strlen("Empty"));
+		// strncpy_s(_name, "Empty", strlen("Empty")); //-> Unreal Engine의 TArray에서 FName으로 받아 제거해야 함.
 		_prev_size = 0;
-		_pet_num = -1;
+		strncpy_s(_pet_num, "NonePartner", strlen("NonePartner"));
 		_state = ST_FREE;
 	}
 
@@ -162,6 +164,7 @@ public:
 			return Potion;
 			break;
 		}
+		return nullptr;
 	}
 
 	char get_item_cnt(char* category_name, char* item_name)
@@ -208,12 +211,16 @@ public:
 class PARTY {
 public:
 	char _name[CHAR_SIZE];
-	short _mem_count{};
+	short _mem_count = 0;
 	std::array<SESSION, 4> member;
 
 	PARTY() {
 		strncpy_s(_name, CHAR_SIZE, "Empty", strlen("Empty"));
 		_mem_count = 0;
+		for (SESSION& cl : member) {
+			cl._uid = -1;
+			strncpy_s(cl._name, CHAR_SIZE, "Empty", strlen("Empty"));
+		}
 	}
 	~PARTY() {
 
@@ -241,9 +248,32 @@ public:
 	bool leave_member(char* mem_name) {
 		if (_mem_count <= 0) return false;
 
-		for (SESSION& mem : member) {
+		/*for (SESSION& mem : member) {
 			if (0 == strcmp(mem.get_name(), mem_name)) {
-				mem.clear();
+				if (_mem_count >= 1) {
+					{
+						std::lock_guard<std::mutex> ll{ mem._lock };
+						mem.clear();
+						_mem_count -= 1;
+					}
+
+					return true;
+				}
+			}
+		}*/
+
+		int remove_target = -1;
+
+		for (int i = 0; i < 4; ++i) {
+			if (0 == strcmp(member[i].get_name(), mem_name)) {
+				for (int j = i; j < 3; ++j) {
+					{
+						std::lock_guard<std::mutex> ll{ member[j]._lock };
+						member[j] = member[j + 1];
+					}
+					member[member.size() - 1].clear();
+				}
+
 				_mem_count -= 1;
 				return true;
 			}
@@ -253,14 +283,14 @@ public:
 		return false;
 	}
 
-	void get_party_info(std::array<char[CHAR_SIZE], 4>& in_member, std::array<char, 4>& in_pet) {
+	/*void get_party_info(std::array<char[CHAR_SIZE], 4>& in_member, std::array<char, 4>& in_pet) {
 		for (int i = 0; i < 4; ++i) {
 			if (0 != strcmp(member[i].get_name(), "emtpy")) {
 				strncpy_s(in_member[i], member[i].get_name(), sizeof(member[i]).get_name());
-				in_pet[i] = member[i]._pet_num;
+				strncpy_s(in_pet[i], CHAR_SIZE, member[i]._pet_num, CHAR_SIZE);
 			}
 		}
-	}
+	}*/
 };
 
 extern OVER_EXP g_a_over;

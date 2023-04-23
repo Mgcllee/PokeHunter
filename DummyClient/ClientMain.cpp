@@ -10,7 +10,7 @@
 
 using namespace std;
 
-constexpr int CLIENT_NUM = 2;
+constexpr int CLIENT_NUM = 50;
 
 void ShowErrorMessage(string message)
 {
@@ -51,24 +51,17 @@ int main()
 
 		cout << "[Client]\n";
 
-		CS_TEST_PACK test_pack;
-		test_pack.size = sizeof(CS_TEST_PACK);
+		CS_LOGIN_PACK test_pack;
+		test_pack.size = sizeof(CS_LOGIN_PACK);
 		test_pack.type = CS_TEST;
-
-		string name = "TestName";
-		strcpy_s(test_pack.BufferName, name.c_str());
-
+		strcpy_s(test_pack.Token, "theEnd");
 		send(clientSocket[i], (char*)&test_pack, test_pack.size, NULL);
+
 	}
 
 	for (int i = 0; i < CLIENT_NUM; ++i) {
-		CS_TEST_PACK test_pack;
-		test_pack.size = sizeof(CS_TEST_PACK);
-		test_pack.type = CS_TEST;
-
-		string name = "Send NewTest Pack";
-		strcpy_s(test_pack.BufferName, name.c_str());
-		send(clientSocket[i], (char*)&test_pack, test_pack.size, NULL);
+		SC_LOGIN_SUCCESS_PACK* ok_pack{};
+		recv(clientSocket[i], (char*)ok_pack, sizeof(SC_LOGIN_SUCCESS_PACK), NULL);
 	}
 
 	for (int i = 0; i < CLIENT_NUM; ++i) {
