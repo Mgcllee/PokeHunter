@@ -66,7 +66,6 @@ std::string Get_ItemID(short item_ID, bool full_name) {
 	}
 	return "Empty";
 }
-
 std::string Get_ItemName(short category, short item_ID) {
 	switch (category) {
 	case 0:
@@ -142,6 +141,38 @@ std::string get_invenDB_SQL(int index) {
 	case 3:
 		// SQL_Order = "SELECT Potion FROM USERinventoryDB_Potion";
 		SQL_Order = "SELECT * FROM USERinventoryDB_Potion";
+		break;
+	}
+	return SQL_Order;
+}
+std::string set_invenDB_SQL(int index, char itemArray[]) {
+	"UPDATE userInfo SET PLAYER_SKIN = '1', PLAYER_PET = '2', QUICK_ITEM = '1', QUICK_SKILL='2' WHERE NAME='mgcllee'";
+
+	std::string SQL_Order;
+	switch (index) {
+	case 0:
+		SQL_Order = "UPDATE USERinventoryDB_Collection SET ";
+		SQL_Order.append("");
+		break;
+	case 1:
+		SQL_Order = "UPDATE USERinventoryDB_Install SET ";
+		SQL_Order.append("Trap ='"			+ itemArray[0]);
+		SQL_Order.append("', DummyTrap ='"	+ itemArray[1]);
+		SQL_Order.append("', BindTrap ='"	+ itemArray[2]);
+		SQL_Order.append("', HealTrap ='"	+ itemArray[3]);
+		SQL_Order.append("'");
+		break;
+	case 2:
+		SQL_Order = "UPDATE USERinventoryDB_Launcher SET ";
+		SQL_Order.append("Bullet ='"			+ itemArray[0]);
+		SQL_Order.append("', FireBullet ='"		+ itemArray[1]);
+		SQL_Order.append("', IceBullet ='"		+ itemArray[2]);
+		SQL_Order.append("', ExplosionBullet ='"+ itemArray[3]);
+		SQL_Order.append("'");
+		break;
+	case 3:
+		SQL_Order = "UPDATE USERinventoryDB_Potion SET ";
+		SQL_Order.append("Potion ='" + itemArray[0]);
 		break;
 	}
 	return SQL_Order;
@@ -443,18 +474,29 @@ bool Get_IDB(int& c_uid, char itemArray[], std::string SQL_Order) {
 	}
 	return false;
 }
-bool Set_IDB(int& c_uid)
+bool Set_ALL_ItemDB(int& c_uid) {
+	bool reVal = false;
+
+	for (int i = 1; i < MAX_ITEM_CATEGORY; ++i) {
+		std::cout << "===================================================================" << std::endl;
+		std::cout << "[Item Category]: " << i << std::endl;
+		reVal = Set_IDB(c_uid, set_invenDB_SQL(i, clients[c_uid].get_item_arrayName(i)));
+		std::cout << "===================================================================" << std::endl;
+	}
+	return reVal;
+}
+bool Set_IDB(int& c_uid, std::string SQL_Order)
 {
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
 
-	std::string SQL_Order = "UPDATE userInfo SET";
-	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
-		SQL_Order.append(" <here item name(use index)>='").append("<item cnt>',");
-	}
-	SQL_Order.append("\b WHERE NAME='").append(clients[c_uid]._name).append("'");
+	SQL_Order.append(" WHERE NAME='");
+	SQL_Order.append(clients[c_uid]._name);
+	SQL_Order.append("'");
+
+	std::cout << SQL_Order << std::endl;
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);

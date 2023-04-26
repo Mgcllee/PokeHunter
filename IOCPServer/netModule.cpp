@@ -241,7 +241,7 @@ void process_packet(int c_uid, char* packet)
 			}
 		}
 
-		std::cout << "\n[" << party_num << " - Party infomation]\ncur ready mem cnt: " << ready_member << "/" << cur_member << "\n\n";
+		// std::cout << "\n[" << party_num << " - Party infomation]\ncur ready mem cnt: " << ready_member << "/" << cur_member << "\n\n";
 
 		SC_PARTY_JOIN_RESULT_PACK result_pack;
 		result_pack.size = sizeof(SC_PARTY_JOIN_RESULT_PACK);
@@ -250,6 +250,7 @@ void process_packet(int c_uid, char* packet)
 		if (ready_member == cur_member) {	// 전원이 준비완료가 되어 출발 신호를 파티 내 모든 클라에게 송신
 			result_pack._result = 1;
 			for (SESSION& cl : parties[party_num].member) {
+				// if ((ST_READY == cl._player_state) && (0 != strcmp("Empty", cl._name))) {
 				if (0 != strcmp("Empty", cl._name)) {
 					std::cout << "OK Send: " << clients[cl._uid]._name << std::endl;
 					clients[cl._uid].do_send(&result_pack);
@@ -259,14 +260,12 @@ void process_packet(int c_uid, char* packet)
 		else {				
 			result_pack._result = -1;
 			for (SESSION& cl : parties[party_num].member) {
-				if (0 != strcmp("Empty", cl._name)) {
-					std::cout << "Fail Send: " << clients[cl._uid]._name << std::endl;
+				if ((ST_READY == cl._player_state) && (0 != strcmp("Empty", cl._name))) {
+					// std::cout << "Fail Send: " << clients[cl._uid]._name << std::endl;
 					clients[cl._uid].do_send(&result_pack);
 				}
 			}
 		}
-
-		std::cout << "End CS_PARTY_READY\n";
 	}
 	break;
 	case CS_PARTY_LEAVE:
@@ -307,6 +306,8 @@ void process_packet(int c_uid, char* packet)
 	{
 		// Disconnect client
 		CS_LOGOUT_PACK* logout_client = reinterpret_cast<CS_LOGOUT_PACK*>(packet);
+
+		Logout_UDB(c_uid);
 
 		if (/*checking_DB(logout_client->name, c_uid)*/false) {
 			SC_LOGOUT_SUCCESS_PACK out_client;
@@ -362,7 +363,7 @@ void worker_thread(HANDLE h_iocp)
 				std::cout << "Accept error\n";
 			}
 			else {
-				std::cout << "GQCS Error on client[" << key << "]\t";
+				std::cout << "\nGQCS Error on client[" << key << "]\n\n";
 				// disconnect client
 			}
 		}
