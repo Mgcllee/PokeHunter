@@ -10,6 +10,7 @@ void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode);
 
 bool Login_UDB(int& in_uid, std::string& in_name);
 bool Logout_UDB(int& in_c_uid);
+bool SetNew_UDB(int& c_uid, std::string& in_name);
 
 std::string Get_ItemID(short item_ID, bool full_name);
 std::string Get_ItemName(short category, short item_ID);

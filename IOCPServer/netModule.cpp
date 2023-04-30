@@ -44,12 +44,40 @@ void process_packet(int c_uid, char* packet)
 				std::cout << "Player Name: " << clients[c_uid]._name << " Login!\n";
 			}
 			else {
-				SC_LOGIN_FAIL_PACK fail_pack;
-				fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
-				fail_pack.type = SC_LOGIN_FAIL;
-				clients[c_uid].do_send(&fail_pack);
 
-				std::cout << "Login Fail!\n";
+				// New Player
+				if (SetNew_UDB(c_uid, nameBuffer)) {
+					std::cout << "New Player Name: " << clients[c_uid]._name << " Login!\n";
+
+					{
+						std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+						clients[c_uid]._state = ST_INGAME;
+						clients[c_uid]._uid = c_uid;		// 필요한 위치?
+					}
+
+					SC_LOGIN_SUCCESS_PACK ok_pack;
+					ok_pack.size = sizeof(ok_pack);
+					ok_pack.type = SC_LOGIN_SUCCESS;
+					clients[c_uid].do_send(&ok_pack);
+					std::cout << "Client[" << c_uid << "] user : Send Ok Packet!\n";
+
+					SC_LOGIN_INFO_PACK info_pack;
+					info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+					info_pack.type = SC_LOGIN_INFO;
+					strncpy_s(info_pack.name, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
+					strncpy_s(info_pack._q_skill, CHAR_SIZE, clients[c_uid]._q_skill, CHAR_SIZE);
+					strncpy_s(info_pack._pet_num, CHAR_SIZE, clients[c_uid]._pet_num, CHAR_SIZE);
+					info_pack._q_item = clients[c_uid]._q_item;
+					info_pack._player_skin = clients[c_uid]._player_skin;
+					clients[c_uid].do_send(&info_pack);
+				}
+				else {
+					SC_LOGIN_FAIL_PACK fail_pack;
+					fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
+					fail_pack.type = SC_LOGIN_FAIL;
+					clients[c_uid].do_send(&fail_pack);
+					std::cout << "Login Fail!\n";
+				}
 			}
 		}
 		else {
