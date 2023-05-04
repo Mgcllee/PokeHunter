@@ -6,4 +6,10 @@ PATH=%PATH%;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.r
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerEnvironment>PATH=%PATH%;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\bin\x64\Debug\v141\dynamic;
+PATH=%PATH%;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

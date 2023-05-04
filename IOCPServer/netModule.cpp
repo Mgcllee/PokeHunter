@@ -49,10 +49,13 @@ void process_packet(int c_uid, char* packet)
 				if (SetNew_UDB(c_uid, nameBuffer)) {
 					std::cout << "New Player Name: " << clients[c_uid]._name << " Login!\n";
 
+					SetNew_ALL_ItemDB(c_uid, nameBuffer);
+
 					{
 						std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 						clients[c_uid]._state = ST_INGAME;
 						clients[c_uid]._uid = c_uid;		// 필요한 위치?
+						strncpy_s(clients[c_uid]._name, CHAR_SIZE, nameBuffer.c_str(), CHAR_SIZE);
 					}
 
 					SC_LOGIN_SUCCESS_PACK ok_pack;
@@ -212,9 +215,8 @@ void process_packet(int c_uid, char* packet)
 		
 	}
 	break;
-	case CS_PARTY_INFO:
+	case CS_PARTY_INFO:		// Client Party information UI 에서 사용하는 패킷
 	{
-		// 플레이어가 파티룸에 입장, 동시에 파티에 참여
 		CS_PARTY_INFO_PACK* party_info = reinterpret_cast<CS_PARTY_INFO_PACK*>(packet);
 		int party_number = static_cast<int>(party_info->party_num);
 		if (0 > party_number || party_number > 8) {
@@ -240,7 +242,7 @@ void process_packet(int c_uid, char* packet)
 		clients[c_uid].do_send(&in_party);
 	}
 	break;
-	case CS_PARTY_READY:	// 파티 시작 준비완료, client에서 플레이어가 READY BTN을 누를 때 마다 송/수신
+	case CS_PARTY_READY:	// Client Party enter stage (client party information, refhresh party information) 패킷에서 요청.
 	{
 		int cur_member = 0;
 		int ready_member = 0;
@@ -269,8 +271,6 @@ void process_packet(int c_uid, char* packet)
 			}
 		}
 
-		// std::cout << "\n[" << party_num << " - Party infomation]\ncur ready mem cnt: " << ready_member << "/" << cur_member << "\n\n";
-
 		SC_PARTY_JOIN_RESULT_PACK result_pack;
 		result_pack.size = sizeof(SC_PARTY_JOIN_RESULT_PACK);
 		result_pack.type = SC_PARTY_JOIN_SUCCESS;
@@ -282,6 +282,9 @@ void process_packet(int c_uid, char* packet)
 				if (0 != strcmp("Empty", cl._name)) {
 					std::cout << "OK Send: " << clients[cl._uid]._name << std::endl;
 					clients[cl._uid].do_send(&result_pack);
+					{
+
+					}
 				}
 			}
 		}
@@ -337,19 +340,16 @@ void process_packet(int c_uid, char* packet)
 
 		Logout_UDB(c_uid);
 
+		SC_LOGOUT_RESULT_PACK out_client;
+		out_client.size = sizeof(SC_LOGOUT_RESULT_PACK);
+		out_client.type = SC_LOGOUT_RESULT;
 		if (/*checking_DB(logout_client->name, c_uid)*/false) {
-			SC_LOGOUT_SUCCESS_PACK out_client;
-			out_client.size = sizeof(SC_LOGOUT_SUCCESS_PACK);
-			out_client.type = SC_LOGOUT_SUCCESS;
-			clients[c_uid].do_send(&out_client);
+			strncpy_s(out_client._result, CHAR_SIZE, "0", CHAR_SIZE);
 		}
 		else {
-			SC_LOGOUT_FAIL_PACK return_client;
-			return_client.size = sizeof(SC_LOGOUT_FAIL_PACK);
-			return_client.type = SC_LOGOUT_FAIL;
-			clients[c_uid].do_send(&return_client);
+			strncpy_s(out_client._result, CHAR_SIZE, "1", CHAR_SIZE);
 		}
-		// clients[c_uid]._recv_over.c_type = TYPE::LOGOUT;
+		clients[c_uid].do_send(&out_client);
 	}
 	break;
 	}
