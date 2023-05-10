@@ -54,6 +54,11 @@ public:
 	char Potion[9];
 	char Collection[9];
 
+	char storageLauncher[9];
+	char storageInstall[9];
+	char storagePotion[9];
+	char storageCollection[9];
+
 	char _q_item;
 	char _q_skill[CHAR_SIZE];
 
@@ -162,6 +167,26 @@ public:
 			break;
 		case 3:
 			return Potion;
+			break;
+		}
+		return nullptr;
+	}
+
+	char* get_storage_item_arrayName(short num)
+	{
+		switch (num)
+		{
+		case 0:
+			return storageCollection;
+			break;
+		case 1:
+			return storageInstall;
+			break;
+		case 2:
+			return storageLauncher;
+			break;
+		case 3:
+			return storagePotion;
 			break;
 		}
 		return nullptr;

@@ -96,7 +96,7 @@ void process_packet(int c_uid, char* packet)
 	{
 		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
 		Get_ALL_ItemDB(c_uid);
-
+		 
 		// 재사용할 아이템 패킷
 		// 재사용시, Zeromemory로 초기화 필요한지 확인 필요.(데이터 오류 방지)
 		SC_ITEM_INFO_PACK item_pack;
@@ -158,6 +158,35 @@ void process_packet(int c_uid, char* packet)
 			// DB에서 c_uid에 해당하는 아이템 정보 저장하기
 			// Get_IDB(c_uid);
 		}
+	}
+	break;
+	case CS_QUEST_STORAGE:
+	{
+		Get_ALL_StorageDB(c_uid);
+
+		SC_ITEM_INFO_PACK item_pack;
+		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
+		item_pack.type = SC_ITEM_INFO;
+
+		for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
+			for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
+
+				std::string item_name = Get_ItemName(category, item_num);
+				int cnt = clients[c_uid].get_storage_item_arrayName(category)[item_num];
+				if (false == item_name.compare("NULL")) continue;
+				if (0 == cnt) continue;
+
+				std::cout << item_name << " : " << cnt << std::endl;
+
+				strncpy_s(item_pack._name, CHAR_SIZE, item_name.c_str(), strlen(item_name.c_str()));
+				item_pack._cnt = cnt;
+				clients[c_uid].do_send(&item_pack);
+			}
+		}
+
+		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
+		clients[c_uid].do_send(&item_pack);
+		std::cout << "Send storage data\n";
 	}
 	break;
 	case CS_PARTY_SEARCHING:
@@ -234,11 +263,13 @@ void process_packet(int c_uid, char* packet)
 
 			strncpy_s(in_party._mem, CHAR_SIZE, cl._name, CHAR_SIZE);
 			strncpy_s(in_party._mem_pet, CHAR_SIZE, cl._pet_num, CHAR_SIZE);
-			in_party._mem_state = cl._player_state;
+			std::string playerState = { static_cast<char>(cl._player_state) };
+			strncpy_s(in_party._mem_state, CHAR_SIZE, playerState.c_str(), CHAR_SIZE);
 			clients[c_uid].do_send(&in_party);
 		}
 
 		strncpy_s(in_party._mem, CHAR_SIZE, "theEnd", strlen("theEnd"));
+		strncpy_s(in_party._my_name, CHAR_SIZE, clients[c_uid]._name, strlen(clients[c_uid]._name));
 		clients[c_uid].do_send(&in_party);
 	}
 	break;
@@ -304,28 +335,37 @@ void process_packet(int c_uid, char* packet)
 		// CS_PARTY_LEAVE_PACK* old_staff = reinterpret_cast<CS_PARTY_LEAVE_PACK*>(packet);
 		int party_num = clients[c_uid]._party_num;
 
-		std::cout << c_uid << ": [Pre Party infomation]\n";
-		for (SESSION& cl : parties[party_num].member) {
-			std::cout << cl._name << " : " << cl._uid << std::endl;
-		}
-
-		if (parties[party_num].leave_member(clients[c_uid]._name)) {
-			clients[c_uid]._player_state = ST_HOME;
-			clients[c_uid]._party_num = -1;
-
-			SC_PARTY_LEAVE_SUCCESS_PACK leave_pack;
-			leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
-			leave_pack.type = SC_PARTY_LEAVE_SUCCESS;
-			strncpy_s(leave_pack._mem, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
-			// strncpy_s(clients[c_uid]._name, CHAR_SIZE, "Empty", strlen("Empty"));
-			clients[c_uid].do_send(&leave_pack);
-			
-			std::cout << c_uid << " : Client : Success Party Leave!\n";
+		if (0 < party_num) {
+			std::cout << c_uid << ": [Pre Party infomation]\n";
 			for (SESSION& cl : parties[party_num].member) {
 				std::cout << cl._name << " : " << cl._uid << std::endl;
 			}
-		} 
+
+			if (parties[party_num].leave_member(clients[c_uid]._name)) {
+				clients[c_uid]._player_state = ST_HOME;
+				clients[c_uid]._party_num = -1;
+
+				SC_PARTY_LEAVE_SUCCESS_PACK leave_pack;
+				leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
+				leave_pack.type = SC_PARTY_LEAVE_SUCCESS;
+				strncpy_s(leave_pack._mem, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
+				// strncpy_s(clients[c_uid]._name, CHAR_SIZE, "Empty", strlen("Empty"));
+				clients[c_uid].do_send(&leave_pack);
+
+				std::cout << c_uid << " : Client : Success Party Leave!\n";
+				for (SESSION& cl : parties[party_num].member) {
+					std::cout << cl._name << " : " << cl._uid << std::endl;
+				}
+			}
+			else {
+				SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
+				fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
+				fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
+				clients[c_uid].do_send(&fail_leave_pack);
+			}
+		}
 		else {
+			std::cout << c_uid << ": this client is not party member\nparty_num : " << party_num << std::endl;
 			SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
 			fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
 			fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
@@ -338,7 +378,9 @@ void process_packet(int c_uid, char* packet)
 		// Disconnect client
 		CS_LOGOUT_PACK* logout_client = reinterpret_cast<CS_LOGOUT_PACK*>(packet);
 
-		Logout_UDB(c_uid);
+		// Logout_UDB(c_uid);
+
+		std::cout << "Logout : [" << c_uid << "] - client" << clients[c_uid]._name << std::endl;
 
 		SC_LOGOUT_RESULT_PACK out_client;
 		out_client.size = sizeof(SC_LOGOUT_RESULT_PACK);
@@ -350,6 +392,7 @@ void process_packet(int c_uid, char* packet)
 			strncpy_s(out_client._result, CHAR_SIZE, "1", CHAR_SIZE);
 		}
 		clients[c_uid].do_send(&out_client);
+		disconnect(c_uid);
 	}
 	break;
 	}

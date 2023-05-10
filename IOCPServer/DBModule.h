@@ -28,3 +28,6 @@ bool Set_IDB(int& in_c_uid, std::string SQL_Order);
 
 bool Get_SDB(int& c_uid);
 bool Set_SDB(int& c_uid);
+
+bool Get_ALL_StorageDB(int& c_uid);
+bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order);
