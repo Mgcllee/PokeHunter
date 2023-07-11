@@ -415,6 +415,8 @@ bool Login_UDB(int& in_uid, std::string& in_name) {
 
 	setlocale(LC_ALL, "Korean");
 
+	std::cout << "Try to Login!\n";
+
 	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
 	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
@@ -479,11 +481,15 @@ bool Login_UDB(int& in_uid, std::string& in_name) {
 										<< "Quick skill: " << clients[in_uid]._q_skill << "\n";
 									return true;
 								}
-								else
+								else {
+									show_error(hdbc, SQL_HANDLE_DBC, retcode);
 									return false;
+								}
 							}
-							else
+							else {
+								show_error(hdbc, SQL_HANDLE_DBC, retcode);
 								return false;
+							}
 						}
 					}
 					else {
@@ -509,6 +515,8 @@ bool Login_UDB(int& in_uid, std::string& in_name) {
 		}
 		SQLFreeHandle(SQL_HANDLE_ENV, henv);
 	}
+
+	show_error(hstmt, SQL_HANDLE_STMT, retcode);
 	return false;
 }
 bool Logout_UDB(int& c_uid)
@@ -862,7 +870,8 @@ bool Get_ALL_StorageDB(int& c_uid) {
 	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
 		std::cout << "===================================================================" << std::endl;
 		std::cout << "[Storage Category]: " << i << std::endl;
-		reVal = Get_StorageDB(c_uid, clients[c_uid].get_storage_item_arrayName(i), get_storageDB_SQL(i));
+		// reVal = Get_StorageDB(c_uid, clients[c_uid].get_storage_item_arrayName(i), get_storageDB_SQL(i));
+		Get_StorageDB(c_uid, clients[c_uid].get_storage_item_arrayName(i), get_storageDB_SQL(i));
 		std::cout << "===================================================================" << std::endl;
 	}
 	return reVal;
@@ -917,20 +926,21 @@ bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order) {
 								retcode = SQLFetch(hstmt);
 								if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) show_error(hstmt, SQL_HANDLE_STMT, retcode);
 
-								if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)
-								{
-									for (int j = 1; j <= 9; ++j) {
-										// j == 0 : SQL에서 SELECT * 이므로 NAME 까지 함께 가져온다.
+								if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+
+									// j == 0 : SQL에서 SELECT * 이므로 NAME 까지 함께 가져온다.
+									for (int j = 1; j < 9; ++j) {
 										strSize = WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, NULL, 0, NULL, NULL);
 										WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, db_itemCnt, strSize, 0, 0);
 
+										/*
 										if (0 == atoi(db_itemCnt))	break;
 										std::cout << "Char: " << db_itemCnt << "\tAtoi: " << atoi(db_itemCnt) << std::endl;
 
 										storageArray[j] = (char)atoi(db_itemCnt);
+										*/
 									}
 
-									std::cout << "Get Player inventory item\n";
 									return true;
 								}
 								else
@@ -938,7 +948,6 @@ bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order) {
 							}
 						}
 						else {
-							// error 검출기
 							show_error(hstmt, SQL_HANDLE_STMT, retcode);
 							return false;
 						}

@@ -88,17 +88,14 @@ void process_packet(int c_uid, char* packet)
 			tokenBuffer.assign(token_pack->Token, (size_t)token_pack->Token_size);
 			clients[c_uid].IdToken.append(tokenBuffer);
 			int value = WSAGetLastError();
-			std::cout << "Len: " << (int)token_pack->Token_size << "\tError: " << value << std::endl;
+			// std::cout << "Len: " << (int)token_pack->Token_size << "\tError: " << value << std::endl;
 		}
  	}
 	break;
 	case CS_QUEST_INVENTORY:
 	{
-		// DB에서 c_uid에 해당하는 아이템 정보 가져오기
 		Get_ALL_ItemDB(c_uid);
 		 
-		// 재사용할 아이템 패킷
-		// 재사용시, Zeromemory로 초기화 필요한지 확인 필요.(데이터 오류 방지)
 		SC_ITEM_INFO_PACK item_pack;
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 		item_pack.type = SC_ITEM_INFO;
@@ -118,27 +115,6 @@ void process_packet(int c_uid, char* packet)
 				clients[c_uid].do_send(&item_pack);
 			}
 		}
-
-		/*strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
-		for (char& L : clients[c_uid].Launcher) {
-			item_pack._cnt = L;
-			clients[c_uid].do_send(&item_pack);
-		}
-		strncpy_s(item_pack._name, CHAR_SIZE, "bullet", strlen("bullet"));
-		for (char& L : clients[c_uid].Install) {
-			item_pack._cnt = L;
-			clients[c_uid].do_send(&item_pack);
-		}
-		strncpy_s(item_pack._name, CHAR_SIZE, "firebullet", strlen("firebullet"));
-		for (char& L : clients[c_uid].Potion) {
-			item_pack._cnt = L;
-			clients[c_uid].do_send(&item_pack);
-		}
-		strncpy_s(item_pack._name, CHAR_SIZE, "firebullet", strlen("firebullet"));
-		for (char& L : clients[c_uid].Potion) {
-			item_pack._cnt = L;
-			clients[c_uid].do_send(&item_pack);
-		}*/
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);

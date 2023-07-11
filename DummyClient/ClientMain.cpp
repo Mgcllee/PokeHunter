@@ -43,7 +43,7 @@ int main()
 		SOCKADDR_IN serverAddress;
 		memset(&serverAddress, 0, sizeof(serverAddress));
 		serverAddress.sin_family = AF_INET;
-		serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); // 문자열IP를네트워크바이트형식으로
+		serverAddress.sin_addr.s_addr = inet_addr("172.31.176.1"); // 문자열IP를네트워크바이트형식으로
 		serverAddress.sin_port = htons(PORT_NUM); // 2바이트정수네트워크바이트형식으로
 
 		if (connect(clientSocket[i], (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
@@ -53,7 +53,7 @@ int main()
 
 		CS_LOGIN_PACK test_pack;
 		test_pack.size = sizeof(CS_LOGIN_PACK);
-		test_pack.type = CS_TEST;
+		test_pack.type = CS_LOGIN;
 		strcpy_s(test_pack.Token, "theEnd");
 		send(clientSocket[i], (char*)&test_pack, test_pack.size, NULL);
 
