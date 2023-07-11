@@ -2,6 +2,8 @@
 
 #include "DBModule.h"
 
+#include <atlstr.h>
+
 
 int get_player_uid() {
 	for (int i = 0; i < MAX_USER; ++i) {
@@ -881,10 +883,9 @@ bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order) {
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;
 	SQLRETURN retcode;
-	SQLWCHAR ItemCnt[MAX_ITEM_COUNT][CHAR_SIZE];
+	SQLWCHAR ItemCnt[MAX_ITEM_COUNT][CHAR_SIZE]{};
 	SQLLEN sqllen{};
 
-	char db_itemCnt[CHAR_SIZE];
 	int strSize;
 
 	SQL_Order.append(" WHERE NAME='");
@@ -929,16 +930,14 @@ bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order) {
 								if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 
 									// j == 0 : SQL에서 SELECT * 이므로 NAME 까지 함께 가져온다.
-									for (int j = 1; j < 9; ++j) {
-										strSize = WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, NULL, 0, NULL, NULL);
-										WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, db_itemCnt, strSize, 0, 0);
+									for (int j = 1; j < 9 && 0 != wcscmp(ItemCnt[j], L""); ++j) {
+										CW2A cw2a(ItemCnt[j]);
+										char db_itemCnt[CHAR_SIZE];
+										strcpy_s(db_itemCnt, cw2a);
 
-										/*
-										if (0 == atoi(db_itemCnt))	break;
 										std::cout << "Char: " << db_itemCnt << "\tAtoi: " << atoi(db_itemCnt) << std::endl;
 
 										storageArray[j] = (char)atoi(db_itemCnt);
-										*/
 									}
 
 									return true;
