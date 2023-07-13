@@ -88,7 +88,6 @@ void process_packet(int c_uid, char* packet)
 			tokenBuffer.assign(token_pack->Token, (size_t)token_pack->Token_size);
 			clients[c_uid].IdToken.append(tokenBuffer);
 			int value = WSAGetLastError();
-			// std::cout << "Len: " << (int)token_pack->Token_size << "\tError: " << value << std::endl;
 		}
  	}
 	break;
@@ -105,6 +104,7 @@ void process_packet(int c_uid, char* packet)
 
 				std::string item_name = Get_ItemName(category, item_num);
 				int cnt = clients[c_uid].get_item_arrayName(category)[item_num];
+				
 				if (false == item_name.compare("NULL")) continue;
 				if (0 == cnt) continue;
 

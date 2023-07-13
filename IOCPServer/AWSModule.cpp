@@ -7,7 +7,7 @@ std::string GetPlayerName(std::string& AWSIdToken) {
     AWSIdToken = std::regex_replace(AWSIdToken, std::regex("\n"), "");
 
     // Access Token 확인용 (Id Token은 작동하지 않음!)
-    // std::cout << "Token: " << AWSIdToken << std::endl;
+    std::cout << "Token: " << AWSIdToken << std::endl;
 
     Aws::SDKOptions options;
     Aws::InitAPI(options);

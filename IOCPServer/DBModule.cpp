@@ -3,6 +3,7 @@
 #include "DBModule.h"
 
 #include <atlstr.h>
+#include <ctime>	// Player Skin을 적용할 때 랜덤시드로 사용
 
 
 int get_player_uid() {
@@ -142,19 +143,15 @@ std::string get_invenDB_SQL(int index) {
 	std::string SQL_Order;
 	switch (index) {
 	case 0:
-		// SQL_Order = "SELECT * FROM USERinventoryDB_Collection";
 		SQL_Order = "SELECT * FROM USERinventoryDB_Collection";
 		break;
 	case 1:
-		// SQL_Order = "SELECT Trap, DummyTrap, BindTrap, HealTrap FROM USERinventoryDB_Install";
 		SQL_Order = "SELECT * FROM USERinventoryDB_Install";
 		break;
 	case 2:
-		// SQL_Order = "SELECT Bullet, FireBullet, IceBullet, ExplosionBullet FROM USERinventoryDB_Launcher";
 		SQL_Order = "SELECT * FROM USERinventoryDB_Launcher";
 		break;
 	case 3:
-		// SQL_Order = "SELECT Potion FROM USERinventoryDB_Potion";
 		SQL_Order = "SELECT * FROM USERinventoryDB_Potion";
 		break;
 	}
@@ -206,7 +203,8 @@ std::string setNew_invenDB_SQL(int index, std::string& in_name) {
 	case 1:
 		SQL_Order = "INSERT INTO USERinventoryDB_Install VALUES ('";
 		SQL_Order.append(in_name);
-		SQL_Order.append("', '10', '10', '10', '10', '0', '0', '0', '0', '0');");
+		// SQL_Order.append("', '10', '10', '10', '10', '0', '0', '0', '0', '0');");
+		SQL_Order.append("', '0', '0', '0', '0', '0', '0', '0', '0', '0');");
 		break;
 	case 2:
 		SQL_Order = "INSERT INTO USERinventoryDB_Launcher VALUES ('";
@@ -216,7 +214,7 @@ std::string setNew_invenDB_SQL(int index, std::string& in_name) {
 	case 3:
 		SQL_Order = "INSERT INTO USERinventoryDB_Potion VALUES ('";
 		SQL_Order.append(in_name);
-		SQL_Order.append("', '10', '0', '0', '0', '0', '0', '0', '0', '0');");
+		SQL_Order.append("', '99', '0', '0', '0', '0', '0', '0', '0', '0');");
 		break;
 	}
 	return SQL_Order;
@@ -264,7 +262,9 @@ bool SetNew_UDB(int& c_uid, std::string& in_name) {
 
 	std::string SQL_Order = "INSERT INTO userInfo VALUES ('";
 	SQL_Order.append(in_name);
-	SQL_Order.append("', '1', '1', '1', '1111');");
+	SQL_Order.append("', '");
+	SQL_Order.push_back((char)(time(NULL) % 4 + 1 + '0'));	// 플레이어의 랜덤 스킨(1~4)
+	SQL_Order.append("', '1', '1', '1111');");
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);
@@ -650,11 +650,9 @@ bool Get_IDB(int& c_uid, char itemArray[], std::string SQL_Order) {
 										// j == 0 : SQL에서 SELECT * 이므로 NAME 까지 함께 가져온다.
 										strSize = WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, NULL, 0, NULL, NULL);
 										WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, db_itemCnt, strSize, 0, 0);
-
 										if (0 == atoi(db_itemCnt))	break;
-										std::cout << "Char: " << db_itemCnt << "\tAtoi: " << atoi(db_itemCnt) << std::endl;
-
-										itemArray[j] = (char)atoi(db_itemCnt);
+										itemArray[j - 1] = (char)atoi(db_itemCnt);
+										std::cout << (int)itemArray[j] << std::endl;
 									}
 
 									std::cout << "Get Player inventory item\n";
@@ -870,11 +868,7 @@ bool Get_ALL_StorageDB(int& c_uid) {
 	bool reVal = false;
 
 	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
-		std::cout << "===================================================================" << std::endl;
-		std::cout << "[Storage Category]: " << i << std::endl;
-		// reVal = Get_StorageDB(c_uid, clients[c_uid].get_storage_item_arrayName(i), get_storageDB_SQL(i));
-		Get_StorageDB(c_uid, clients[c_uid].get_storage_item_arrayName(i), get_storageDB_SQL(i));
-		std::cout << "===================================================================" << std::endl;
+		reVal = Get_StorageDB(c_uid, clients[c_uid].get_storage_item_arrayName(i), get_storageDB_SQL(i));
 	}
 	return reVal;
 }
@@ -891,8 +885,6 @@ bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order) {
 	SQL_Order.append(" WHERE NAME='");
 	SQL_Order.append(clients[c_uid]._name);
 	SQL_Order.append("'");
-
-	std::cout << SQL_Order << std::endl;
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);
@@ -934,10 +926,7 @@ bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order) {
 										CW2A cw2a(ItemCnt[j]);
 										char db_itemCnt[CHAR_SIZE];
 										strcpy_s(db_itemCnt, cw2a);
-
-										std::cout << "Char: " << db_itemCnt << "\tAtoi: " << atoi(db_itemCnt) << std::endl;
-
-										storageArray[j] = (char)atoi(db_itemCnt);
+										storageArray[j - 1] = (char)atoi(db_itemCnt);
 									}
 
 									return true;
