@@ -311,7 +311,7 @@ void process_packet(int c_uid, char* packet)
 		// CS_PARTY_LEAVE_PACK* old_staff = reinterpret_cast<CS_PARTY_LEAVE_PACK*>(packet);
 		int party_num = clients[c_uid]._party_num;
 
-		if (0 < party_num) {
+		if (0 <= party_num) {
 			std::cout << c_uid << ": [Pre Party infomation]\n";
 			for (SESSION& cl : parties[party_num].member) {
 				std::cout << cl._name << " : " << cl._uid << std::endl;
