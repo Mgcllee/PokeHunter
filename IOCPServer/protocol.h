@@ -94,6 +94,8 @@ struct SC_PARTY_ENTER_OK_PACK {
 struct CS_PARTY_READY_PACK {
 	char size;
 	char type;
+
+	char readyState = 0;
 };
 ////////////////////////////
 
@@ -156,7 +158,7 @@ struct SC_PARTY_INFO_PACK {		// 각 파티원의 세부 정보
 	char _my_name[CHAR_SIZE];
 	char _mem[CHAR_SIZE];
 	char _mem_pet[CHAR_SIZE];
-	char _mem_state[CHAR_SIZE];
+	char _mem_state;
 };
 
 struct SC_PARTY_JOIN_RESULT_PACK {
@@ -164,6 +166,7 @@ struct SC_PARTY_JOIN_RESULT_PACK {
 	char type;
 
 	char _result;
+	char memberState[4];
 };
 
 struct SC_PARTY_STAFF_READY_PACK {

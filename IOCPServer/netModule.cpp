@@ -211,7 +211,7 @@ void process_packet(int c_uid, char* packet)
 
 			std::cout << c_uid << " : Client : Success Party Enter!\n";
 			for (SESSION& cl : parties[party_number].member) {
-				std::cout << cl._name << " : " << cl._uid << std::endl;
+				std::cout << cl._name << " : " << cl._player_state << std::endl;
 			}
 		}
 		else {
@@ -239,8 +239,12 @@ void process_packet(int c_uid, char* packet)
 
 			strncpy_s(in_party._mem, CHAR_SIZE, cl._name, CHAR_SIZE);
 			strncpy_s(in_party._mem_pet, CHAR_SIZE, cl._pet_num, CHAR_SIZE);
-			std::string playerState = { static_cast<char>(cl._player_state) };
-			strncpy_s(in_party._mem_state, CHAR_SIZE, playerState.c_str(), CHAR_SIZE);
+			
+			/*std::string playerState = { static_cast<char>(cl._player_state) };
+			strncpy_s(in_party._mem_state, CHAR_SIZE, playerState.c_str(), CHAR_SIZE);*/
+
+			in_party._mem_state = cl._player_state;
+
 			clients[c_uid].do_send(&in_party);
 		}
 
@@ -251,15 +255,24 @@ void process_packet(int c_uid, char* packet)
 	break;
 	case CS_PARTY_READY:	// Client Party enter stage (client party information, refhresh party information) 패킷에서 요청.
 	{
+		CS_PARTY_READY_PACK* party_info = reinterpret_cast<CS_PARTY_READY_PACK*>(packet);
+
 		int cur_member = 0;
 		int ready_member = 0;
 		int party_num = clients[c_uid]._party_num;
-		// 현재 내 플레이어는 READY로 설정
+		
 		{
 			std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
-			clients[c_uid]._player_state = ST_READY;
+			if (clients[c_uid]._player_state != ST_READY) {
+				clients[c_uid]._player_state = ST_READY;
+			}
 		}
+		
+		SC_PARTY_JOIN_RESULT_PACK result_pack;
+		result_pack.size = sizeof(SC_PARTY_JOIN_RESULT_PACK);
+		result_pack.type = SC_PARTY_JOIN_SUCCESS;
 
+		int curMem = 0;
 		for (SESSION& cl : parties[party_num].member) {
 			if (0 != strcmp("Empty", cl._name)) {
 				cur_member += 1;
@@ -268,38 +281,35 @@ void process_packet(int c_uid, char* packet)
 			if (c_uid == cl._uid) {
 				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 				cl._player_state = ST_READY;
-			} 
+				result_pack.memberState[curMem] = 2;
+			}
 
 			{
 				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 				if (ST_READY == cl._player_state) {
 					ready_member += 1;
+					result_pack.memberState[curMem] = 2;
 				}
+				else result_pack.memberState[curMem] = 0;
 			}
-		}
 
-		SC_PARTY_JOIN_RESULT_PACK result_pack;
-		result_pack.size = sizeof(SC_PARTY_JOIN_RESULT_PACK);
-		result_pack.type = SC_PARTY_JOIN_SUCCESS;
+			curMem += 1;
+		}
 
 		if (ready_member == cur_member) {	// 전원이 준비완료가 되어 출발 신호를 파티 내 모든 클라에게 송신
 			result_pack._result = 1;
 			for (SESSION& cl : parties[party_num].member) {
 				// if ((ST_READY == cl._player_state) && (0 != strcmp("Empty", cl._name))) {
 				if (0 != strcmp("Empty", cl._name)) {
-					std::cout << "OK Send: " << clients[cl._uid]._name << std::endl;
+					std::cout << "OK Send: " << clients[cl._uid]._name << clients[cl._uid]._player_state << std::endl;
 					clients[cl._uid].do_send(&result_pack);
-					{
-
-					}
 				}
 			}
 		}
-		else {				
-			result_pack._result = -1;
+		else {
+			result_pack._result = 0;
 			for (SESSION& cl : parties[party_num].member) {
-				if ((ST_READY == cl._player_state) && (0 != strcmp("Empty", cl._name))) {
-					// std::cout << "Fail Send: " << clients[cl._uid]._name << std::endl;
+				if (0 != strcmp("Empty", cl._name)) {
 					clients[cl._uid].do_send(&result_pack);
 				}
 			}
