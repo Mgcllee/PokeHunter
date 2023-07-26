@@ -264,7 +264,7 @@ bool SetNew_UDB(int& c_uid, std::string& in_name) {
 	SQL_Order.append(in_name);
 	SQL_Order.append("', '");
 	SQL_Order.push_back((char)(time(NULL) % 4 + 1 + '0'));	// 플레이어의 랜덤 스킨(1~4)
-	SQL_Order.append("', '1', '1', '1111');");
+	SQL_Order.append("', '1', '1', '3333');");
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);

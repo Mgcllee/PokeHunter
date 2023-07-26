@@ -149,6 +149,7 @@ struct SC_PARTIES_INFO_PACK {	// 파티의 요약정보
 
 	char _name[CHAR_SIZE];		// 파티의 이름
 	char _staff_count;			// 파티원 수
+	char Inaccessible;			// 파티 출발 여부
 };
 
 struct SC_PARTY_INFO_PACK {		// 각 파티원의 세부 정보

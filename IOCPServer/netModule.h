@@ -238,6 +238,7 @@ public:
 	char _name[CHAR_SIZE];
 	short _mem_count = 0;
 	std::array<SESSION, 4> member;
+	bool _inStage;
 
 	PARTY() {
 		strncpy_s(_name, CHAR_SIZE, "Empty", strlen("Empty"));
@@ -246,6 +247,7 @@ public:
 			cl._uid = -1;
 			strncpy_s(cl._name, CHAR_SIZE, "Empty", strlen("Empty"));
 		}
+		_inStage = false;
 	}
 	~PARTY() {
 

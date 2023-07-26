@@ -17,8 +17,15 @@ void process_packet(int c_uid, char* packet)
 		if (0 == strcmp(token_pack->Token, "theEnd")) {
 			std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
 
+			if ("TokenError" == nameBuffer || "Token Error" == nameBuffer) {
+				SC_LOGIN_FAIL_PACK fail_pack;
+				fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
+				fail_pack.type = SC_LOGIN_FAIL;
+				clients[c_uid].do_send(&fail_pack);
+				std::cout << "Login Fail!\n";
+			}
 			// AWS Cognito 에서 인증된 사용자만 입장
-			if (Login_UDB(c_uid, nameBuffer)) {
+			else if (Login_UDB(c_uid, nameBuffer)) {
 				{
 					std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 					clients[c_uid]._state = ST_INGAME;
@@ -177,6 +184,10 @@ void process_packet(int c_uid, char* packet)
 
 			strncpy_s(party_list._name, nameBuffer.c_str(), strlen(nameBuffer.c_str()));
 			party_list._staff_count = static_cast<char>(parties[i]._mem_count);
+
+			if (parties[i]._inStage) party_list.Inaccessible = 1;
+			else party_list.Inaccessible = 0;
+
 			clients[c_uid].do_send(&party_list);
 		}
 
@@ -240,10 +251,13 @@ void process_packet(int c_uid, char* packet)
 			strncpy_s(in_party._mem, CHAR_SIZE, cl._name, CHAR_SIZE);
 			strncpy_s(in_party._mem_pet, CHAR_SIZE, cl._pet_num, CHAR_SIZE);
 			
-			/*std::string playerState = { static_cast<char>(cl._player_state) };
-			strncpy_s(in_party._mem_state, CHAR_SIZE, playerState.c_str(), CHAR_SIZE);*/
-
-			in_party._mem_state = cl._player_state;
+			{
+				std::lock_guard<std::mutex> ll{ cl._lock };
+				if (ST_READY == cl._player_state) {
+					in_party._mem_state = 2;
+				}
+				else in_party._mem_state = 0;
+			}
 
 			clients[c_uid].do_send(&in_party);
 		}
@@ -298,6 +312,7 @@ void process_packet(int c_uid, char* packet)
 
 		if (ready_member == cur_member) {	// 전원이 준비완료가 되어 출발 신호를 파티 내 모든 클라에게 송신
 			result_pack._result = 1;
+			parties[party_num]._inStage = true;
 			for (SESSION& cl : parties[party_num].member) {
 				// if ((ST_READY == cl._player_state) && (0 != strcmp("Empty", cl._name))) {
 				if (0 != strcmp("Empty", cl._name)) {
