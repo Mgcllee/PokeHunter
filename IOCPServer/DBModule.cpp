@@ -289,7 +289,7 @@ bool SetNew_UDB(int& c_uid, std::string& in_name) {
 					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						std::cout << clients[c_uid]._name << " New player information Insert SQL 실행 완료\n";
+						printf("Complete running of %s's New player information Insert SQL", clients[c_uid].get_name());
 						return true;
 					}
 					else {
@@ -319,10 +319,7 @@ bool SetNew_ALL_ItemDB(int& c_uid, std::string& in_name) {
 	bool reVal = false;
 
 	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
-		std::cout << "===================================================================" << std::endl;
-		std::cout << "[Set New Item]: " << i << std::endl;
 		reVal = SetNew_IDB(c_uid, setNew_invenDB_SQL(i, in_name));
-		std::cout << "===================================================================" << std::endl;
 	}
 	return reVal;
 }
@@ -358,7 +355,7 @@ bool SetNew_IDB(int& c_uid, std::string SQL_Order) {
 						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-							std::cout << clients[c_uid]._name << " 의 New Item Database SQL 실행 완료\n";
+							printf("Complete running of %s's New Item Database SQL", clients[c_uid].get_name());
 							return true;
 						}
 						else {
@@ -417,8 +414,6 @@ bool Login_UDB(int& in_uid, std::string& in_name) {
 
 	setlocale(LC_ALL, "Korean");
 
-	std::cout << "Try to Login!\n";
-
 	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
 	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
@@ -475,12 +470,8 @@ bool Login_UDB(int& in_uid, std::string& in_name) {
 									strncpy_s(clients[in_uid]._pet_num, CHAR_SIZE, db_pet, strlen(db_pet));
 									clients[in_uid]._q_item = db_item[0];
 									strncpy_s(clients[in_uid]._q_skill, CHAR_SIZE, db_skill, strlen(db_skill));
-
-									std::cout << "[New Client!]\n" << "Name: " << clients[in_uid]._name << "\n"
-										<< "Player Skin: " << clients[in_uid]._player_skin << "\n"
-										<< "Pet Number: " << clients[in_uid]._pet_num << "\n"
-										<< "Quick item: " << clients[in_uid]._q_item << "\n"
-										<< "Quick skill: " << clients[in_uid]._q_skill << "\n";
+									/*printf("[%s]\nPlayer Skin: %c\nPet Number: %s\nQuick item: %c\nQuick skill: %c", 
+										clients[in_uid]._name, clients[in_uid]._player_skin, clients[in_uid]._pet_num, clients[in_uid]._q_item, clients[in_uid]._q_skill);*/
 									return true;
 								}
 								else {
@@ -556,7 +547,7 @@ bool Logout_UDB(int& c_uid)
 					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						std::cout << clients[c_uid]._name << " player Logout SQL 실행 완료\n";
+						printf("Complete running of %s's Player Logout SQL", clients[c_uid].get_name());
 						return true;
 					} 
 					else {
@@ -587,10 +578,7 @@ bool Get_ALL_ItemDB(int& c_uid) {
 	bool reVal = false;
 
 	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
-		std::cout << "===================================================================" << std::endl;
-		std::cout << "[Item Category]: " << i << std::endl;
 		reVal = Get_IDB(c_uid, clients[c_uid].get_item_arrayName(i), get_invenDB_SQL(i));
-		std::cout << "===================================================================" << std::endl;
 	}
 	return reVal;
 }
@@ -608,8 +596,6 @@ bool Get_IDB(int& c_uid, char itemArray[], std::string SQL_Order) {
 	SQL_Order.append(" WHERE NAME='");
 	SQL_Order.append(clients[c_uid]._name);
 	SQL_Order.append("'");
-
-	std::cout << SQL_Order << std::endl;
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);
@@ -652,10 +638,7 @@ bool Get_IDB(int& c_uid, char itemArray[], std::string SQL_Order) {
 										WideCharToMultiByte(CP_ACP, 0, ItemCnt[j], -1, db_itemCnt, strSize, 0, 0);
 										if (0 == atoi(db_itemCnt))	break;
 										itemArray[j - 1] = (char)atoi(db_itemCnt);
-										std::cout << (int)itemArray[j] << std::endl;
 									}
-
-									std::cout << "Get Player inventory item\n";
 									return true;
 								}
 								else
@@ -693,10 +676,7 @@ bool Set_ALL_ItemDB(int& c_uid) {
 	bool reVal = false;
 
 	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
-		std::cout << "===================================================================" << std::endl;
-		std::cout << "[Item Category]: " << i << std::endl;
 		reVal = Set_IDB(c_uid, set_invenDB_SQL(i, clients[c_uid].get_item_arrayName(i)));
-		std::cout << "===================================================================" << std::endl;
 	}
 	return reVal;
 }
@@ -710,8 +690,6 @@ bool Set_IDB(int& c_uid, std::string SQL_Order)
 	SQL_Order.append(" WHERE NAME='");
 	SQL_Order.append(clients[c_uid]._name);
 	SQL_Order.append("'");
-
-	std::cout << SQL_Order << std::endl;
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);
@@ -739,7 +717,7 @@ bool Set_IDB(int& c_uid, std::string SQL_Order)
 						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-							std::cout << clients[c_uid]._name << " 의 Item Database save SQL 실행 완료\n";
+							printf("Complete running of %s's Item Database save SQL", clients[c_uid].get_name());
 							return true;
 						}
 						else {

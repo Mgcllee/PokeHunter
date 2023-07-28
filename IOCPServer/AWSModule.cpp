@@ -5,15 +5,11 @@
 
 std::string GetPlayerName(std::string& AWSIdToken) {
     AWSIdToken = std::regex_replace(AWSIdToken, std::regex("\n"), "");
-
-    // Access Token 확인용 (Id Token은 작동하지 않음!)
-    std::cout << "Token: " << AWSIdToken << std::endl;
-
     Aws::SDKOptions options;
     Aws::InitAPI(options);
     {
         Aws::Client::ClientConfiguration clientConfig;
-        clientConfig.region = "ap-northeast-2"; // 리전은 원하는 대로 변경 가능
+        clientConfig.region = "ap-northeast-2";
 
         Aws::CognitoIdentityProvider::CognitoIdentityProviderClient cognitoClient(clientConfig);
 

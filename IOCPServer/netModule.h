@@ -274,23 +274,6 @@ public:
 
 	bool leave_member(char* mem_name) {
 		if (_mem_count <= 0) return false;
-
-		/*for (SESSION& mem : member) {
-			if (0 == strcmp(mem.get_name(), mem_name)) {
-				if (_mem_count >= 1) {
-					{
-						std::lock_guard<std::mutex> ll{ mem._lock };
-						mem.clear();
-						_mem_count -= 1;
-					}
-
-					return true;
-				}
-			}
-		}*/
-
-		int remove_target = -1;
-
 		for (int i = 0; i < 4; ++i) {
 			if (0 == strcmp(member[i].get_name(), mem_name)) {
 				for (int j = i; j < 3; ++j) {
@@ -302,22 +285,15 @@ public:
 				}
 
 				_mem_count -= 1;
+				if (0 == _mem_count) {
+					_inStage = false;
+				}
+
 				return true;
 			}
 		}
-
-		// 탐색된 파티원 중 입력된 파티원 정보 없음
 		return false;
 	}
-
-	/*void get_party_info(std::array<char[CHAR_SIZE], 4>& in_member, std::array<char, 4>& in_pet) {
-		for (int i = 0; i < 4; ++i) {
-			if (0 != strcmp(member[i].get_name(), "emtpy")) {
-				strncpy_s(in_member[i], member[i].get_name(), sizeof(member[i]).get_name());
-				strncpy_s(in_pet[i], CHAR_SIZE, member[i]._pet_num, CHAR_SIZE);
-			}
-		}
-	}*/
 };
 
 extern OVER_EXP g_a_over;

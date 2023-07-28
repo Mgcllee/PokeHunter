@@ -11,32 +11,29 @@ void process_packet(int c_uid, char* packet)
 	switch (packet[1]) {
 	case CS_LOGIN:
 	{
-		// 이 실행문 전, AWS_Access Toekn이 필요함!, user Name이 없음
 		CS_LOGIN_PACK* token_pack = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 
 		if (0 == strcmp(token_pack->Token, "theEnd")) {
 			std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
 
-			if ("TokenError" == nameBuffer || "Token Error" == nameBuffer) {
+			if ("TokenError" == nameBuffer || "Token Error" == nameBuffer || "Empty" == nameBuffer) {
 				SC_LOGIN_FAIL_PACK fail_pack;
 				fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
 				fail_pack.type = SC_LOGIN_FAIL;
 				clients[c_uid].do_send(&fail_pack);
-				std::cout << "Login Fail!\n";
+				printf("Login Fail!\n");
 			}
-			// AWS Cognito 에서 인증된 사용자만 입장
 			else if (Login_UDB(c_uid, nameBuffer)) {
 				{
 					std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 					clients[c_uid]._state = ST_INGAME;
-					clients[c_uid]._uid = c_uid;		// 필요한 위치?
+					clients[c_uid]._uid = c_uid;
 				}
 
 				SC_LOGIN_SUCCESS_PACK ok_pack;
 				ok_pack.size = sizeof(ok_pack);
 				ok_pack.type = SC_LOGIN_SUCCESS;
 				clients[c_uid].do_send(&ok_pack);
-				std::cout << "Client[" << c_uid << "] user : Send Ok Packet!\n";
 
 				SC_LOGIN_INFO_PACK info_pack;
 				info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
@@ -48,20 +45,16 @@ void process_packet(int c_uid, char* packet)
 				info_pack._player_skin = clients[c_uid]._player_skin;
 				clients[c_uid].do_send(&info_pack);
 				
-				std::cout << "Player Name: " << clients[c_uid]._name << " Login!\n";
+				printf("Player Name: %s Login!\n", clients[c_uid]._name);
 			}
 			else {
-
-				// New Player
 				if (SetNew_UDB(c_uid, nameBuffer)) {
-					std::cout << "New Player Name: " << clients[c_uid]._name << " Login!\n";
-
 					SetNew_ALL_ItemDB(c_uid, nameBuffer);
 
 					{
 						std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 						clients[c_uid]._state = ST_INGAME;
-						clients[c_uid]._uid = c_uid;		// 필요한 위치?
+						clients[c_uid]._uid = c_uid;
 						strncpy_s(clients[c_uid]._name, CHAR_SIZE, nameBuffer.c_str(), CHAR_SIZE);
 					}
 
@@ -69,7 +62,6 @@ void process_packet(int c_uid, char* packet)
 					ok_pack.size = sizeof(ok_pack);
 					ok_pack.type = SC_LOGIN_SUCCESS;
 					clients[c_uid].do_send(&ok_pack);
-					std::cout << "Client[" << c_uid << "] user : Send Ok Packet!\n";
 
 					SC_LOGIN_INFO_PACK info_pack;
 					info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
@@ -80,13 +72,14 @@ void process_packet(int c_uid, char* packet)
 					info_pack._q_item = clients[c_uid]._q_item;
 					info_pack._player_skin = clients[c_uid]._player_skin;
 					clients[c_uid].do_send(&info_pack);
+					printf("New player Name: %s Login!\n", clients[c_uid]._name);
 				}
 				else {
 					SC_LOGIN_FAIL_PACK fail_pack;
 					fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
 					fail_pack.type = SC_LOGIN_FAIL;
 					clients[c_uid].do_send(&fail_pack);
-					std::cout << "Login Fail!\n";
+					printf("Login Fail!\n");
 				}
 			}
 		}
@@ -116,6 +109,7 @@ void process_packet(int c_uid, char* packet)
 				if (0 == cnt) continue;
 
 				std::cout << item_name << " : " << cnt << std::endl;
+				printf("[%s] : %d\n", item_name.c_str(), cnt);
 
 				strncpy_s(item_pack._name, CHAR_SIZE, item_name.c_str(), strlen(item_name.c_str()));
 				item_pack._cnt = cnt;
@@ -125,7 +119,6 @@ void process_packet(int c_uid, char* packet)
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);
-		std::cout << "Send inventory data\n";
 	}
 	break;
 	case CS_SAVE_INVENTORY:
@@ -156,10 +149,10 @@ void process_packet(int c_uid, char* packet)
 
 				std::string item_name = Get_ItemName(category, item_num);
 				int cnt = clients[c_uid].get_storage_item_arrayName(category)[item_num];
-				if (false == item_name.compare("NULL")) continue;
-				if (0 == cnt) continue;
+				if (false == item_name.compare("NULL"))continue;
+				else if (0 == cnt)							continue;
 
-				std::cout << item_name << " : " << cnt << std::endl;
+				printf("[%s] : %d\n", item_name.c_str(), cnt);
 
 				strncpy_s(item_pack._name, CHAR_SIZE, item_name.c_str(), strlen(item_name.c_str()));
 				item_pack._cnt = cnt;
@@ -169,7 +162,6 @@ void process_packet(int c_uid, char* packet)
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);
-		std::cout << "Send storage data\n";
 	}
 	break;
 	case CS_PARTY_SEARCHING:
@@ -179,21 +171,22 @@ void process_packet(int c_uid, char* packet)
 		party_list.type = SC_PARTY_LIST_INFO;
 
 		for (int i = 0; i < 8; ++i) {
-			std::string nameBuffer = "Room_0";
-			nameBuffer.append(std::to_string(i + 1));
+			std::string nameBuffer = std::string("Room_0").append(std::to_string(i + 1));
 
 			strncpy_s(party_list._name, nameBuffer.c_str(), strlen(nameBuffer.c_str()));
 			party_list._staff_count = static_cast<char>(parties[i]._mem_count);
 
-			if (parties[i]._inStage) party_list.Inaccessible = 1;
-			else party_list.Inaccessible = 0;
+			{
+				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+				if (parties[i]._inStage) party_list.Inaccessible = 1;
+				else party_list.Inaccessible = 0;
+			}
 
 			clients[c_uid].do_send(&party_list);
 		}
 
 		strncpy_s(party_list._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&party_list);
-		// std::cout << "Send Party List!\n";
 	}
 	break;
 	case CS_PARTY_ENTER:
@@ -203,50 +196,43 @@ void process_packet(int c_uid, char* packet)
 		if (0 > party_number || party_number > 8) break;
 
 		int cur_party_member_count = parties[party_number]._mem_count;
-		if (0 <= cur_party_member_count && cur_party_member_count < 3) {
+		if (0 <= cur_party_member_count && cur_party_member_count <= 3) {
 
 			strncpy_s(parties[party_number].member[cur_party_member_count]._name, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
 			parties[party_number].member[cur_party_member_count]._uid = c_uid;
 
 			strncpy_s(parties[party_number].member[cur_party_member_count]._pet_num, CHAR_SIZE, clients[c_uid]._pet_num, CHAR_SIZE);
-			parties[party_number].member[cur_party_member_count]._player_state = clients[c_uid]._player_state = ST_NOTREADY;
+			{
+				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+				parties[party_number].member[cur_party_member_count]._player_state = ST_NOTREADY;
+				clients[c_uid]._player_state = ST_NOTREADY;
+			}
+			
 			parties[party_number]._mem_count += 1;
-
-			clients[c_uid]._party_num = party_number;
-			// std::cout << "current Party member: " << parties[party_number]._mem_count << std::endl;
 
 			SC_PARTY_ENTER_OK_PACK ok_pack;
 			ok_pack.size = sizeof(SC_PARTY_ENTER_OK_PACK);
 			ok_pack.type = SC_PARTY_ENTER_OK;
 			clients[c_uid].do_send(&ok_pack);
+			clients[c_uid]._party_num = party_number;
 
-			std::cout << c_uid << " : Client : Success Party Enter!\n";
-			for (SESSION& cl : parties[party_number].member) {
-				std::cout << cl._name << " : " << cl._player_state << std::endl;
-			}
+			printf("%s party connection Success\n", clients[c_uid].get_name());
 		}
 		else {
-			std::cout << c_uid << "번 클라이언트가 파티 접속에 실패함.\n";
+			printf("%s party connection failed\n", clients[c_uid].get_name());
 		}
 		
 	}
 	break;
-	case CS_PARTY_INFO:		// Client Party information UI 에서 사용하는 패킷
+	case CS_PARTY_INFO:
 	{
-		CS_PARTY_INFO_PACK* party_info = reinterpret_cast<CS_PARTY_INFO_PACK*>(packet);
-		int party_number = static_cast<int>(party_info->party_num);
-		if (0 > party_number || party_number > 8) {
-			std::cout << "Party Nubmer is inVaild\n";
-			break;
-		}
-
 		SC_PARTY_INFO_PACK in_party;
 		in_party.size = sizeof(SC_PARTY_INFO_PACK);
 		in_party.type = SC_PARTY_INFO;
 
 		for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
-			if (-1 == cl._uid)					continue;
 			if (0 == strcmp("Empty", cl._name)) continue;
+			else  if (-1 == cl._uid)						continue;
 
 			strncpy_s(in_party._mem, CHAR_SIZE, cl._name, CHAR_SIZE);
 			strncpy_s(in_party._mem_pet, CHAR_SIZE, cl._pet_num, CHAR_SIZE);
@@ -267,10 +253,8 @@ void process_packet(int c_uid, char* packet)
 		clients[c_uid].do_send(&in_party);
 	}
 	break;
-	case CS_PARTY_READY:	// Client Party enter stage (client party information, refhresh party information) 패킷에서 요청.
+	case CS_PARTY_READY:
 	{
-		CS_PARTY_READY_PACK* party_info = reinterpret_cast<CS_PARTY_READY_PACK*>(packet);
-
 		int cur_member = 0;
 		int ready_member = 0;
 		int party_num = clients[c_uid]._party_num;
@@ -310,19 +294,23 @@ void process_packet(int c_uid, char* packet)
 			curMem += 1;
 		}
 
-		if (ready_member == cur_member) {	// 전원이 준비완료가 되어 출발 신호를 파티 내 모든 클라에게 송신
+		if ((ready_member == curMem) && (false == parties[party_num]._inStage)) {
+
 			result_pack._result = 1;
-			parties[party_num]._inStage = true;
+			{
+				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+				parties[party_num]._inStage = true;
+			}
 			for (SESSION& cl : parties[party_num].member) {
-				// if ((ST_READY == cl._player_state) && (0 != strcmp("Empty", cl._name))) {
 				if (0 != strcmp("Empty", cl._name)) {
-					std::cout << "OK Send: " << clients[cl._uid]._name << clients[cl._uid]._player_state << std::endl;
+					printf("%s in Stage!\n", clients[cl._uid]._name);
 					clients[cl._uid].do_send(&result_pack);
 				}
 			}
 		}
-		else {
+		else if(false == parties[party_num]._inStage) {
 			result_pack._result = 0;
+			
 			for (SESSION& cl : parties[party_num].member) {
 				if (0 != strcmp("Empty", cl._name)) {
 					clients[cl._uid].do_send(&result_pack);
@@ -333,15 +321,9 @@ void process_packet(int c_uid, char* packet)
 	break;
 	case CS_PARTY_LEAVE:
 	{
-		// CS_PARTY_LEAVE_PACK* old_staff = reinterpret_cast<CS_PARTY_LEAVE_PACK*>(packet);
 		int party_num = clients[c_uid]._party_num;
 
 		if (0 <= party_num) {
-			std::cout << c_uid << ": [Pre Party infomation]\n";
-			for (SESSION& cl : parties[party_num].member) {
-				std::cout << cl._name << " : " << cl._uid << std::endl;
-			}
-
 			if (parties[party_num].leave_member(clients[c_uid]._name)) {
 				clients[c_uid]._player_state = ST_HOME;
 				clients[c_uid]._party_num = -1;
@@ -350,13 +332,8 @@ void process_packet(int c_uid, char* packet)
 				leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
 				leave_pack.type = SC_PARTY_LEAVE_SUCCESS;
 				strncpy_s(leave_pack._mem, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
-				// strncpy_s(clients[c_uid]._name, CHAR_SIZE, "Empty", strlen("Empty"));
 				clients[c_uid].do_send(&leave_pack);
-
-				std::cout << c_uid << " : Client : Success Party Leave!\n";
-				for (SESSION& cl : parties[party_num].member) {
-					std::cout << cl._name << " : " << cl._uid << std::endl;
-				}
+				printf("[%s] left the party.\n", clients[c_uid].get_name());
 			}
 			else {
 				SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
@@ -366,7 +343,7 @@ void process_packet(int c_uid, char* packet)
 			}
 		}
 		else {
-			std::cout << c_uid << ": this client is not party member\nparty_num : " << party_num << std::endl;
+			printf("[%s] not [%d]party member.\n", clients[c_uid].get_name(), party_num);
 			SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
 			fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
 			fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
