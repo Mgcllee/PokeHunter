@@ -104,12 +104,15 @@ void process_packet(int c_uid, char* packet)
 
 				std::string item_name = Get_ItemName(category, item_num);
 				int cnt = clients[c_uid].get_item_arrayName(category)[item_num];
-				
-				if (false == item_name.compare("NULL")) continue;
+
+				if (false == item_name.compare("None")) continue;
 				if (0 == cnt) continue;
 
-				std::cout << item_name << " : " << cnt << std::endl;
 				printf("[%s] : %d\n", item_name.c_str(), cnt);
+				{
+					std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+					clients[c_uid].itemData.insert({ item_name, cnt });
+				}
 
 				strncpy_s(item_pack._name, CHAR_SIZE, item_name.c_str(), strlen(item_name.c_str()));
 				item_pack._cnt = cnt;
@@ -119,20 +122,36 @@ void process_packet(int c_uid, char* packet)
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);
+		std::cout << "End\n";
 	}
 	break;
 	case CS_SAVE_INVENTORY:
 	{
 		CS_SAVE_INVENTORY_PACK* save_pack = reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet);
+		short cnt = save_pack->_cnt;
 		
-		// DB 저장 끝
-		if (0 == strcmp(save_pack->_name, "theEnd")) {
-			save_pack->_name;
-			save_pack->_cnt;
+		break;
+
+		std::map<std::string, short>::iterator info = clients[c_uid].itemData.find(save_pack->_name);
+		if (clients[c_uid].itemData.end() != info) {
+			std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+			info->second = cnt;
 		}
-		else {
-			// DB에서 c_uid에 해당하는 아이템 정보 저장하기
-			// Get_IDB(c_uid);
+		else if (0 == strcmp(save_pack->_name, "theEnd")) {
+			for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
+				for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
+
+					std::map<std::string, short>::iterator it = clients[c_uid].itemData.find(Get_ItemName(category, item_num));
+					if (clients[c_uid].itemData.end() != it) {
+						clients[c_uid].get_item_arrayName(category)[item_num] = it->second;
+						std::cout << "<" << it->first << "> - " << it->second << std::endl;
+					}
+					else {
+						clients[c_uid].get_item_arrayName(category)[item_num] = 0;
+						std::cout << "<" << it->first << "> - " << 0 << std::endl;
+					}
+				}
+			}
 		}
 	}
 	break;
@@ -149,7 +168,7 @@ void process_packet(int c_uid, char* packet)
 
 				std::string item_name = Get_ItemName(category, item_num);
 				int cnt = clients[c_uid].get_storage_item_arrayName(category)[item_num];
-				if (false == item_name.compare("NULL"))continue;
+				if (false == item_name.compare("None"))continue;
 				else if (0 == cnt)							continue;
 
 				printf("[%s] : %d\n", item_name.c_str(), cnt);
@@ -231,7 +250,7 @@ void process_packet(int c_uid, char* packet)
 		in_party.type = SC_PARTY_INFO;
 
 		for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
-			if (0 == strcmp("Empty", cl._name)) continue;
+			if (0 == strcmp("None", cl._name)) continue;
 			else  if (-1 == cl._uid)						continue;
 
 			strncpy_s(in_party._mem, CHAR_SIZE, cl._name, CHAR_SIZE);
@@ -272,18 +291,16 @@ void process_packet(int c_uid, char* packet)
 
 		int curMem = 0;
 		for (SESSION& cl : parties[party_num].member) {
-			if (0 != strcmp("Empty", cl._name)) {
+			if (0 != strcmp("None", cl._name)) {
 				cur_member += 1;
 			}
 
 			if (c_uid == cl._uid) {
-				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 				cl._player_state = ST_READY;
 				result_pack.memberState[curMem] = 2;
 			}
 
 			{
-				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 				if (ST_READY == cl._player_state) {
 					ready_member += 1;
 					result_pack.memberState[curMem] = 2;
@@ -294,25 +311,23 @@ void process_packet(int c_uid, char* packet)
 			curMem += 1;
 		}
 
-		if ((ready_member == curMem) && (false == parties[party_num]._inStage)) {
-
+		// if ((ready_member == curMem) && (false == parties[party_num]._inStage)) {
+		if ((ready_member == cur_member)) {
 			result_pack._result = 1;
-			{
-				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
-				parties[party_num]._inStage = true;
-			}
+			parties[party_num]._inStage = true;
 			for (SESSION& cl : parties[party_num].member) {
-				if (0 != strcmp("Empty", cl._name)) {
+				if (0 != strcmp("None", cl._name)) {
 					printf("%s in Stage!\n", clients[cl._uid]._name);
 					clients[cl._uid].do_send(&result_pack);
 				}
 			}
 		}
-		else if(false == parties[party_num]._inStage) {
+		// else if(false == parties[party_num]._inStage) {
+		else {
 			result_pack._result = 0;
 			
 			for (SESSION& cl : parties[party_num].member) {
-				if (0 != strcmp("Empty", cl._name)) {
+				if (0 != strcmp("None", cl._name)) {
 					clients[cl._uid].do_send(&result_pack);
 				}
 			}
@@ -353,23 +368,22 @@ void process_packet(int c_uid, char* packet)
 	break;
 	case CS_LOGOUT:
 	{
-		// Disconnect client
 		CS_LOGOUT_PACK* logout_client = reinterpret_cast<CS_LOGOUT_PACK*>(packet);
-
-		// Logout_UDB(c_uid);
-
-		std::cout << "Logout : [" << c_uid << "] - client" << clients[c_uid]._name << std::endl;
 
 		SC_LOGOUT_RESULT_PACK out_client;
 		out_client.size = sizeof(SC_LOGOUT_RESULT_PACK);
 		out_client.type = SC_LOGOUT_RESULT;
-		if (/*checking_DB(logout_client->name, c_uid)*/false) {
-			strncpy_s(out_client._result, CHAR_SIZE, "0", CHAR_SIZE);
+		if (Set_ALL_ItemDB(c_uid) && Logout_UDB(c_uid)) {
+			printf("[Success]->SaveData Logout %s\n", clients[c_uid].get_name());
 		}
 		else {
-			strncpy_s(out_client._result, CHAR_SIZE, "1", CHAR_SIZE);
+			printf("[Fail]->SaveData Logout %s\n", clients[c_uid].get_name());
 		}
-		clients[c_uid].do_send(&out_client);
+		{
+			std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
+			strcpy_s(out_client._result, "1");
+			clients[c_uid].do_send(&out_client);
+		}
 		disconnect(c_uid);
 	}
 	break;
@@ -378,23 +392,9 @@ void process_packet(int c_uid, char* packet)
 
 void disconnect(int c_uid)
 {
-	for (SESSION& cl : clients) {
-		{
-			std::lock_guard<std::mutex> ll(cl._lock);
-			if (ST_INGAME == cl._state) continue;
-		}
-		if (c_uid == cl._uid) {
-			// logout logic
-			continue;
-		}
-
-		// send logout packet
-	}
-
 	// client 정보 정리
 	closesocket(clients[c_uid]._socket);
-	std::lock_guard<std::mutex> ll(clients[c_uid]._lock);
-	clients[c_uid]._state = ST_FREE;
+	clients[c_uid].clear();
 }
 
 void worker_thread(HANDLE h_iocp)

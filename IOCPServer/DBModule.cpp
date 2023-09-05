@@ -83,7 +83,7 @@ std::string Get_ItemName(short category, short item_ID) {
 			return "Bud";
 			break;
 		default:
-			return "NULL";
+			return "None";
 			break;
 		}
 		break;
@@ -102,7 +102,7 @@ std::string Get_ItemName(short category, short item_ID) {
 			return "HealTrap";
 			break;
 		default:
-			return "NULL";
+			return "None";
 			break;
 		}
 		break;
@@ -121,7 +121,7 @@ std::string Get_ItemName(short category, short item_ID) {
 			return "ExplosionBullet";
 			break;
 		default:
-			return "NULL";
+			return "None";
 			break;
 		}
 		break;
@@ -131,12 +131,12 @@ std::string Get_ItemName(short category, short item_ID) {
 			return "Potion";
 			break;
 		default:
-			return "NULL";
+			return "None";
 			break;
 		}
 		break;
 	}
-	return "NULL";
+	return "None";
 }
 
 std::string get_invenDB_SQL(int index) {
@@ -158,36 +158,35 @@ std::string get_invenDB_SQL(int index) {
 	return SQL_Order;
 }
 std::string set_invenDB_SQL(int index, char itemArray[]) {
-	"UPDATE userInfo SET PLAYER_SKIN = '1', PLAYER_PET = '2', QUICK_ITEM = '1', QUICK_SKILL='2' WHERE NAME='mgcllee'";
-
 	std::string SQL_Order;
 	switch (index) {
 	case 0:
 		SQL_Order = "UPDATE USERinventoryDB_Collection SET ";
-		SQL_Order.append("Ember ='" + itemArray[0]);
-		SQL_Order.append("', Crystal ='" + itemArray[1]);
-		SQL_Order.append("', Bud ='" + itemArray[2]);
+		SQL_Order.append("Ember ='"		+ std::to_string(static_cast<int>(itemArray[0] <= 0 ? 0 : itemArray[0])));
+		SQL_Order.append("', Crystal ='"	+ std::to_string(static_cast<int>(itemArray[1] <= 0 ? 0 : itemArray[1])));
+		SQL_Order.append("', Bud ='"		+ std::to_string(static_cast<int>(itemArray[2] <= 0 ? 0 : itemArray[2])));
 		SQL_Order.append("'");
 		break;
 	case 1:
 		SQL_Order = "UPDATE USERinventoryDB_Install SET ";
-		SQL_Order.append("Trap ='"			+ itemArray[0]);
-		SQL_Order.append("', DummyTrap ='"	+ itemArray[1]);
-		SQL_Order.append("', BindTrap ='"	+ itemArray[2]);
-		SQL_Order.append("', HealTrap ='"	+ itemArray[3]);
+		SQL_Order.append("Trap ='"			+ std::to_string(static_cast<int>(itemArray[0] <= 0 ? 0 : itemArray[0])));
+		SQL_Order.append("', DummyTrap ='"	+ std::to_string(static_cast<int>(itemArray[1] <= 0 ? 0 : itemArray[1])));
+		SQL_Order.append("', BindTrap ='"		+ std::to_string(static_cast<int>(itemArray[2] <= 0 ? 0 : itemArray[2])));
+		SQL_Order.append("', HealTrap ='"		+ std::to_string(static_cast<int>(itemArray[3] <= 0 ? 0 : itemArray[3])));
 		SQL_Order.append("'");
 		break;
 	case 2:
 		SQL_Order = "UPDATE USERinventoryDB_Launcher SET ";
-		SQL_Order.append("Rock	 ='"			+ itemArray[0]);
-		SQL_Order.append("', FireBullet ='"		+ itemArray[1]);
-		SQL_Order.append("', IceBullet ='"		+ itemArray[2]);
-		SQL_Order.append("', ExplosionBullet ='"+ itemArray[3]);
+		SQL_Order.append("Rock	 ='"			+ std::to_string(static_cast<int>(itemArray[0] <= 0 ? 0 : itemArray[0])));
+		SQL_Order.append("', FireBullet ='"		+ std::to_string(static_cast<int>(itemArray[1] <= 0 ? 0 : itemArray[1])));
+		SQL_Order.append("', IceBullet ='"		+ std::to_string(static_cast<int>(itemArray[2] <= 0 ? 0 : itemArray[2])));
+		SQL_Order.append("', ExplosionBullet ='"	+ std::to_string(static_cast<int>(itemArray[3] <= 0 ? 0 : itemArray[3])));
 		SQL_Order.append("'");
 		break;
 	case 3:
 		SQL_Order = "UPDATE USERinventoryDB_Potion SET ";
-		SQL_Order.append("Potion ='" + itemArray[0]);
+		SQL_Order.append("Potion ='" + std::to_string(static_cast<int>(itemArray[0] <= 0 ? 0 : itemArray[0])));
+		SQL_Order.append("'");
 		break;
 	}
 	return SQL_Order;
@@ -203,7 +202,6 @@ std::string setNew_invenDB_SQL(int index, std::string& in_name) {
 	case 1:
 		SQL_Order = "INSERT INTO USERinventoryDB_Install VALUES ('";
 		SQL_Order.append(in_name);
-		// SQL_Order.append("', '10', '10', '10', '10', '0', '0', '0', '0', '0');");
 		SQL_Order.append("', '0', '0', '0', '0', '0', '0', '0', '0', '0');");
 		break;
 	case 2:
@@ -289,7 +287,7 @@ bool SetNew_UDB(int& c_uid, std::string& in_name) {
 					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						printf("Complete running of %s's New player information Insert SQL", clients[c_uid].get_name());
+						printf("Complete running of %s's New player information Insert SQL\n", clients[c_uid].get_name());
 						return true;
 					}
 					else {
@@ -321,6 +319,7 @@ bool SetNew_ALL_ItemDB(int& c_uid, std::string& in_name) {
 	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
 		reVal = SetNew_IDB(c_uid, setNew_invenDB_SQL(i, in_name));
 	}
+	printf("Complete running of %s's New Item Database SQL\n", clients[c_uid].get_name());
 	return reVal;
 }
 bool SetNew_IDB(int& c_uid, std::string SQL_Order) {
@@ -355,7 +354,6 @@ bool SetNew_IDB(int& c_uid, std::string SQL_Order) {
 						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-							printf("Complete running of %s's New Item Database SQL", clients[c_uid].get_name());
 							return true;
 						}
 						else {
@@ -523,7 +521,7 @@ bool Logout_UDB(int& c_uid)
 						.append("', QUICK_ITEM='").append(&clients[c_uid]._q_item)
 						.append("', QUICK_SKILL='").append(clients[c_uid]._q_skill)
 						.append("' WHERE NAME='").append(clients[c_uid].get_name()).append("'");
-
+	
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), NULL, 0);
 	std::wstring wideStr(size_needed, 0);
 	MultiByteToWideChar(CP_UTF8, 0, &SQL_Order[0], (int)SQL_Order.size(), &wideStr[0], size_needed);
@@ -547,7 +545,7 @@ bool Logout_UDB(int& c_uid)
 					retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-						printf("Complete running of %s's Player Logout SQL", clients[c_uid].get_name());
+						printf("Complete running of %s's Player Logout SQL\n", clients[c_uid].get_name());
 						return true;
 					} 
 					else {
@@ -672,12 +670,14 @@ bool Get_IDB(int& c_uid, char itemArray[], std::string SQL_Order) {
 	}
 	return false;
 }
+
 bool Set_ALL_ItemDB(int& c_uid) {
 	bool reVal = false;
 
 	for (int i = 0; i < MAX_ITEM_CATEGORY; ++i) {
 		reVal = Set_IDB(c_uid, set_invenDB_SQL(i, clients[c_uid].get_item_arrayName(i)));
 	}
+	printf("Complete running of %s Item Database save SQL\n", clients[c_uid].get_name());
 	return reVal;
 }
 bool Set_IDB(int& c_uid, std::string SQL_Order)
@@ -698,6 +698,8 @@ bool Set_IDB(int& c_uid, std::string SQL_Order)
 
 	setlocale(LC_ALL, "Korean");
 
+	std::cout << SQL_Order << std::endl;
+
 	retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
 	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 		retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
@@ -717,7 +719,6 @@ bool Set_IDB(int& c_uid, std::string SQL_Order)
 						retcode = SQLExecDirect(hstmt, (SQLWCHAR*)(wideCStr), SQL_NTS);
 
 						if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-							printf("Complete running of %s's Item Database save SQL", clients[c_uid].get_name());
 							return true;
 						}
 						else {

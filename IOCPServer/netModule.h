@@ -5,6 +5,7 @@
 
 #include <WS2tcpip.h>
 #include <MSWSock.h>
+#include <map>
 
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
@@ -49,10 +50,12 @@ public:
 	char _pet_num[CHAR_SIZE];
 	char _player_skin;
 
-	char Launcher[9];
-	char Install[9];
-	char Potion[9];
 	char Collection[9];
+	char Install[9];
+	char Launcher[9];
+	char Potion[9];
+	
+	std::map<std::string, short> itemData;
 
 	char storageLauncher[9];
 	char storageInstall[9];
@@ -76,10 +79,15 @@ public:
 	SESSION() {
 		_socket = NULL;
 		_uid = -1;
-		strncpy_s(_name, "Empty", strlen("Empty"));
+		strncpy_s(_name, "None", strlen("None"));
 		_prev_size = 0;
 		strncpy_s(_pet_num, "NonePartner", strlen("NonePartner"));
 		_state = ST_FREE;
+
+		itemData.clear();
+		/*for (int i = 0; i < MAX_ITEM_CATEGORY * MAX_ITEM_COUNT; ++i) {
+			itemData.insert({ "None", 0 });
+		}*/
 	}
 
 	SESSION& operator=(SESSION& ref) {
@@ -107,11 +115,41 @@ public:
 
 	void clear() {
 		_socket = 0;
+		ZeroMemory(_name, sizeof(_name));
+		IdToken.clear();
+		IdTokenLenght = NULL;
+		// _recv_over = NULL;
+		_prev_size = NULL;
+		
 		_uid = -1;
+
 		// strncpy_s(_name, "Empty", strlen("Empty")); //-> Unreal Engine의 TArray에서 FName으로 받아 제거해야 함.
 		_prev_size = 0;
 		strncpy_s(_pet_num, "NonePartner", strlen("NonePartner"));
-		_state = ST_FREE;
+		{
+			std::lock_guard<std::mutex> ll(_lock);
+			_state = ST_FREE;
+		}
+
+		ZeroMemory(Collection, sizeof(Collection));
+		ZeroMemory(Install, sizeof(Install));
+		ZeroMemory(Launcher, sizeof(Launcher));
+		ZeroMemory(Potion, sizeof(Potion));
+
+		itemData.clear();
+
+		ZeroMemory(storageCollection, sizeof(storageCollection));
+		ZeroMemory(storageInstall, sizeof(storageInstall));
+		ZeroMemory(storageLauncher, sizeof(storageLauncher));
+		ZeroMemory(storagePotion, sizeof(storagePotion));
+
+		_player_skin = 1;
+
+		_q_item = NULL;
+		ZeroMemory(_q_skill, sizeof(_q_skill));
+
+		_party_num = -1;		// 파티 고유 번호
+		_party_staff_num = NULL;// 파티 내 멤버 번호
 	}
 
 	void do_recv()
@@ -151,6 +189,8 @@ public:
 			Potion[index] = cnt;
 		}
 	}
+
+	
 
 	char* get_item_arrayName(short num)
 	{
@@ -245,7 +285,7 @@ public:
 		_mem_count = 0;
 		for (SESSION& cl : member) {
 			cl._uid = -1;
-			strncpy_s(cl._name, CHAR_SIZE, "Empty", strlen("Empty"));
+			strncpy_s(cl._name, CHAR_SIZE, "None", strlen("None"));
 		}
 		_inStage = false;
 	}
@@ -261,7 +301,7 @@ public:
 		if (_mem_count >= 4) return false;
 
 		for (SESSION& mem : member) {
-			if (0 == strcmp(mem.get_name(), "Empty")) {
+			if (0 == strcmp(mem.get_name(), "None")) {
 				mem = new_mem;
 				_mem_count += 1;
 				return true;
