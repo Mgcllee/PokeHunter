@@ -190,8 +190,6 @@ public:
 		}
 	}
 
-	
-
 	char* get_item_arrayName(short num)
 	{
 		switch(num)
@@ -272,6 +270,60 @@ public:
 		}
 	}
 };
+
+class BASE_SESSION {
+	SOCKET _socket;
+
+public:
+	BASE_SESSION() : _socket(NULL) { }
+	~BASE_SESSION() { }
+
+	bool do_recv()
+	{
+		
+		return false;
+	}
+
+	bool do_send(void* packet)
+	{
+		
+		return false;
+	}
+
+	virtual void getName(char* ref_name);
+};
+
+// 상속 속성 확인 필요
+class CHARACTER : public BASE_SESSION {
+	std::string name;
+
+public:
+	CHARACTER() : name(nullptr) { }
+
+	void getName(char* ref_name) {
+		// 성능확인 필요
+		if(name[0] != NULL)	
+			strcpy(ref_name, name.c_str());
+		else
+			strcpy(ref_name, "empty");
+	}
+
+};
+
+class HUNTER : public CHARACTER {
+
+	
+public:
+
+
+};
+
+class ENEMY : public CHARACTER {
+
+public:
+
+};
+
 
 class PARTY {
 public:

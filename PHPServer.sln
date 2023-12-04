@@ -7,10 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IOCPServer", "IOCPServer\IO
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DummyClient", "DummyClient\DummyClient.vcxproj", "{B8A83663-473C-4257-99E6-58B09D60A854}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SocketTester_Server", "SocketTester_Server\SocketTester_Server.vcxproj", "{404782C0-E176-4D0C-B9EF-D593C9CA097E}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SocketTester_Client", "SocketTester_Client\SocketTester_Client.vcxproj", "{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -35,22 +31,6 @@ Global
 		{B8A83663-473C-4257-99E6-58B09D60A854}.Release|x64.Build.0 = Release|x64
 		{B8A83663-473C-4257-99E6-58B09D60A854}.Release|x86.ActiveCfg = Release|Win32
 		{B8A83663-473C-4257-99E6-58B09D60A854}.Release|x86.Build.0 = Release|Win32
-		{404782C0-E176-4D0C-B9EF-D593C9CA097E}.Debug|x64.ActiveCfg = Debug|x64
-		{404782C0-E176-4D0C-B9EF-D593C9CA097E}.Debug|x64.Build.0 = Debug|x64
-		{404782C0-E176-4D0C-B9EF-D593C9CA097E}.Debug|x86.ActiveCfg = Debug|Win32
-		{404782C0-E176-4D0C-B9EF-D593C9CA097E}.Debug|x86.Build.0 = Debug|Win32
-		{404782C0-E176-4D0C-B9EF-D593C9CA097E}.Release|x64.ActiveCfg = Release|x64
-		{404782C0-E176-4D0C-B9EF-D593C9CA097E}.Release|x64.Build.0 = Release|x64
-		{404782C0-E176-4D0C-B9EF-D593C9CA097E}.Release|x86.ActiveCfg = Release|Win32
-		{404782C0-E176-4D0C-B9EF-D593C9CA097E}.Release|x86.Build.0 = Release|Win32
-		{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}.Debug|x64.ActiveCfg = Debug|x64
-		{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}.Debug|x64.Build.0 = Debug|x64
-		{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}.Debug|x86.ActiveCfg = Debug|Win32
-		{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}.Debug|x86.Build.0 = Debug|Win32
-		{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}.Release|x64.ActiveCfg = Release|x64
-		{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}.Release|x64.Build.0 = Release|x64
-		{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}.Release|x86.ActiveCfg = Release|Win32
-		{F1AA9BC9-F6F5-4002-9293-D85E6365CB9C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
