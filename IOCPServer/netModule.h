@@ -161,12 +161,13 @@ public:
 		_recv_over.c_type = RECV;
 		WSARecv(_socket, &_recv_over._wsabuf, 1, 0, &recv_flag, &_recv_over._over, 0);
 	}
-
 	void do_send(void* packet)
 	{
 		OVER_EXP* send_over = new OVER_EXP{ reinterpret_cast<char*>(packet) };
 		WSASend(_socket, &send_over->_wsabuf, 1, 0, 0, &send_over->_over, 0);
 	}
+
+
 
 	char* get_name() {
 		return _name;
@@ -271,6 +272,10 @@ public:
 	}
 };
 
+/*
+default sep: camel
+imp sys var : _~
+*/
 class BASE_SESSION {
 	SOCKET _socket;
 
@@ -278,51 +283,82 @@ public:
 	BASE_SESSION() : _socket(NULL) { }
 	~BASE_SESSION() { }
 
-	bool do_recv()
+	bool recv()
 	{
 		
 		return false;
 	}
 
-	bool do_send(void* packet)
+	bool send(void* packet)
 	{
 		
 		return false;
 	}
-
-	virtual void getName(char* ref_name);
 };
 
 // 상속 속성 확인 필요
 class CHARACTER : public BASE_SESSION {
 	std::string name;
 
-public:
-	CHARACTER() : name(nullptr) { }
+	// Physics
+	int x, y, z;
 
-	void getName(char* ref_name) {
-		// 성능확인 필요
-		if(name[0] != NULL)	
-			strcpy(ref_name, name.c_str());
+public:
+	CHARACTER(int in_x, int in_y, int in_z) 
+		: x(in_x), y(in_y), z(in_z)
+	{ }
+
+	std::string getName() { return name; }
+	void setName(std::string ref_name) {
+		// 성능, 보안
+		if (name[0] != NULL)
+			ref_name = name;
 		else
-			strcpy(ref_name, "empty");
+			ref_name = "empty";
 	}
 
 };
 
 class HUNTER : public CHARACTER {
-
 	
 public:
-
+	HUNTER(std::string hunterName) 
+	{ 
+		setName(hunterName);
+	}
 
 };
 
 class ENEMY : public CHARACTER {
 
+
+protected:
+	int attack_range;
+
 public:
 
 };
+
+class ATTACK_ENEMY : public ENEMY {
+
+public:
+	ATTACK_ENEMY()
+	{
+		setName("aEnemy");
+	}
+
+};
+
+class LONG_ATTACK_ENEMY : public ENEMY {
+
+public:
+	LONG_ATTACK_ENEMY()
+	{
+		setName("laEnemy");
+	}
+
+};
+
 
 
 class PARTY {
