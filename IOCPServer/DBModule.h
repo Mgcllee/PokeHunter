@@ -1,3 +1,10 @@
+/*
+[Refactoring]
+	1. SQL을 MSSQL에서 MySQL로 변경 예정.
+	2. 프로시져, 함수를 사용해 SourceCode 줄이기.
+	3. O.O.D
+*/
+
 #pragma once
 
 #include "netModule.h"

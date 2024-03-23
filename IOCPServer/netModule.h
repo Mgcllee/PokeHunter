@@ -1,4 +1,10 @@
-﻿#pragma once
+﻿/*
+[Refactoring]
+	1. O.O.D
+	2. update SESSION Design
+*/
+
+#pragma once
 
 #include "stdafx.h"
 #include "protocol.h"
