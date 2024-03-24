@@ -3,8 +3,288 @@
 #include "DBModule.h"
 #include "AWSModule.h"
 
-std::array<SESSION, MAX_USER> clients;	// 플레이어's 컨테이너
-std::array<PARTY, MAX_USER> parties;			// 총 파티 개수
+std::array<PLAYER, MAX_USER> clients;
+std::array<PARTY, MAX_USER> parties;
+
+class OVER_EXP {
+public:
+	WSAOVERLAPPED	_over;
+	TYPE			c_type;
+	WSABUF			_wsabuf;
+	char			_send_buf[BUF_SIZE];
+
+	OVER_EXP()
+	{
+		ZeroMemory(&_over, sizeof(_over));
+		_wsabuf.len = BUF_SIZE;
+		_wsabuf.buf = _send_buf;
+		c_type = RECV;
+	}
+	OVER_EXP(char* packet)
+	{
+		_wsabuf.len = packet[0];
+		_wsabuf.buf = _send_buf;
+		ZeroMemory(&_over, sizeof(_over));
+		c_type = SEND;
+		memcpy(_send_buf, packet, packet[0]);
+	}
+};
+
+class SESSION {
+public:
+	SESSION() :
+		_recv_over(NULL)
+		, _socket(NULL)
+		, _prev_size(0)
+		, IdToken(NULL)
+		, IdTokenLenght(0)
+		, _state(ST_FREE)
+		, _lock()
+	{
+
+	}
+	~SESSION()
+	{
+
+	}
+
+	SESSION& operator=(SESSION& ref) {
+		this->_socket = ref._socket;
+		this->_prev_size = ref._prev_size;
+		return *this;
+	}
+
+	bool recycle_session() {
+
+		return false;
+	}
+
+	void do_recv()
+	{
+		DWORD recv_flag = 0;
+		memset(&_recv_over._over, 0, sizeof(_recv_over._over));
+		_recv_over._wsabuf.len = BUF_SIZE - _prev_size;
+		_recv_over._wsabuf.buf = _recv_over._send_buf + _prev_size;
+		_recv_over.c_type = RECV;
+		WSARecv(_socket, &_recv_over._wsabuf, 1, 0, &recv_flag, &_recv_over._over, 0);
+	}
+	void do_send(void* packet)
+	{
+		OVER_EXP* send_over = new OVER_EXP{ reinterpret_cast<char*>(packet) };
+		WSASend(_socket, &send_over->_wsabuf, 1, 0, 0, &send_over->_over, 0);
+	}
+private:
+	OVER_EXP _recv_over;
+	SOCKET _socket;
+	int _prev_size;
+
+	std::string IdToken;
+	short IdTokenLenght;
+
+	CLIENT_STATE _state;
+	std::mutex _lock;
+
+};
+
+class PLAYER {
+public:
+	char _name[CHAR_SIZE];
+	short _uid = -1;
+	char _pet_num[CHAR_SIZE];
+	char _player_skin;
+
+	char Collection[9];
+	char Install[9];
+	char Launcher[9];
+	char Potion[9];
+
+	std::map<std::string, short> itemData;
+
+	char storageLauncher[9];
+	char storageInstall[9];
+	char storagePotion[9];
+	char storageCollection[9];
+
+	char _q_item;
+	char _q_skill[CHAR_SIZE];
+
+	char _party_num = -1;
+	char _party_staff_num;
+
+	std::string IdToken;
+	short IdTokenLenght;
+
+	CLIENT_STATE _state;
+	std::mutex _lock;
+
+	PLAYER_STATE _player_state;
+
+	PLAYER() {
+		_uid = -1;
+		strncpy_s(_name, "None", strlen("None"));
+		strncpy_s(_pet_num, "NonePartner", strlen("NonePartner"));
+		_state = ST_FREE;
+		itemData.clear();
+	}
+	// 사용 전 객체 재사용 가능한지 확인
+	~PLAYER() {
+
+	}
+
+	PLAYER& operator=(PLAYER& ref) {
+		strncpy_s(this->_name, ref.get_name(), strlen(ref.get_name()));
+
+		this->_uid = ref._uid;
+		strncpy_s(this->_pet_num, ref._pet_num, strlen(ref._pet_num));
+		this->_player_skin = ref._player_skin;
+
+		strncpy_s(this->Collection, ref.Collection, strlen(ref.Collection));
+		strncpy_s(this->Install, ref.Install, strlen(ref.Install));
+		strncpy_s(this->Launcher, ref.Launcher, strlen(ref.Launcher));
+		strncpy_s(this->Potion, ref.Potion, strlen(ref.Potion));
+
+		this->_q_item = ref._q_item;
+		strncpy_s(this->_q_skill, ref._q_skill, strlen(ref._q_skill));
+
+		this->_state = ref._state;
+		this->_player_state = ref._player_state;
+
+		return *this;
+	}
+
+	// 객체 재사용을 위한 함수
+	void clear() {
+
+	}
+
+	char* get_name() {
+		return _name;
+	}
+
+	void set_name(const char* in) {
+		strncpy_s(_name, CHAR_SIZE, in, sizeof(in));
+	}
+
+	void set_item(const char* in_item_name, short index, char cnt) {
+		if (0 == strcmp(in_item_name, "CT")) {
+			Collection[index] = cnt;
+		}
+		else if (0 == strcmp(in_item_name, "IS")) {
+			Install[index] = cnt;
+		}
+		else if (0 == strcmp(in_item_name, "LC")) {
+			Launcher[index] = cnt;
+		}
+		else if (0 == strcmp(in_item_name, "PT")) {
+			Potion[index] = cnt;
+		}
+	}
+
+	char* get_item_arrayName(short num)
+	{
+		switch (num)
+		{
+		case 0:
+			return Collection;
+			break;
+		case 1:
+			return Install;
+			break;
+		case 2:
+			return Launcher;
+			break;
+		case 3:
+			return Potion;
+			break;
+		}
+		return nullptr;
+	}
+
+	char* get_storage_item_arrayName(short num)
+	{
+		switch (num)
+		{
+		case 0:
+			return storageCollection;
+			break;
+		case 1:
+			return storageInstall;
+			break;
+		case 2:
+			return storageLauncher;
+			break;
+		case 3:
+			return storagePotion;
+			break;
+		}
+		return nullptr;
+	}
+};
+
+class PARTY {
+public:
+	PARTY() {
+		strncpy_s(_name, CHAR_SIZE, "Empty", strlen("Empty"));
+		_mem_count = 0;
+		for (PLAYER& cl : member) {
+			cl._uid = -1;
+			strncpy_s(cl._name, CHAR_SIZE, "None", strlen("None"));
+		}
+		_inStage = false;
+	}
+	~PARTY() {
+
+	}
+
+	short get_member_count() {
+		return _mem_count;
+	}
+
+	bool new_member(PLAYER& new_mem) {
+		if (_mem_count >= 4) return false;
+
+		for (PLAYER& mem : member) {
+			if (0 == strcmp(mem.get_name(), "None")) {
+				mem = new_mem;
+				_mem_count += 1;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool leave_member(char* mem_name) {
+		if (_mem_count <= 0) return false;
+		for (int i = 0; i < 4; ++i) {
+			if (0 == strcmp(member[i].get_name(), mem_name)) {
+				for (int j = i; j < 3; ++j) {
+					{
+						std::lock_guard<std::mutex> ll{ member[j]._lock };
+						member[j] = member[j + 1];
+					}
+					member[member.size() - 1].clear();
+				}
+
+				_mem_count -= 1;
+				if (0 == _mem_count) {
+					_inStage = false;
+				}
+
+				return true;
+			}
+		}
+		return false;
+	}
+
+private:
+	char _name[CHAR_SIZE];
+	short _mem_count = 0;
+	bool _inStage;
+
+	std::array<PLAYER, 4> member;
+
+};
 
 void process_packet(int c_uid, char* packet)
 {
@@ -452,9 +732,8 @@ void worker_thread(HANDLE h_iocp)
 			AcceptEx(g_s_socket, g_c_socket, g_a_over._send_buf, 0, addr_size + 16, addr_size + 16, 0, &g_a_over._over);
 		}
 		break;
-		case RECV:		// get new message
+		case RECV:
 		{
-			// 패킷 재조립
 			int remain_data = num_bytes + clients[key]._prev_size;
 			char* p = ex_over->_send_buf;
 
@@ -476,7 +755,7 @@ void worker_thread(HANDLE h_iocp)
 			clients[key].do_recv();
 		}
 		break;
-		case SEND:		// send new message
+		case SEND:		
 			delete ex_over;
 			break;
 		}
