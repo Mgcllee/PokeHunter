@@ -139,6 +139,7 @@ std::string Get_ItemName(short category, short item_ID) {
 	return "None";
 }
 
+// ~_SQL 함수를 MSDB 기능으로 대체 예정
 std::string get_invenDB_SQL(int index) {
 	std::string SQL_Order;
 	switch (index) {
@@ -217,8 +218,6 @@ std::string setNew_invenDB_SQL(int index, std::string& in_name) {
 	}
 	return SQL_Order;
 }
-
-
 std::string get_storageDB_SQL(int index) {
 	std::string SQL_Order;
 	switch (index) {
@@ -238,7 +237,7 @@ std::string get_storageDB_SQL(int index) {
 	return SQL_Order;
 }
 
-
+// 새로운 유저 Init 을 MSDB로 대체 예정
 bool SetNew_UDB(int& c_uid, std::string& in_name) {
 	SQLHENV henv;
 	SQLHDBC hdbc;
@@ -572,6 +571,8 @@ bool Logout_UDB(int& c_uid)
 	return false;
 }
 
+
+// SQL을 MSDB에서 직접 실행하여 소스코드 줄이기 필요.
 bool Get_ALL_ItemDB(int& c_uid) {
 	bool reVal = false;
 
