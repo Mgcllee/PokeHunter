@@ -47,16 +47,15 @@ public:
 	{
 
 	}
+	bool recycle_session() {
+
+		return false;
+	}
 
 	SESSION& operator=(SESSION& ref) {
 		this->_socket = ref._socket;
 		this->_prev_size = ref._prev_size;
 		return *this;
-	}
-
-	bool recycle_session() {
-
-		return false;
 	}
 
 	void do_recv()
@@ -73,6 +72,7 @@ public:
 		OVER_EXP* send_over = new OVER_EXP{ reinterpret_cast<char*>(packet) };
 		WSASend(_socket, &send_over->_wsabuf, 1, 0, 0, &send_over->_over, 0);
 	}
+
 private:
 	OVER_EXP _recv_over;
 	SOCKET _socket;
@@ -88,37 +88,6 @@ private:
 
 class PLAYER {
 public:
-	char _name[CHAR_SIZE];
-	short _uid = -1;
-	char _pet_num[CHAR_SIZE];
-	char _player_skin;
-
-	char Collection[9];
-	char Install[9];
-	char Launcher[9];
-	char Potion[9];
-
-	std::map<std::string, short> itemData;
-
-	char storageLauncher[9];
-	char storageInstall[9];
-	char storagePotion[9];
-	char storageCollection[9];
-
-	char _q_item;
-	char _q_skill[CHAR_SIZE];
-
-	char _party_num = -1;
-	char _party_staff_num;
-
-	std::string IdToken;
-	short IdTokenLenght;
-
-	CLIENT_STATE _state;
-	std::mutex _lock;
-
-	PLAYER_STATE _player_state;
-
 	PLAYER() {
 		_uid = -1;
 		strncpy_s(_name, "None", strlen("None"));
@@ -126,8 +95,10 @@ public:
 		_state = ST_FREE;
 		itemData.clear();
 	}
-	// 사용 전 객체 재사용 가능한지 확인
 	~PLAYER() {
+
+	}
+	void recycle_player() {
 
 	}
 
@@ -152,15 +123,9 @@ public:
 		return *this;
 	}
 
-	// 객체 재사용을 위한 함수
-	void clear() {
-
-	}
-
 	char* get_name() {
 		return _name;
 	}
-
 	void set_name(const char* in) {
 		strncpy_s(_name, CHAR_SIZE, in, sizeof(in));
 	}
@@ -179,7 +144,6 @@ public:
 			Potion[index] = cnt;
 		}
 	}
-
 	char* get_item_arrayName(short num)
 	{
 		switch (num)
@@ -219,18 +183,50 @@ public:
 		}
 		return nullptr;
 	}
+
+private:
+	char _name[CHAR_SIZE];
+	short _uid = -1;
+	char _pet_num[CHAR_SIZE];
+	char _player_skin;
+
+	char Collection[9];
+	char Install[9];
+	char Launcher[9];
+	char Potion[9];
+
+	std::map<std::string, short> itemData;
+
+	char storageLauncher[9];
+	char storageInstall[9];
+	char storagePotion[9];
+	char storageCollection[9];
+
+	char _party_num = -1;
+	char _party_staff_num;
+
+	std::string IdToken;
+	short IdTokenLenght;
+
+	CLIENT_STATE _state;
+	std::mutex _lock;
+
+	PLAYER_STATE _player_state;
+
 };
 
 class PARTY {
 public:
 	PARTY() {
-		strncpy_s(_name, CHAR_SIZE, "Empty", strlen("Empty"));
 		_mem_count = 0;
+		_inStage = false;
+		strncpy_s(_name, CHAR_SIZE, "Empty", strlen("Empty"));
+		
+		
 		for (PLAYER& cl : member) {
 			cl._uid = -1;
 			strncpy_s(cl._name, CHAR_SIZE, "None", strlen("None"));
 		}
-		_inStage = false;
 	}
 	~PARTY() {
 
