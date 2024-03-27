@@ -36,23 +36,21 @@ public:
 		_recv_over(NULL)
 		, _socket(NULL)
 		, _prev_size(0)
-		, IdToken(NULL)
-		, IdTokenLenght(0)
-		, _state(ST_FREE)
-		, _lock()
 	{
 
 	}
 	~SESSION()
 	{
-
+		
 	}
-	bool recycle_session() {
-
+	bool recycle_session() 
+	{
 		return false;
 	}
 
-	SESSION& operator=(SESSION& ref) {
+	SESSION& operator=(SESSION& ref) 
+	{
+		this->_recv_over = ref._recv_over;
 		this->_socket = ref._socket;
 		this->_prev_size = ref._prev_size;
 		return *this;
@@ -77,28 +75,24 @@ private:
 	OVER_EXP _recv_over;
 	SOCKET _socket;
 	int _prev_size;
-
-	std::string IdToken;
-	short IdTokenLenght;
-
-	CLIENT_STATE _state;
-	std::mutex _lock;
-
 };
 
 class PLAYER {
 public:
-	PLAYER() {
-		_uid = -1;
-		strncpy_s(_name, "None", strlen("None"));
-		strncpy_s(_pet_num, "NonePartner", strlen("NonePartner"));
-		_state = ST_FREE;
-		itemData.clear();
+	PLAYER() :
+		_uid(-1)
+		, _name("None")
+		, _pet_num("None")
+		, _player_state(ST_HOME)
+	{
+		
 	}
-	~PLAYER() {
+	~PLAYER() 
+	{
 
 	}
-	void recycle_player() {
+	void recycle_player() 
+	{
 
 	}
 
@@ -114,10 +108,6 @@ public:
 		strncpy_s(this->Launcher, ref.Launcher, strlen(ref.Launcher));
 		strncpy_s(this->Potion, ref.Potion, strlen(ref.Potion));
 
-		this->_q_item = ref._q_item;
-		strncpy_s(this->_q_skill, ref._q_skill, strlen(ref._q_skill));
-
-		this->_state = ref._state;
 		this->_player_state = ref._player_state;
 
 		return *this;
@@ -208,7 +198,6 @@ private:
 	std::string IdToken;
 	short IdTokenLenght;
 
-	CLIENT_STATE _state;
 	std::mutex _lock;
 
 	PLAYER_STATE _player_state;

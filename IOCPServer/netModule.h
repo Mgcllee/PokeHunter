@@ -17,7 +17,7 @@
 #pragma comment(lib, "MSWSock.lib")
 
 enum TYPE { ACCEPT, RECV, SEND, LOGOUT };
-enum CLIENT_STATE { ST_FREE, ST_ALLOC, ST_INGAME };
+enum SESSION_STATE { ST_FREE, ST_ALLOC };
 enum PLAYER_STATE { ST_HOME, ST_NOTREADY, ST_READY, ST_STAGE };
 
 class OVER_EXP;
