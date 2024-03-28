@@ -96,82 +96,40 @@ public:
 
 	}
 
-	PLAYER& operator=(PLAYER& ref) {
+	PLAYER& operator=(PLAYER& ref) 
+	{
 		strncpy_s(this->_name, ref.get_name(), strlen(ref.get_name()));
-
 		this->_uid = ref._uid;
+
 		strncpy_s(this->_pet_num, ref._pet_num, strlen(ref._pet_num));
 		this->_player_skin = ref._player_skin;
-
-		strncpy_s(this->Collection, ref.Collection, strlen(ref.Collection));
-		strncpy_s(this->Install, ref.Install, strlen(ref.Install));
-		strncpy_s(this->Launcher, ref.Launcher, strlen(ref.Launcher));
-		strncpy_s(this->Potion, ref.Potion, strlen(ref.Potion));
 
 		this->_player_state = ref._player_state;
 
 		return *this;
 	}
 
-	char* get_name() {
+	char* get_name() 
+	{
 		return _name;
 	}
-	void set_name(const char* in) {
+	void set_name(const char* in) 
+	{
 		strncpy_s(_name, CHAR_SIZE, in, sizeof(in));
 	}
 
-	void set_item(const char* in_item_name, short index, char cnt) {
-		if (0 == strcmp(in_item_name, "CT")) {
-			Collection[index] = cnt;
-		}
-		else if (0 == strcmp(in_item_name, "IS")) {
-			Install[index] = cnt;
-		}
-		else if (0 == strcmp(in_item_name, "LC")) {
-			Launcher[index] = cnt;
-		}
-		else if (0 == strcmp(in_item_name, "PT")) {
-			Potion[index] = cnt;
-		}
-	}
-	char* get_item_arrayName(short num)
+	void set_item(const char* in_item_name, short index, char cnt) 
 	{
-		switch (num)
-		{
-		case 0:
-			return Collection;
-			break;
-		case 1:
-			return Install;
-			break;
-		case 2:
-			return Launcher;
-			break;
-		case 3:
-			return Potion;
-			break;
-		}
-		return nullptr;
+		
+	}
+	short get_item()
+	{
+
 	}
 
-	char* get_storage_item_arrayName(short num)
+	short get_storage_item()
 	{
-		switch (num)
-		{
-		case 0:
-			return storageCollection;
-			break;
-		case 1:
-			return storageInstall;
-			break;
-		case 2:
-			return storageLauncher;
-			break;
-		case 3:
-			return storagePotion;
-			break;
-		}
-		return nullptr;
+		
 	}
 
 private:
@@ -180,20 +138,10 @@ private:
 	char _pet_num[CHAR_SIZE];
 	char _player_skin;
 
-	char Collection[9];
-	char Install[9];
-	char Launcher[9];
-	char Potion[9];
-
-	std::map<std::string, short> itemData;
-
-	char storageLauncher[9];
-	char storageInstall[9];
-	char storagePotion[9];
-	char storageCollection[9];
+	std::map<std::string, short> inventory_data;
+	std::map<std::string, short> storage_data;
 
 	char _party_num = -1;
-	char _party_staff_num;
 
 	std::string IdToken;
 	short IdTokenLenght;
@@ -206,59 +154,66 @@ private:
 
 class PARTY {
 public:
-	PARTY() {
-		_mem_count = 0;
-		_inStage = false;
-		strncpy_s(_name, CHAR_SIZE, "Empty", strlen("Empty"));
-		
-		
-		for (PLAYER& cl : member) {
-			cl._uid = -1;
-			strncpy_s(cl._name, CHAR_SIZE, "None", strlen("None"));
-		}
-	}
-	~PARTY() {
+	PARTY() :
+		_mem_count(0)
+		, _inStage(false)
+		, _name("Empty")
+	{
 
 	}
+	~PARTY()
+	{
+		
+	}
 
-	short get_member_count() {
+	short get_member_count() 
+	{
 		return _mem_count;
 	}
 
-	bool new_member(PLAYER& new_mem) {
-		if (_mem_count >= 4) return false;
-
+	bool new_member(PLAYER& new_mem)
+	{
+		if (_mem_count >= PARTY_MAX_NUM) return false;
+		
+		ll.lock();
 		for (PLAYER& mem : member) {
 			if (0 == strcmp(mem.get_name(), "None")) {
 				mem = new_mem;
 				_mem_count += 1;
+				ll.unlock();
 				return true;
 			}
 		}
 
+		ll.unlock();
 		return false;
 	}
 
 	bool leave_member(char* mem_name) {
-		if (_mem_count <= 0) return false;
-		for (int i = 0; i < 4; ++i) {
-			if (0 == strcmp(member[i].get_name(), mem_name)) {
+		if (_mem_count <= 0) 
+			return false;
+
+		ll.lock();
+		for (int i = 0; i < 4; ++i) 
+		{
+			if (0 == strcmp(member[i].get_name(), mem_name)) 
+			{
 				for (int j = i; j < 3; ++j) {
-					{
-						std::lock_guard<std::mutex> ll{ member[j]._lock };
-						member[j] = member[j + 1];
-					}
+					member[j] = member[j + 1];
 					member[member.size() - 1].clear();
 				}
 
 				_mem_count -= 1;
-				if (0 == _mem_count) {
+				if (0 == _mem_count) 
+				{
 					_inStage = false;
 				}
 
+				ll.unlock();
 				return true;
 			}
 		}
+		ll.unlock();
 		return false;
 	}
 
@@ -267,8 +222,8 @@ private:
 	short _mem_count = 0;
 	bool _inStage;
 
+	std::mutex ll;
 	std::array<PLAYER, 4> member;
-
 };
 
 void process_packet(int c_uid, char* packet)
