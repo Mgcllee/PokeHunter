@@ -41,7 +41,7 @@ public:
 	}
 	~SESSION()
 	{
-		
+		closesocket(_socket);
 	}
 	bool recycle_session() 
 	{
@@ -56,6 +56,18 @@ public:
 		return *this;
 	}
 
+	void set_socket(SOCKET new_socket) 
+	{
+		_socket = new_socket;
+	}
+	int get_prev_size()
+	{
+		return _prev_size;
+	}
+	void set_prev_size(int in)
+	{
+		_prev_size = in;
+	}
 	void do_recv()
 	{
 		DWORD recv_flag = 0;
@@ -94,6 +106,20 @@ public:
 	void recycle_player() 
 	{
 
+	}
+
+	void _lock() 
+	{
+		ll.lock();
+	}
+	void _unlock()
+	{
+		ll.unlock();
+	}
+
+	SESSION* get_session() 
+	{
+		return &_session;
 	}
 
 	PLAYER& operator=(PLAYER& ref) 
@@ -146,10 +172,11 @@ private:
 	std::string IdToken;
 	short IdTokenLenght;
 
-	std::mutex _lock;
+	std::mutex ll;
 
 	PLAYER_STATE _player_state;
 
+	SESSION _session;
 };
 
 class PARTY {
@@ -602,9 +629,7 @@ void process_packet(int c_uid, char* packet)
 
 void disconnect(int c_uid)
 {
-	// client 정보 정리
-	closesocket(clients[c_uid]._socket);
-	clients[c_uid].clear();
+	clients[c_uid].get_session()->~SESSION();
 }
 
 void worker_thread(HANDLE h_iocp)
@@ -629,31 +654,25 @@ void worker_thread(HANDLE h_iocp)
 		if ((0 == num_bytes) && (ex_over->c_type == RECV)) continue;
 
 		switch (ex_over->c_type) {
-		case ACCEPT:	// accept new client
+		case ACCEPT:
 		{
 			int new_c_uid = get_player_uid();
 
-			if (-1 != new_c_uid) { // 접속 성공, 정보 받기
-				{
-					std::lock_guard<std::mutex> ll{ clients[new_c_uid]._lock };
-					clients[new_c_uid]._state = ST_ALLOC;
-				}
-
-				clients[new_c_uid]._socket = g_c_socket;
+			if (-1 != new_c_uid) 
+			{
+				
+				clients[new_c_uid]._lock();
+				clients[new_c_uid].get_session()->set_socket(g_c_socket);
+				clients[new_c_uid]._unlock();
 
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, new_c_uid, 0);
 
-				clients[new_c_uid].do_recv();
+				clients[new_c_uid].get_session()->do_recv();
 				g_c_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-
-				// Dummy Client 확인용
-				std::cout << new_c_uid << "번 NEW PLAYER!\n";
-				if (clients[new_c_uid]._recv_over.c_type == RECV) {
-					std::cout << "STATE: RECV\n";
-				}
 			}
-			else {					// 접속 실패
-				std::cout << "connect fail\n";
+			else 
+			{
+				printf("connect fail\n");
 				break;
 			}
 
@@ -664,7 +683,7 @@ void worker_thread(HANDLE h_iocp)
 		break;
 		case RECV:
 		{
-			int remain_data = num_bytes + clients[key]._prev_size;
+			int remain_data = num_bytes + clients[key].get_session()->get_prev_size();
 			char* p = ex_over->_send_buf;
 
 			while (remain_data > 0) {
@@ -677,12 +696,12 @@ void worker_thread(HANDLE h_iocp)
 				else break;
 			}
 
-			clients[key]._prev_size = remain_data;
+			clients[key].get_session()->set_prev_size(remain_data);
 
 			if (remain_data > 0) {
 				memcpy(ex_over->_send_buf, p, remain_data);
 			}
-			clients[key].do_recv();
+			clients[key].get_session()->do_recv();
 		}
 		break;
 		case SEND:		

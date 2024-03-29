@@ -43,6 +43,7 @@ constexpr char SC_LOGOUT_RESULT			= 31;
 constexpr char SC_ITEM_INFO				= 33;
 
 #define PARTY_MAX_NUM 4
+constexpr int CURR_USER_NUM = 0;
 
 #pragma pack (push, 1)
 
