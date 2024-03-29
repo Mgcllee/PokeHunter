@@ -13,6 +13,8 @@
 #include <MSWSock.h>
 #include <map>
 
+#include <list>
+
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 

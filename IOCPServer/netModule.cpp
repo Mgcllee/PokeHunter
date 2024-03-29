@@ -173,20 +173,15 @@ public:
 
 	bool new_member(PLAYER& new_mem)
 	{
-		if (_mem_count >= PARTY_MAX_NUM) return false;
+		if (_mem_count >= PARTY_MAX_NUM) 
+			return false;
 		
 		ll.lock();
-		for (PLAYER& mem : member) {
-			if (0 == strcmp(mem.get_name(), "None")) {
-				mem = new_mem;
-				_mem_count += 1;
-				ll.unlock();
-				return true;
-			}
-		}
-
+		member.push_back(new_mem);
+		++_mem_count;
 		ll.unlock();
-		return false;
+
+		return true;
 	}
 
 	bool leave_member(char* mem_name) {
@@ -194,25 +189,19 @@ public:
 			return false;
 
 		ll.lock();
-		for (int i = 0; i < 4; ++i) 
+		for (PLAYER& mem : member) 
 		{
-			if (0 == strcmp(member[i].get_name(), mem_name)) 
+			if (0 == strcmp(mem.get_name(), mem_name)) 
 			{
-				for (int j = i; j < 3; ++j) {
-					member[j] = member[j + 1];
-					member[member.size() - 1].clear();
-				}
-
-				_mem_count -= 1;
-				if (0 == _mem_count) 
-				{
+				member.remove(mem);
+				if (0 == --_mem_count)
 					_inStage = false;
-				}
 
 				ll.unlock();
 				return true;
 			}
 		}
+
 		ll.unlock();
 		return false;
 	}
@@ -223,7 +212,8 @@ private:
 	bool _inStage;
 
 	std::mutex ll;
-	std::array<PLAYER, 4> member;
+	
+	std::list<PLAYER> member;
 };
 
 void process_packet(int c_uid, char* packet)
