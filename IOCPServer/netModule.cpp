@@ -257,32 +257,27 @@ void process_packet(int c_uid, char* packet)
 				SC_LOGIN_FAIL_PACK fail_pack;
 				fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
 				fail_pack.type = SC_LOGIN_FAIL;
-				clients[c_uid].do_send(&fail_pack);
+				clients[c_uid].get_session()->do_send(&fail_pack);
 				printf("Login Fail!\n");
 			}
 			else if (Login_UDB(c_uid, nameBuffer)) {
-				{
-					std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
-					clients[c_uid]._state = ST_INGAME;
-					clients[c_uid]._uid = c_uid;
-				}
-
 				SC_LOGIN_SUCCESS_PACK ok_pack;
 				ok_pack.size = sizeof(ok_pack);
 				ok_pack.type = SC_LOGIN_SUCCESS;
-				clients[c_uid].do_send(&ok_pack);
+				clients[c_uid].get_session()->do_send(&ok_pack);
 
 				SC_LOGIN_INFO_PACK info_pack;
-				info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+				
+				/*info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 				info_pack.type = SC_LOGIN_INFO;
 				strncpy_s(info_pack.name, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
 				strncpy_s(info_pack._q_skill, CHAR_SIZE, clients[c_uid]._q_skill, CHAR_SIZE);
 				strncpy_s(info_pack._pet_num, CHAR_SIZE, clients[c_uid]._pet_num, CHAR_SIZE);
-				info_pack._q_item = clients[c_uid]._q_item;
-				info_pack._player_skin = clients[c_uid]._player_skin;
-				clients[c_uid].do_send(&info_pack);
+				info_pack._player_skin = clients[c_uid]._player_skin;*/
+
+				clients[c_uid].get_session()->do_send(&info_pack);
 				
-				printf("Player Name: %s Login!\n", clients[c_uid]._name);
+				printf("Player Name: %s Login!\n", clients[c_uid].get_name());
 			}
 			else {
 				if (SetNew_UDB(c_uid, nameBuffer)) {
@@ -298,7 +293,7 @@ void process_packet(int c_uid, char* packet)
 					SC_LOGIN_SUCCESS_PACK ok_pack;
 					ok_pack.size = sizeof(ok_pack);
 					ok_pack.type = SC_LOGIN_SUCCESS;
-					clients[c_uid].do_send(&ok_pack);
+					clients[c_uid].get_session()->do_send(&ok_pack);
 
 					SC_LOGIN_INFO_PACK info_pack;
 					info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
@@ -308,14 +303,16 @@ void process_packet(int c_uid, char* packet)
 					strncpy_s(info_pack._pet_num, CHAR_SIZE, clients[c_uid]._pet_num, CHAR_SIZE);
 					info_pack._q_item = clients[c_uid]._q_item;
 					info_pack._player_skin = clients[c_uid]._player_skin;
-					clients[c_uid].do_send(&info_pack);
-					printf("New player Name: %s Login!\n", clients[c_uid]._name);
+
+					clients[c_uid].get_session()->do_send(&info_pack);
+					
+					printf("New player Name: %s Login!\n", clients[c_uid].get_name());
 				}
 				else {
 					SC_LOGIN_FAIL_PACK fail_pack;
 					fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
 					fail_pack.type = SC_LOGIN_FAIL;
-					clients[c_uid].do_send(&fail_pack);
+					clients[c_uid].get_session()->do_send(&fail_pack);
 					printf("Login Fail!\n");
 				}
 			}
@@ -323,7 +320,9 @@ void process_packet(int c_uid, char* packet)
 		else {
 			std::string tokenBuffer;
 			tokenBuffer.assign(token_pack->Token, (size_t)token_pack->Token_size);
+			
 			clients[c_uid].IdToken.append(tokenBuffer);
+			
 			int value = WSAGetLastError();
 		}
  	}
