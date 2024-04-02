@@ -239,6 +239,15 @@ std::string get_storageDB_SQL(int index) {
 
 // 새로운 유저 Init 을 MSDB로 대체 예정
 bool SetNew_UDB(int& c_uid, std::string& in_name) {
+	
+	
+	
+	SetNew_ALL_ItemDB(c_uid, nameBuffer);
+	
+
+
+
+	
 	SQLHENV henv;
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt = 0;

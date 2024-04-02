@@ -28,7 +28,7 @@ constexpr char CS_QUEST_STORAGE		= 12;
 
 /////////////////////////////////////////////
 
-constexpr char SC_LOGIN_FAIL			= 20;
+constexpr char SC_FAIL			= 20;
 constexpr char SC_LOGIN_SUCCESS			= 21;
 constexpr char SC_LOGIN_INFO			= 22;
 constexpr char SC_PARTY_LIST_INFO		= 23;
@@ -123,7 +123,7 @@ struct CS_QUEST_STORAGE_PACK {
 
 /////////////////////////////////////////
 
-struct SC_LOGIN_FAIL_PACK {
+struct SC_FAIL_PACK {
 	char size;
 	char type;
 };
@@ -179,10 +179,11 @@ struct SC_PARTY_STAFF_READY_PACK {
 	char _staff_num;
 };
 
-struct SC_PARTY_LEAVE_FAIL_PACK {
-	char size;
-	char type;
-};
+// SC_FAIL_PACK°ú ÅëÇÕ
+// struct SC_PARTY_LEAVE_FAIL_PACK {
+//	char size;
+//	char type;
+//};
 
 struct SC_PARTY_LEAVE_SUCCESS_PACK {
 	char size;

@@ -121,6 +121,10 @@ public:
 	{
 		return &_session;
 	}
+	std::string* get_token()
+	{
+		return &IdToken;
+	}
 
 	PLAYER& operator=(PLAYER& ref) 
 	{
@@ -156,6 +160,34 @@ public:
 	short get_storage_item()
 	{
 		
+	}
+
+	void send_fail(const char* fail_reason = "NONE")
+	{
+		SC_FAIL_PACK fail_pack;
+		fail_pack.size = sizeof(SC_FAIL_PACK);
+		fail_pack.type = SC_FAIL;
+		_session.do_send(&fail_pack);
+		printf("[Fail Log][%d] : %s\n", _uid, fail_reason);
+	}
+
+	void send_self_info(const char* success_message = "NONE")
+	{
+		SC_LOGIN_INFO_PACK info_pack;
+		info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+		info_pack.type = SC_LOGIN_INFO;
+		strncpy_s(info_pack.name, CHAR_SIZE, _name, CHAR_SIZE);
+		strncpy_s(info_pack._pet_num, CHAR_SIZE, _pet_num, CHAR_SIZE);
+		info_pack._player_skin = _player_skin;
+		_session.do_send(&info_pack);
+
+		/*
+		[After]
+		아이템 정보 전송에 대한 문제점을 해결해야 함.
+		(현재 구조는 패킷 양이 너무 많아 문제가 됨.)
+		*/
+
+		printf("[Success Log][%d] : %s\n", _uid, success_message);
 	}
 
 private:
@@ -251,79 +283,33 @@ void process_packet(int c_uid, char* packet)
 		CS_LOGIN_PACK* token_pack = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 
 		if (0 == strcmp(token_pack->Token, "theEnd")) {
-			std::string nameBuffer = GetPlayerName(clients[c_uid].IdToken);
+			
+			// AWS Cognito API를 사용하는 함수.
+			std::string nameBuffer = GetPlayerName(*clients[c_uid].get_token());
 
 			if ("TokenError" == nameBuffer || "Token Error" == nameBuffer || "Empty" == nameBuffer) {
-				SC_LOGIN_FAIL_PACK fail_pack;
-				fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
-				fail_pack.type = SC_LOGIN_FAIL;
-				clients[c_uid].get_session()->do_send(&fail_pack);
-				printf("Login Fail!\n");
+				clients[c_uid].send_fail("Token error");
 			}
 			else if (Login_UDB(c_uid, nameBuffer)) {
-				SC_LOGIN_SUCCESS_PACK ok_pack;
-				ok_pack.size = sizeof(ok_pack);
-				ok_pack.type = SC_LOGIN_SUCCESS;
-				clients[c_uid].get_session()->do_send(&ok_pack);
-
-				SC_LOGIN_INFO_PACK info_pack;
-				
-				/*info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
-				info_pack.type = SC_LOGIN_INFO;
-				strncpy_s(info_pack.name, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
-				strncpy_s(info_pack._q_skill, CHAR_SIZE, clients[c_uid]._q_skill, CHAR_SIZE);
-				strncpy_s(info_pack._pet_num, CHAR_SIZE, clients[c_uid]._pet_num, CHAR_SIZE);
-				info_pack._player_skin = clients[c_uid]._player_skin;*/
-
-				clients[c_uid].get_session()->do_send(&info_pack);
-				
-				printf("Player Name: %s Login!\n", clients[c_uid].get_name());
+				clients[c_uid].send_self_info(
+					std::string("Login player name is ").append(clients[c_uid].get_name()).c_str()
+				);
 			}
 			else {
 				if (SetNew_UDB(c_uid, nameBuffer)) {
-					SetNew_ALL_ItemDB(c_uid, nameBuffer);
-
-					{
-						std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
-						clients[c_uid]._state = ST_INGAME;
-						clients[c_uid]._uid = c_uid;
-						strncpy_s(clients[c_uid]._name, CHAR_SIZE, nameBuffer.c_str(), CHAR_SIZE);
-					}
-
-					SC_LOGIN_SUCCESS_PACK ok_pack;
-					ok_pack.size = sizeof(ok_pack);
-					ok_pack.type = SC_LOGIN_SUCCESS;
-					clients[c_uid].get_session()->do_send(&ok_pack);
-
-					SC_LOGIN_INFO_PACK info_pack;
-					info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
-					info_pack.type = SC_LOGIN_INFO;
-					strncpy_s(info_pack.name, CHAR_SIZE, clients[c_uid]._name, CHAR_SIZE);
-					strncpy_s(info_pack._q_skill, CHAR_SIZE, clients[c_uid]._q_skill, CHAR_SIZE);
-					strncpy_s(info_pack._pet_num, CHAR_SIZE, clients[c_uid]._pet_num, CHAR_SIZE);
-					info_pack._q_item = clients[c_uid]._q_item;
-					info_pack._player_skin = clients[c_uid]._player_skin;
-
-					clients[c_uid].get_session()->do_send(&info_pack);
-					
-					printf("New player Name: %s Login!\n", clients[c_uid].get_name());
+					clients[c_uid].send_self_info(
+						std::string("New login player name is ").append(clients[c_uid].get_name()).c_str()
+					);
 				}
 				else {
-					SC_LOGIN_FAIL_PACK fail_pack;
-					fail_pack.size = sizeof(SC_LOGIN_FAIL_PACK);
-					fail_pack.type = SC_LOGIN_FAIL;
-					clients[c_uid].get_session()->do_send(&fail_pack);
-					printf("Login Fail!\n");
+					clients[c_uid].send_fail("Failed to initialize player");
 				}
 			}
 		}
 		else {
 			std::string tokenBuffer;
 			tokenBuffer.assign(token_pack->Token, (size_t)token_pack->Token_size);
-			
-			clients[c_uid].IdToken.append(tokenBuffer);
-			
-			int value = WSAGetLastError();
+			clients[c_uid].get_token()->append(tokenBuffer);
 		}
  	}
 	break;
