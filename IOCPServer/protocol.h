@@ -42,6 +42,10 @@ constexpr char SC_PARTY_LEAVE_SUCCESS	= 30;
 constexpr char SC_LOGOUT_RESULT			= 31;
 constexpr char SC_ITEM_INFO				= 33;
 
+
+constexpr char CS_CHAT_TEXT = 99;
+
+
 #define PARTY_MAX_NUM 4
 constexpr int CURR_USER_NUM = 0;
 
@@ -99,6 +103,14 @@ struct CS_PARTY_READY_PACK {
 
 	char readyState = 0;
 };
+
+struct CS_CHAT_TEXT_PACK {
+	char size;
+	char type;
+
+	char content[60];
+};
+
 ////////////////////////////
 
 struct CS_PARTY_LEAVE_PACK {

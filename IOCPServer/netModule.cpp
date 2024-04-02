@@ -1,41 +1,38 @@
 ﻿#pragma once
 
 #include "DBModule.h"
-#include "AWSModule.h"
+// #include "AWSModule.h"
 
-std::array<PLAYER, MAX_USER> clients;
-std::array<PARTY, MAX_USER> parties;
-
-class OVER_EXP {
-public:
-	WSAOVERLAPPED	_over;
-	TYPE			c_type;
-	WSABUF			_wsabuf;
-	char			_send_buf[BUF_SIZE];
-
-	OVER_EXP()
-	{
-		ZeroMemory(&_over, sizeof(_over));
-		_wsabuf.len = BUF_SIZE;
-		_wsabuf.buf = _send_buf;
-		c_type = RECV;
-	}
-	OVER_EXP(char* packet)
-	{
-		_wsabuf.len = packet[0];
-		_wsabuf.buf = _send_buf;
-		ZeroMemory(&_over, sizeof(_over));
-		c_type = SEND;
-		memcpy(_send_buf, packet, packet[0]);
-	}
-};
+//class OVER_EXP {
+//public:
+//	WSAOVERLAPPED	_over;
+//	TYPE			c_type;
+//	WSABUF			_wsabuf;
+//	char			_send_buf[BUF_SIZE];
+//
+//	OVER_EXP()
+//	{
+//		ZeroMemory(&_over, sizeof(_over));
+//		_wsabuf.len = BUF_SIZE;
+//		_wsabuf.buf = _send_buf;
+//		c_type = RECV;
+//	}
+//	OVER_EXP(char* packet)
+//	{
+//		_wsabuf.len = packet[0];
+//		_wsabuf.buf = _send_buf;
+//		ZeroMemory(&_over, sizeof(_over));
+//		c_type = SEND;
+//		memcpy(_send_buf, packet, packet[0]);
+//	}
+//};
 
 class SESSION {
 public:
-	SESSION() :
+	SESSION() /*:
 		_recv_over(NULL)
 		, _socket(NULL)
-		, _prev_size(0)
+		, _prev_size(0)*/
 	{
 
 	}
@@ -79,6 +76,8 @@ public:
 	}
 	void do_send(void* packet)
 	{
+		if (packet == nullptr) return;
+
 		OVER_EXP* send_over = new OVER_EXP{ reinterpret_cast<char*>(packet) };
 		WSASend(_socket, &send_over->_wsabuf, 1, 0, 0, &send_over->_over, 0);
 	}
@@ -117,6 +116,10 @@ public:
 		ll.unlock();
 	}
 
+	void set_uid(int in)
+	{
+		_uid = in;
+	}
 	SESSION* get_session() 
 	{
 		return &_session;
@@ -136,7 +139,15 @@ public:
 
 		this->_player_state = ref._player_state;
 
+		this->_session = ref._session;
+		ref.get_session()->~SESSION();
+
 		return *this;
+	}
+
+	bool operator== (const PLAYER & rhs) const
+	{
+		return _uid == rhs._uid;
 	}
 
 	char* get_name() 
@@ -145,7 +156,7 @@ public:
 	}
 	void set_name(const char* in) 
 	{
-		strncpy_s(_name, CHAR_SIZE, in, sizeof(in));
+		strncpy_s(_name, sizeof(in), in, sizeof(in));
 	}
 
 	void set_item(const char* in_item_name, short index, char cnt) 
@@ -176,8 +187,12 @@ public:
 		SC_LOGIN_INFO_PACK info_pack;
 		info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
 		info_pack.type = SC_LOGIN_INFO;
-		strncpy_s(info_pack.name, CHAR_SIZE, _name, CHAR_SIZE);
-		strncpy_s(info_pack._pet_num, CHAR_SIZE, _pet_num, CHAR_SIZE);
+		strcpy_s(info_pack.name, _name);
+
+		// strncpy_s() 함수의 오작동 발견
+		// strncpy_s(info_pack._pet_num, strlen(_pet_num), _pet_num, strlen(_pet_num));
+		
+		strcpy_s(info_pack._pet_num, _pet_num);
 		info_pack._player_skin = _player_skin;
 		_session.do_send(&info_pack);
 
@@ -204,7 +219,13 @@ private:
 	std::string IdToken;
 	short IdTokenLenght;
 
-	std::mutex ll;
+	// std::mutex ll;
+	class dummy_mutex
+	{
+	public:
+		void lock() {}
+		void unlock() {}
+	} ll;
 
 	PLAYER_STATE _player_state;
 
@@ -268,6 +289,8 @@ public:
 		return _mem_count;
 	}
 
+	std::list<PLAYER> member;
+
 private:
 	char _name[CHAR_SIZE];
 	short _mem_count = 0;
@@ -275,8 +298,10 @@ private:
 
 	std::mutex ll;
 	
-	std::list<PLAYER> member;
 };
+
+std::array<PLAYER, MAX_USER> clients;
+std::array<PARTY, MAX_USER> parties;
 
 void process_packet(int c_uid, char* packet)
 {
@@ -285,10 +310,41 @@ void process_packet(int c_uid, char* packet)
 	{
 		CS_LOGIN_PACK* token_pack = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 
-		if (0 == strcmp(token_pack->Token, "theEnd")) {
+		if (0 == strncmp(token_pack->Token, "dummy_client_", strlen("dummy_client_"))) {
+			std::string nameBuffer = token_pack->Token;
+			nameBuffer = nameBuffer.erase(0, strlen("dummy_client_"));
+			
+			clients[c_uid].set_name(nameBuffer.c_str());
+
+			printf("dummy client name : %s\n", clients[c_uid].get_name());
+
+			clients[c_uid].send_self_info();
+			break;
+
+
+
+			if (Login_UDB(c_uid, nameBuffer)) {
+				clients[c_uid].send_self_info(
+					std::string("Login player name is ").append(clients[c_uid].get_name()).c_str()
+				);
+			}
+			else {
+				if (SetNew_UDB(c_uid, nameBuffer)) {
+					clients[c_uid].send_self_info(
+						std::string("New login player name is ").append(clients[c_uid].get_name()).c_str()
+					);
+				}
+				else {
+					clients[c_uid].send_fail("Failed to initialize player");
+				}
+			}
+		}
+		else if (0 == strncmp(token_pack->Token, "theEnd", strlen("theEnd"))) {
 			
 			// AWS Cognito API를 사용하는 함수.
-			std::string nameBuffer = GetPlayerName(*clients[c_uid].get_token());
+			
+			// std::string nameBuffer = GetPlayerName(*clients[c_uid].get_token());
+			std::string nameBuffer;
 
 			if ("TokenError" == nameBuffer || "Token Error" == nameBuffer || "Empty" == nameBuffer) {
 				clients[c_uid].send_fail("Token error");
@@ -316,6 +372,14 @@ void process_packet(int c_uid, char* packet)
 		}
  	}
 	break;
+	
+	case CS_CHAT_TEXT:
+	{
+		CS_CHAT_TEXT_PACK* tcp = reinterpret_cast<CS_CHAT_TEXT_PACK*>(packet);
+		printf("[채팅][%s]: %s\n", clients[c_uid].get_name(), tcp->content);
+	}
+	break;
+
 	case CS_QUEST_INVENTORY:
 	{
 		Get_ALL_ItemDB(c_uid);
@@ -323,6 +387,8 @@ void process_packet(int c_uid, char* packet)
 		SC_ITEM_INFO_PACK item_pack;
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 		item_pack.type = SC_ITEM_INFO;
+
+		/*
 
 		for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
 			for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
@@ -336,17 +402,19 @@ void process_packet(int c_uid, char* packet)
 				printf("[%s] : %d\n", item_name.c_str(), cnt);
 				{
 					std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
-					clients[c_uid].itemData.insert({ item_name, cnt });
+					// clients[c_uid].itemData.insert({ item_name, cnt });
 				}
 
 				strncpy_s(item_pack._name, CHAR_SIZE, item_name.c_str(), strlen(item_name.c_str()));
 				item_pack._cnt = cnt;
-				clients[c_uid].do_send(&item_pack);
+				// clients[c_uid].do_send(&item_pack);
 			}
 		}
+		
+		*/
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
-		clients[c_uid].do_send(&item_pack);
+		// clients[c_uid].do_send(&item_pack);
 		std::cout << "End\n";
 	}
 	break;
@@ -357,6 +425,8 @@ void process_packet(int c_uid, char* packet)
 		
 		break;
 
+		/*
+		
 		std::map<std::string, short>::iterator info = clients[c_uid].itemData.find(save_pack->_name);
 		if (clients[c_uid].itemData.end() != info) {
 			std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
@@ -378,6 +448,8 @@ void process_packet(int c_uid, char* packet)
 				}
 			}
 		}
+		
+		*/
 	}
 	break;
 	case CS_QUEST_STORAGE:
@@ -388,6 +460,8 @@ void process_packet(int c_uid, char* packet)
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 		item_pack.type = SC_ITEM_INFO;
 
+		/*
+		
 		for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
 			for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
 
@@ -406,6 +480,8 @@ void process_packet(int c_uid, char* packet)
 
 		strncpy_s(item_pack._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
 		clients[c_uid].do_send(&item_pack);
+		
+		*/
 	}
 	break;
 	case CS_PARTY_SEARCHING:
@@ -431,6 +507,8 @@ void process_packet(int c_uid, char* packet)
 		CS_PARTY_ENTER_PACK* party_info = reinterpret_cast<CS_PARTY_ENTER_PACK*>(packet);
 		int party_number = static_cast<int>(party_info->party_num);
 		if (0 > party_number || party_number > 8) break;
+
+		/*
 
 		int cur_party_member_count = parties[party_number]._mem_count;
 		if (0 <= cur_party_member_count && cur_party_member_count <= 3) {
@@ -458,6 +536,8 @@ void process_packet(int c_uid, char* packet)
 		else {
 			printf("%s party connection failed\n", clients[c_uid].get_name());
 		}
+
+		*/
 		
 	}
 	break;
@@ -466,6 +546,8 @@ void process_packet(int c_uid, char* packet)
 		SC_PARTY_INFO_PACK in_party;
 		in_party.size = sizeof(SC_PARTY_INFO_PACK);
 		in_party.type = SC_PARTY_INFO;
+
+		/*
 
 		for (SESSION& cl : parties[clients[c_uid]._party_num].member) {
 			if (0 == strcmp("None", cl._name)) continue;
@@ -488,10 +570,14 @@ void process_packet(int c_uid, char* packet)
 		strncpy_s(in_party._mem, CHAR_SIZE, "theEnd", strlen("theEnd"));
 		strncpy_s(in_party._my_name, CHAR_SIZE, clients[c_uid]._name, strlen(clients[c_uid]._name));
 		clients[c_uid].do_send(&in_party);
+
+		*/
 	}
 	break;
 	case CS_PARTY_READY:
 	{
+		/*
+
 		int cur_member = 0;
 		int ready_member = 0;
 		int party_num = clients[c_uid]._party_num;
@@ -550,10 +636,14 @@ void process_packet(int c_uid, char* packet)
 				}
 			}
 		}
+
+		*/
 	}
 	break;
 	case CS_PARTY_LEAVE:
 	{
+		/*
+		
 		int party_num = clients[c_uid]._party_num;
 
 		if (0 <= party_num) {
@@ -582,6 +672,8 @@ void process_packet(int c_uid, char* packet)
 			fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
 			clients[c_uid].do_send(&fail_leave_pack);
 		}
+
+		*/
 	}
 	break;
 	case CS_LOGOUT:
@@ -597,11 +689,17 @@ void process_packet(int c_uid, char* packet)
 		else {
 			printf("[Fail]->SaveData Logout %s\n", clients[c_uid].get_name());
 		}
+
+		/*
+		
 		{
 			std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 			strcpy_s(out_client._result, "1");
 			clients[c_uid].do_send(&out_client);
 		}
+		
+		*/
+
 		disconnect(c_uid);
 	}
 	break;
@@ -643,7 +741,9 @@ void worker_thread(HANDLE h_iocp)
 			{
 				
 				clients[new_c_uid]._lock();
+				
 				clients[new_c_uid].get_session()->set_socket(g_c_socket);
+				clients[new_c_uid].set_uid(new_c_uid);
 				clients[new_c_uid]._unlock();
 
 				CreateIoCompletionPort(reinterpret_cast<HANDLE>(g_c_socket), h_iocp, new_c_uid, 0);

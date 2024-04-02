@@ -110,7 +110,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\PokeHunter\PH-Server\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>aws-cpp-sdk-core.lib;aws-cpp-sdk-cognito-idp.lib;aws-cpp-sdk-cognito-identity.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -130,7 +130,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\PokeHunter\PH-Server\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>aws-cpp-sdk-core.lib;aws-cpp-sdk-cognito-idp.lib;aws-cpp-sdk-cognito-identity.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
