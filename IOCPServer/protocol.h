@@ -145,13 +145,12 @@ struct SC_LOGIN_INFO_PACK {
 	char _q_skill[CHAR_SIZE];
 };
 
-struct SC_PARTIES_INFO_PACK {	// 파티의 요약정보
+struct SC_PARTIES_INFO_PACK {
 	char size;
 	char type;
 
-	char _name[CHAR_SIZE];		// 파티의 이름
-	char _staff_count;			// 파티원 수
-	char Inaccessible;			// 파티 출발 여부
+	char _staff_count[MAX_PARTY];
+	char Inaccessible[MAX_PARTY];
 };
 
 struct SC_PARTY_INFO_PACK {		// 각 파티원의 세부 정보

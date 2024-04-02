@@ -225,11 +225,6 @@ public:
 		
 	}
 
-	short get_member_count() 
-	{
-		return _mem_count;
-	}
-
 	bool new_member(PLAYER& new_mem)
 	{
 		if (_mem_count >= PARTY_MAX_NUM) 
@@ -242,7 +237,6 @@ public:
 
 		return true;
 	}
-
 	bool leave_member(char* mem_name) {
 		if (_mem_count <= 0) 
 			return false;
@@ -263,6 +257,15 @@ public:
 
 		ll.unlock();
 		return false;
+	}
+
+	bool get_party_in_stage()
+	{
+		return _inStage;
+	}
+	short get_mem_count()
+	{
+		return _mem_count;
 	}
 
 private:
@@ -411,23 +414,16 @@ void process_packet(int c_uid, char* packet)
 		party_list.size = sizeof(SC_PARTIES_INFO_PACK);
 		party_list.type = SC_PARTY_LIST_INFO;
 
-		for (int i = 0; i < 8; ++i) {
-			std::string nameBuffer = std::string("Room_0").append(std::to_string(i + 1));
-
-			strncpy_s(party_list._name, nameBuffer.c_str(), strlen(nameBuffer.c_str()));
-			party_list._staff_count = static_cast<char>(parties[i]._mem_count);
-
-			{
-				std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
-				if (parties[i]._inStage) party_list.Inaccessible = 1;
-				else party_list.Inaccessible = 0;
-			}
-
-			clients[c_uid].do_send(&party_list);
+		for (int i = 0; i < MAX_PARTY; ++i) {
+			party_list._staff_count[i] = static_cast<char>(parties[i].get_mem_count());
+			
+			if (parties[i].get_party_in_stage()) 
+				party_list.Inaccessible[i] = 1;
+			else 
+				party_list.Inaccessible[i] = 0;
 		}
 
-		strncpy_s(party_list._name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
-		clients[c_uid].do_send(&party_list);
+		clients[c_uid].get_session()->do_send(&party_list);
 	}
 	break;
 	case CS_PARTY_ENTER:
