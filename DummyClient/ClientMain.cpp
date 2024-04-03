@@ -1,7 +1,8 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include<iostream>
 #include<string>
-#include<winsock2.h>
+#include <winsock2.h>
+#include <thread>
 
 #include "../IOCPServer/protocol.h"
 
@@ -9,6 +10,8 @@
 #pragma comment(lib, "MSWSock.lib")
 
 using namespace std;
+
+SOCKET clientSocket;
 
 void ShowErrorMessage(string message)
 {
@@ -20,12 +23,44 @@ void ShowErrorMessage(string message)
 	exit(1);
 }
 
+void update_recv_date()
+{
+	while (true)
+	{
+		void* packet;
+		recv(clientSocket, (char*)&packet, sizeof(CS_CHAT_TEXT_PACK), NULL);
+
+		if (packet[1] == CS_CHAT_TEXT) 
+		{
+			CS_CHAT_TEXT_PACK ctp;
+			printf("%s\n", ctp.content);
+		}
+	}
+}
+
+void net_moudle()
+{
+	while (true)
+	{
+		std::string buf;
+		printf("채팅 (60자 이내, 종료: none입력): ");
+		std::cin >> buf;
+
+		if (buf == "none") break;
+
+		CS_CHAT_TEXT_PACK ctp;
+		ctp.size = sizeof(CS_CHAT_TEXT_PACK);
+		ctp.type = CS_CHAT_TEXT;
+		strcpy_s(ctp.content, buf.c_str());
+		send(clientSocket, (char*)&ctp, ctp.size, NULL);
+	}
+}
+
 int main()
 {
 	string dummy_test_name{};
 	std::cin >> dummy_test_name;
 
-	SOCKET clientSocket;
 	WSADATA wsaData;
 
 	char received[256];
@@ -64,19 +99,12 @@ int main()
 	printf("pet: %s\n", info_pack._pet_num);
 	printf("name: %c\n", info_pack._player_skin);
 
-	while (true) 
-	{
-		printf("채팅 (60자 이내, 종료: none입력): ");
-		std::cin >> dummy_test_name;
 
-		if (dummy_test_name == "none") break;
-		
-		CS_CHAT_TEXT_PACK ctp;
-		ctp.size = sizeof(CS_CHAT_TEXT_PACK);
-		ctp.type = CS_CHAT_TEXT;
-		strcpy_s(ctp.content, dummy_test_name.c_str());
-		send(clientSocket, (char*)&ctp, ctp.size, NULL);
-	}
+	std::thread net_module(net_moudle);
+	std::thread recv_module(update_recv_date);
+	net_module.join();
+	recv_module.join();
+	
 
 	closesocket(clientSocket);
 	WSACleanup();

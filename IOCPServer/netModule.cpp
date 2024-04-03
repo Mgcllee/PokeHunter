@@ -377,6 +377,16 @@ void process_packet(int c_uid, char* packet)
 	{
 		CS_CHAT_TEXT_PACK* tcp = reinterpret_cast<CS_CHAT_TEXT_PACK*>(packet);
 		printf("[채팅][%s]: %s\n", clients[c_uid].get_name(), tcp->content);
+
+		CS_CHAT_TEXT_PACK ctp;
+		ctp.size = sizeof(CS_CHAT_TEXT_PACK);
+		ctp.type = CS_CHAT_TEXT;
+		strcpy_s(ctp.content, tcp->content);
+		
+		for (auto c : clients) 
+		{
+			c.get_session()->do_send(&ctp);
+		}
 	}
 	break;
 
