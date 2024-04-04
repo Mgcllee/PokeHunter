@@ -11,7 +11,12 @@
 
 using namespace std;
 
+#define send_defualt_text "채팅 (60자 이내, 종료: none입력): "
+
 SOCKET clientSocket;
+
+COORD recv_text_pos = { 0, 0 };
+COORD send_text_pos = { strlen(send_defualt_text), 1};
 
 void ShowErrorMessage(string message)
 {
@@ -27,12 +32,11 @@ void update_recv_date()
 {
 	while (true)
 	{
-		void* packet;
-		recv(clientSocket, (char*)&packet, sizeof(CS_CHAT_TEXT_PACK), NULL);
+		CS_CHAT_TEXT_PACK ctp;
+		recv(clientSocket, (char*)&ctp, sizeof(CS_CHAT_TEXT_PACK), NULL);
 
-		if (packet[1] == CS_CHAT_TEXT) 
+		if (ctp.type == CS_CHAT_TEXT) 
 		{
-			CS_CHAT_TEXT_PACK ctp;
 			printf("%s\n", ctp.content);
 		}
 	}
@@ -43,7 +47,7 @@ void net_moudle()
 	while (true)
 	{
 		std::string buf;
-		printf("채팅 (60자 이내, 종료: none입력): ");
+		printf("%s", send_defualt_text);
 		std::cin >> buf;
 
 		if (buf == "none") break;
@@ -99,11 +103,37 @@ int main()
 	printf("pet: %s\n", info_pack._pet_num);
 	printf("name: %c\n", info_pack._player_skin);
 
+	CONSOLE_SCREEN_BUFFER_INFO cs;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cs);
+
+	recv_text_pos.Y = cs.dwCursorPosition.Y + 1;
 
 	std::thread net_module(net_moudle);
-	std::thread recv_module(update_recv_date);
+	// std::thread recv_module(update_recv_date);
+	
+	while (true) 
+	{
+		CS_CHAT_TEXT_PACK ctp;
+		int ret = recv(clientSocket, (char*)&ctp, sizeof(CS_CHAT_TEXT_PACK), NULL);
+
+		if (ret != 0) 
+		{
+			recv_text_pos.Y += 1;
+			SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), recv_text_pos);
+
+			send_text_pos.Y = recv_text_pos.Y + 1;
+			SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), send_text_pos);
+
+			if (ctp.type == CS_CHAT_TEXT)
+			{
+				printf("%s\n", ctp.content);
+			}
+		}
+		
+	}
+	
+	// recv_module.join();
 	net_module.join();
-	recv_module.join();
 	
 
 	closesocket(clientSocket);
