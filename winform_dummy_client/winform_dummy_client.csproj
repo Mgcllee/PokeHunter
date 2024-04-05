@@ -52,6 +52,7 @@
     <Compile Include="dummy_client.Designer.cs">
       <DependentUpon>dummy_client.cs</DependentUpon>
     </Compile>
+    <Compile Include="network_module.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="dummy_client.resx">

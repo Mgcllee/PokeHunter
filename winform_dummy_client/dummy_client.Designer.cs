@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.chat_box = new System.Windows.Forms.Label();
+            this.user_textBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // chat_box
@@ -39,12 +40,23 @@
             this.chat_box.Size = new System.Drawing.Size(610, 176);
             this.chat_box.TabIndex = 0;
             // 
-            // Form1
+            // user_textBox
             // 
-            this.ClientSize = new System.Drawing.Size(634, 388);
+            this.user_textBox.Location = new System.Drawing.Point(12, 200);
+            this.user_textBox.Name = "user_textBox";
+            this.user_textBox.Size = new System.Drawing.Size(610, 25);
+            this.user_textBox.TabIndex = 1;
+            this.user_textBox.Text = "닉네임을 입력해주세요.";
+            this.user_textBox.Enter += new System.EventHandler(this.user_textBox_Enter);
+            // 
+            // dummy_client
+            // 
+            this.ClientSize = new System.Drawing.Size(634, 238);
+            this.Controls.Add(this.user_textBox);
             this.Controls.Add(this.chat_box);
-            this.Name = "Form1";
+            this.Name = "dummy_client";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -52,6 +64,7 @@
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label chat_box;
+        private System.Windows.Forms.TextBox user_textBox;
     }
 }
 
