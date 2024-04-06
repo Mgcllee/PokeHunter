@@ -23,10 +23,13 @@ namespace winform_dummy_client
             net.Connect();
         }
 
-        private void user_textBox_Enter(object sender, EventArgs e)
+        private void user_textBox_Enter(object sender, KeyEventArgs e)
         {
-            net.send_msg(user_textBox.Text.ToString());
-            user_textBox.Clear();
+            if(e.KeyCode == Keys.Enter)
+            {
+                net.send_msg(user_textBox.Text.ToString());
+                user_textBox.Clear();
+            }
         }
     }
 }

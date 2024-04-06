@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -9,12 +10,29 @@ using System.Windows.Forms;
 
 namespace winform_dummy_client
 {
+
+
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     public struct CS_CHAT_TEXT_PACK
     {
         public char size;
         public char type;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)] public char[] content;
+
+
+        public byte[] Serialize()
+        {
+            var buffer = new byte[Marshal.SizeOf(typeof(CS_CHAT_TEXT_PACK))];
+
+            var gch = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            var pBuffer = gch.AddrOfPinnedObject();
+
+            Marshal.StructureToPtr(this, pBuffer, false);
+            gch.Free();
+
+            return buffer;
+        }
     };
 
     public class network_module
@@ -29,29 +47,46 @@ namespace winform_dummy_client
             stream = tc.GetStream();
         }
 
-        public static byte[] StructureToByte(CS_CHAT_TEXT_PACK obj)
+        #region
+        // private static byte[] StructToBytes(object obj)
+        private static byte[] StructToBytes(CS_CHAT_TEXT_PACK obj)
         {
-            int datasize = Marshal.SizeOf(obj);//((PACKET_DATA)obj).TotalBytes; // 구조체에 할당된 메모리의 크기를 구한다.
-            IntPtr buff = Marshal.AllocHGlobal(datasize); // 비관리 메모리 영역에 구조체 크기만큼의 메모리를 할당한다.
-            Marshal.StructureToPtr(obj, buff, false); // 할당된 구조체 객체의 주소를 구한다.
-            byte[] data = new byte[datasize]; // 구조체가 복사될 배열
-            Marshal.Copy(buff, data, 0, datasize); // 구조체 객체를 배열에 복사
-            Marshal.FreeHGlobal(buff); // 비관리 메모리 영역에 할당했던 메모리를 해제함
-            return data; // 배열을 리턴
+            int iSize = Marshal.SizeOf(obj);
+            byte[] arr = new byte[iSize];
+
+            // IntPtr ptr = Marshal.AllocHGlobal(iSize);
+            // Marshal.StructureToPtr(obj, ptr, false);
+            // Marshal.Copy(ptr, arr, 0, iSize);
+            // Marshal.FreeHGlobal(ptr);
+
+            IntPtr ptr = IntPtr.Zero;
+            try
+            {
+                ptr = Marshal.AllocHGlobal(iSize);
+                Marshal.StructureToPtr(obj, ptr, true);
+                Marshal.Copy(ptr, arr, 0, iSize);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(ptr);
+            }
+            return arr;
+
+            return arr;
         }
+        #endregion
 
         public void send_msg(string msg)
         {
             CS_CHAT_TEXT_PACK ctp = new CS_CHAT_TEXT_PACK();
-            ctp.size = (char)(char)StructureToByte(new CS_CHAT_TEXT_PACK()).Length;
+            
+
+            ctp.size = (char)(StructToBytes(new CS_CHAT_TEXT_PACK()).Length);
             ctp.type = (char)99; // CS_CHAT_TEXT;
             ctp.content = msg.ToCharArray();
 
-            BinaryFormatter formatter = new BinaryFormatter();
-            CS_CHAT_TEXT_PACK buf = (CS_CHAT_TEXT_PACK)formatter.Deserialize(stream);
+            byte[] buff = ctp.Serialize();
 
-            byte[] buff = StructureToByte(ctp);
-            
             stream.Write(buff, 0, buff.Length);
 
             byte[] outbuf = new byte[1024];
