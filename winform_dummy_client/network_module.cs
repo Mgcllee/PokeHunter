@@ -7,32 +7,29 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Windows.Forms;
+using static System.Net.WebRequestMethods;
 
 namespace winform_dummy_client
 {
-
-
-
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     public struct CS_CHAT_TEXT_PACK
     {
         public char size;
         public char type;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)] public char[] content;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 60)]
+        public string content;
+    };
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    struct CS_LOGIN_PACK
+    {
+        public char size;
+        public char type;
 
-        public byte[] Serialize()
-        {
-            var buffer = new byte[Marshal.SizeOf(typeof(CS_CHAT_TEXT_PACK))];
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 60)]
+        public string Token;
 
-            var gch = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            var pBuffer = gch.AddrOfPinnedObject();
-
-            Marshal.StructureToPtr(this, pBuffer, false);
-            gch.Free();
-
-            return buffer;
-        }
+        public char Token_size;
     };
 
     public class network_module
@@ -40,6 +37,7 @@ namespace winform_dummy_client
         // (1) IP 주소와 포트를 지정하고 TCP 연결 
         static TcpClient tc = new TcpClient();
         NetworkStream stream;
+        public string name = "";
 
         public void Connect()
         {
@@ -47,51 +45,43 @@ namespace winform_dummy_client
             stream = tc.GetStream();
         }
 
-        #region
-        // private static byte[] StructToBytes(object obj)
-        private static byte[] StructToBytes(CS_CHAT_TEXT_PACK obj)
+        public static byte[] Serialize(Object m_datapacket)
         {
-            int iSize = Marshal.SizeOf(obj);
-            byte[] arr = new byte[iSize];
+            int datasize = Marshal.SizeOf(m_datapacket);
+            IntPtr buffer = Marshal.AllocHGlobal(datasize);
+            Marshal.StructureToPtr(m_datapacket, buffer, false);
+            byte[] RawData = new byte[datasize];
+            Marshal.Copy(buffer, RawData, 0, datasize);
+            Marshal.FreeHGlobal(buffer);
 
-            // IntPtr ptr = Marshal.AllocHGlobal(iSize);
-            // Marshal.StructureToPtr(obj, ptr, false);
-            // Marshal.Copy(ptr, arr, 0, iSize);
-            // Marshal.FreeHGlobal(ptr);
-
-            IntPtr ptr = IntPtr.Zero;
-            try
-            {
-                ptr = Marshal.AllocHGlobal(iSize);
-                Marshal.StructureToPtr(obj, ptr, true);
-                Marshal.Copy(ptr, arr, 0, iSize);
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(ptr);
-            }
-            return arr;
-
-            return arr;
+            return RawData;
         }
-        #endregion
+
+        public void send_name()
+        {
+            CS_LOGIN_PACK log = new CS_LOGIN_PACK();
+            log.size = (char)Serialize(log).Length;
+            log.type = (char)0; // CS_LOGIN;
+            log.Token = "dummy_client_" + name;
+            
+            byte[] buff = Serialize(log);
+            stream.Write(buff, 0, buff.Length);
+        }
 
         public void send_msg(string msg)
         {
             CS_CHAT_TEXT_PACK ctp = new CS_CHAT_TEXT_PACK();
-            
-
-            ctp.size = (char)(StructToBytes(new CS_CHAT_TEXT_PACK()).Length);
+            ctp.size = (char)Serialize(ctp).Length;
             ctp.type = (char)99; // CS_CHAT_TEXT;
-            ctp.content = msg.ToCharArray();
+            ctp.content = msg;
 
-            byte[] buff = ctp.Serialize();
+            byte[] buff = Serialize(ctp);
 
             stream.Write(buff, 0, buff.Length);
 
-            byte[] outbuf = new byte[1024];
+            /*byte[] outbuf = new byte[1024];
             int nbytes = stream.Read(outbuf, 0, outbuf.Length);
-            string output = Encoding.ASCII.GetString(outbuf, 0, nbytes);
+            string output = Encoding.ASCII.GetString(outbuf, 0, nbytes);*/
         }
 
         void Close()

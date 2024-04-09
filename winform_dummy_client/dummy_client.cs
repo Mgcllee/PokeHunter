@@ -27,7 +27,15 @@ namespace winform_dummy_client
         {
             if(e.KeyCode == Keys.Enter)
             {
-                net.send_msg(user_textBox.Text.ToString());
+                if(net.name.Length == 0)
+                {
+                    net.name = user_textBox.Text.ToString();
+                    net.send_name();
+                }
+                else
+                {
+                    net.send_msg(user_textBox.Text.ToString());
+                }
                 user_textBox.Clear();
             }
         }

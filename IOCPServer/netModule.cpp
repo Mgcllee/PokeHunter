@@ -387,6 +387,7 @@ void process_packet(int c_uid, char* packet)
 		{
 			c.get_session()->do_send(&ctp);
 		}
+		printf("Done\n");
 	}
 	break;
 
