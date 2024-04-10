@@ -383,11 +383,14 @@ void process_packet(int c_uid, char* packet)
 		ctp.type = CS_CHAT_TEXT;
 		strcpy_s(ctp.content, tcp->content);
 		
+		/*
+		
 		for (auto c : clients) 
 		{
 			c.get_session()->do_send(&ctp);
 		}
-		printf("Done\n");
+		
+		*/
 	}
 	break;
 

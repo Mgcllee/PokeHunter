@@ -84,6 +84,7 @@ namespace winform_dummy_client
             string output = Encoding.ASCII.GetString(outbuf, 0, nbytes);*/
         }
 
+
         void Close()
         {
             // (5) 스트림과 TcpClient 객체 닫기
