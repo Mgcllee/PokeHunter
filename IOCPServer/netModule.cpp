@@ -34,7 +34,7 @@ public:
 		, _socket(NULL)
 		, _prev_size(0)*/
 	{
-
+		_socket = NULL;
 	}
 	~SESSION()
 	{
@@ -56,6 +56,7 @@ public:
 	void set_socket(SOCKET new_socket) 
 	{
 		_socket = new_socket;
+		
 	}
 	int get_prev_size()
 	{
@@ -77,6 +78,7 @@ public:
 	void do_send(void* packet)
 	{
 		if (packet == nullptr) return;
+		if (_socket == NULL) return;
 
 		OVER_EXP* send_over = new OVER_EXP{ reinterpret_cast<char*>(packet) };
 		WSASend(_socket, &send_over->_wsabuf, 1, 0, 0, &send_over->_over, 0);
@@ -301,7 +303,7 @@ private:
 };
 
 std::array<PLAYER, MAX_USER> clients;
-std::array<PARTY, MAX_USER> parties;
+std::array<PARTY, MAX_PARTY> parties;
 
 void process_packet(int c_uid, char* packet)
 {
@@ -318,7 +320,8 @@ void process_packet(int c_uid, char* packet)
 
 			printf("dummy client name : %s\n", clients[c_uid].get_name());
 
-			clients[c_uid].send_self_info();
+			// winform_dummy_client에 없음
+			// clients[c_uid].send_self_info();
 			break;
 
 
@@ -376,21 +379,18 @@ void process_packet(int c_uid, char* packet)
 	case CS_CHAT_TEXT:
 	{
 		CS_CHAT_TEXT_PACK* tcp = reinterpret_cast<CS_CHAT_TEXT_PACK*>(packet);
-		printf("[채팅][%s]: %s\n", clients[c_uid].get_name(), tcp->content);
+		std::string buf = std::string("[채팅][").append(clients[c_uid].get_name()) + "]: " + tcp->content;
+		printf("%s\n", buf.c_str());
 
 		CS_CHAT_TEXT_PACK ctp;
 		ctp.size = sizeof(CS_CHAT_TEXT_PACK);
 		ctp.type = CS_CHAT_TEXT;
-		strcpy_s(ctp.content, tcp->content);
+		strcpy_s(ctp.content, buf.c_str());
 		
-		/*
-		
-		for (auto c : clients) 
+		for (PLAYER& p : clients)
 		{
-			c.get_session()->do_send(&ctp);
+			p.get_session()->do_send(&ctp);
 		}
-		
-		*/
 	}
 	break;
 

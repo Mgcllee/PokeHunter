@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Windows.Forms;
@@ -45,6 +46,12 @@ namespace winform_dummy_client
             stream = tc.GetStream();
         }
 
+        public void Colse()
+        {
+            stream.Close();
+            tc.Close();
+        }
+
         public static byte[] Serialize(Object m_datapacket)
         {
             int datasize = Marshal.SizeOf(m_datapacket);
@@ -72,16 +79,21 @@ namespace winform_dummy_client
         {
             CS_CHAT_TEXT_PACK ctp = new CS_CHAT_TEXT_PACK();
             ctp.size = (char)Serialize(ctp).Length;
-            ctp.type = (char)99; // CS_CHAT_TEXT;
+            ctp.type = (char)99;
             ctp.content = msg;
-
             byte[] buff = Serialize(ctp);
-
             stream.Write(buff, 0, buff.Length);
+        }
 
-            /*byte[] outbuf = new byte[1024];
+        public string recv_msg()
+        {
+            byte[] outbuf = new byte[62];
             int nbytes = stream.Read(outbuf, 0, outbuf.Length);
-            string output = Encoding.ASCII.GetString(outbuf, 0, nbytes);*/
+            if (nbytes != 0)
+            {
+                return Encoding.Default.GetString(outbuf, 2, nbytes - 2);
+            }
+            else return "";
         }
 
 

@@ -44,7 +44,7 @@
             // 
             this.user_textBox.Location = new System.Drawing.Point(12, 200);
             this.user_textBox.Name = "user_textBox";
-            this.user_textBox.Size = new System.Drawing.Size(610, 21);
+            this.user_textBox.Size = new System.Drawing.Size(610, 25);
             this.user_textBox.TabIndex = 1;
             this.user_textBox.Text = "닉네임을 입력해주세요.";
             this.user_textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.user_textBox_Enter);

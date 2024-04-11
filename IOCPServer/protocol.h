@@ -1,6 +1,6 @@
 #pragma once
 
-constexpr int MAX_USER = 100;
+constexpr int MAX_USER = 10;
 constexpr int MAX_PARTY = 100;
 constexpr int BUF_SIZE = 128;
 constexpr int PORT_NUM = 7777;
