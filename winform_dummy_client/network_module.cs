@@ -89,11 +89,7 @@ namespace winform_dummy_client
         {
             byte[] outbuf = new byte[62];
             int nbytes = stream.Read(outbuf, 0, outbuf.Length);
-            if (nbytes != 0)
-            {
-                return Encoding.Default.GetString(outbuf, 2, nbytes - 2);
-            }
-            else return "";
+            return Encoding.Default.GetString(outbuf, 2, nbytes - 2);
         }
 
 

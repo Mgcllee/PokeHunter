@@ -17,7 +17,8 @@ namespace winform_dummy_client
     public partial class dummy_client : Form
     {
         private network_module net = new network_module();
-        Thread recv_thread;
+        private Thread recv_thread;
+        private System.Timers.Timer timer;
 
         public dummy_client()
         {
@@ -25,7 +26,10 @@ namespace winform_dummy_client
 
             net.Connect();
             recv_thread = new Thread(recv_chat);
-            // recv_thread.Start();
+            recv_thread.IsBackground = true;
+            recv_thread.Start();
+
+            timer = new System.Timers.Timer();
         }
 
         private void user_textBox_Enter(object sender, KeyEventArgs e)
@@ -45,7 +49,7 @@ namespace winform_dummy_client
                 else
                 {
                     net.send_msg(user_textBox.Text.ToString());
-                    recv_chat();
+                    // recv_chat();
                 }
                 user_textBox.Clear();
             }
@@ -53,11 +57,11 @@ namespace winform_dummy_client
 
         private void recv_chat()
         {
-            string recv_str = net.recv_msg();
-
-            if (recv_str.Length != 0) 
+            while (true)
             {
-                if(true == chat_box.InvokeRequired)
+                string recv_str = net.recv_msg();
+
+                if (true == chat_box.InvokeRequired)
                 {
                     chat_box.Invoke(new MethodInvoker(delegate
                     {
