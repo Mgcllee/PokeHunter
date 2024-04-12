@@ -92,6 +92,14 @@ namespace winform_dummy_client
             return Encoding.Default.GetString(outbuf, 2, nbytes - 2);
         }
 
+        public void send_packet(byte[] packet)
+        {
+            using(FileStream fs = new FileStream("", FileMode.Open))
+            {
+
+            }
+        }
+
 
         void Close()
         {
