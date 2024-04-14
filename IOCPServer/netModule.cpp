@@ -186,23 +186,15 @@ public:
 
 	void send_self_info(const char* success_message = "NONE")
 	{
-		SC_LOGIN_INFO_PACK info_pack;
-		info_pack.size = sizeof(SC_LOGIN_INFO_PACK);
+		SC_LOGIN_INFO_PACK info_pack = SC_LOGIN_INFO_PACK();
+		info_pack.size = (char)sizeof(info_pack);
 		info_pack.type = SC_LOGIN_INFO;
+
 		strcpy_s(info_pack.name, _name);
-
-		// strncpy_s() 함수의 오작동 발견
-		// strncpy_s(info_pack._pet_num, strlen(_pet_num), _pet_num, strlen(_pet_num));
+		info_pack._player_skin = 1;
+		info_pack._pet_num = 1;
 		
-		strcpy_s(info_pack._pet_num, _pet_num);
-		info_pack._player_skin = _player_skin;
 		_session.do_send(&info_pack);
-
-		/*
-		[After]
-		아이템 정보 전송에 대한 문제점을 해결해야 함.
-		(현재 구조는 패킷 양이 너무 많아 문제가 됨.)
-		*/
 
 		printf("[Success Log][%d] : %s\n", _uid, success_message);
 	}
@@ -315,13 +307,9 @@ void process_packet(int c_uid, char* packet)
 		if (0 == strncmp(token_pack->Token, "dummy_client_", strlen("dummy_client_"))) {
 			std::string nameBuffer = token_pack->Token;
 			nameBuffer = nameBuffer.erase(0, strlen("dummy_client_"));
-			
 			clients[c_uid].set_name(nameBuffer.c_str());
-
 			printf("dummy client name : %s\n", clients[c_uid].get_name());
-
-			// winform_dummy_client에 없음
-			// clients[c_uid].send_self_info();
+			clients[c_uid].send_self_info(clients[c_uid].get_name());
 			break;
 
 
@@ -376,15 +364,15 @@ void process_packet(int c_uid, char* packet)
  	}
 	break;
 	
-	case CS_CHAT_TEXT:
+	case CS_CHAT:
 	{
-		CS_CHAT_TEXT_PACK* tcp = reinterpret_cast<CS_CHAT_TEXT_PACK*>(packet);
+		CS_CHAT_PACK* tcp = reinterpret_cast<CS_CHAT_PACK*>(packet);
 		std::string buf = std::string("[채팅][").append(clients[c_uid].get_name()) + "]: " + tcp->content;
 		printf("%s\n", buf.c_str());
 
-		CS_CHAT_TEXT_PACK ctp;
-		ctp.size = sizeof(CS_CHAT_TEXT_PACK);
-		ctp.type = CS_CHAT_TEXT;
+		SC_CHAT_PACK ctp;
+		ctp.size = sizeof(SC_CHAT_PACK);
+		ctp.type = SC_CHAT;
 		strcpy_s(ctp.content, buf.c_str());
 		
 		for (PLAYER& p : clients)

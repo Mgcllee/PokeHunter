@@ -10,7 +10,7 @@ constexpr int PORT_NUM = 7777;
 constexpr short MAX_ITEM_CATEGORY = 4;
 constexpr short MAX_ITEM_COUNT = 9;
 
-constexpr short CHAR_SIZE = 20;
+constexpr short CHAR_SIZE = 64;
 
 constexpr char CS_LOGIN				= 0;
 
@@ -45,7 +45,8 @@ constexpr char SC_LOGOUT_RESULT			= 31;
 constexpr char SC_ITEM_INFO				= 33;
 
 
-constexpr char CS_CHAT_TEXT = 99;
+constexpr char CS_CHAT = 98;
+constexpr char SC_CHAT = 99;
 
 
 #define PARTY_MAX_NUM 4
@@ -57,7 +58,7 @@ struct CS_LOGIN_PACK {
 	char size;
 	char type;
 
-	char Token[60];
+	char Token[CHAR_SIZE];
 	char Token_size;
 };
 
@@ -106,11 +107,18 @@ struct CS_PARTY_READY_PACK {
 	char readyState = 0;
 };
 
-struct CS_CHAT_TEXT_PACK {
+struct CS_CHAT_PACK {
 	char size;
 	char type;
 
-	char content[60];
+	char content[CHAR_SIZE];
+};
+
+struct SC_CHAT_PACK {
+	char size;
+	char type;
+
+	char content[CHAR_SIZE];
 };
 
 ////////////////////////////
@@ -153,10 +161,7 @@ struct SC_LOGIN_INFO_PACK {
 	char name[CHAR_SIZE];
 
 	char _player_skin;
-	char _pet_num[CHAR_SIZE];
-
-	char _q_item;
-	char _q_skill[CHAR_SIZE];
+	char _pet_num;
 };
 
 struct SC_PARTIES_INFO_PACK {

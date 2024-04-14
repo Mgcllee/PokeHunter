@@ -1,219 +1,101 @@
-#pragma once
+ï»¿using System;
+using System.Drawing;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
 
-// pz only use English
+namespace Protocol
+{
+    public struct RULE
+    {
+        public const int MAX_USER = 10;
+        public const int MAX_PARTY = 100;
+        public const int BUF_SIZE = 128;
+        public const int PORT_NUM = 7777;
 
-constexpr int MAX_USER = 10;
-constexpr int MAX_PARTY = 100;
-constexpr int BUF_SIZE = 128;
-constexpr int PORT_NUM = 7777;
+        // constexpr short CHAR_SIZE = 20;
+        public const short CHAR_SIZE = 64;
 
-constexpr short MAX_ITEM_CATEGORY = 4;
-constexpr short MAX_ITEM_COUNT = 9;
+        public const short PACK_SIZE = 128;
+    }
 
-constexpr short CHAR_SIZE = 20;
+    public struct PACKET_TYPE
+    {
+        public const byte CS_LOGIN = 0;
+        public const byte CS_PARTY_SEARCHING = 2;
+        public const byte CS_PARTY_INFO = 3;
+        public const byte CS_PARTY_ENTER = 4;
+        public const byte SC_PARTY_ENTER_OK = 5;
+        public const byte CS_PARTY_READY = 6;
+        public const byte CS_PARTY_LEAVE = 8;
+        public const byte CS_QUEST_INVENTORY = 9;
+        public const byte CS_SAVE_INVENTORY = 10;
+        public const byte CS_LOGOUT = 11;
+        public const byte CS_QUEST_STORAGE = 12;
 
-constexpr char CS_LOGIN				= 0;
+        public const byte CS_CHAT = 98;
+        public const byte SC_CHAT = 99;
 
-constexpr char CS_PARTY_SEARCHING	= 2;
-constexpr char CS_PARTY_INFO		= 3;
+        public const byte SC_FAIL = 20;
+        public const byte SC_LOGIN_SUCCESS = 21;
+        public const byte SC_LOGIN_INFO = 22;
+        public const byte SC_PARTY_LIST_INFO = 23;
+        public const byte SC_PARTY_INFO = 24;
+        public const byte SC_PARTY_STAFF_READY = 25;
+        public const byte SC_PARTY_START = 26;
+        public const byte SC_PARTY_JOIN_FAIL = 27;
+        public const byte SC_PARTY_JOIN_SUCCESS = 28;
+        public const byte SC_PARTY_LEAVE_FAIL = 29;
+        public const byte SC_PARTY_LEAVE_SUCCESS = 30;
+        public const byte SC_LOGOUT_RESULT = 31;
+        public const byte SC_ITEM_INFO = 33;
+    }
 
-constexpr char CS_PARTY_ENTER		= 4;
-constexpr char SC_PARTY_ENTER_OK	= 5;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    public class BASE_PACKET
+    {
+        public byte size;
+        public byte type;
+    }
 
-constexpr char CS_PARTY_READY		= 6;
-constexpr char CS_PARTY_LEAVE		= 8;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    public class CS_CHAT_PACK : BASE_PACKET
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = RULE.CHAR_SIZE)]
+        public string content;
+    };
 
-constexpr char CS_QUEST_INVENTORY	= 9;
-constexpr char CS_SAVE_INVENTORY	= 10;
-constexpr char CS_LOGOUT			= 11;
-constexpr char CS_QUEST_STORAGE		= 12;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    public class SC_CHAT_PACK : BASE_PACKET
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = RULE.CHAR_SIZE)]
+        public string content;
+    };
 
-/////////////////////////////////////////////
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    public class CS_LOGIN_PACK : BASE_PACKET
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = RULE.CHAR_SIZE)]
+        public string Token;
 
-constexpr char SC_FAIL			= 20;
-constexpr char SC_LOGIN_SUCCESS			= 21;
-constexpr char SC_LOGIN_INFO			= 22;
-constexpr char SC_PARTY_LIST_INFO		= 23;
-constexpr char SC_PARTY_INFO			= 24;
-constexpr char SC_PARTY_STAFF_READY		= 25;
-constexpr char SC_PARTY_START			= 26;
-constexpr char SC_PARTY_JOIN_FAIL		= 27;
-constexpr char SC_PARTY_JOIN_SUCCESS	= 28;
-constexpr char SC_PARTY_LEAVE_FAIL		= 29;
-constexpr char SC_PARTY_LEAVE_SUCCESS	= 30;
-constexpr char SC_LOGOUT_RESULT			= 31;
-constexpr char SC_ITEM_INFO				= 33;
+        public byte Token_size;
+    };
 
+    public class SC_LOGIN_PACK : BASE_PACKET
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = RULE.CHAR_SIZE)]
+        public string Token;
 
-constexpr char CS_CHAT_TEXT = 99;
+        public byte Token_size;
+    };
 
-
-#define PARTY_MAX_NUM 4
-constexpr int CURR_USER_NUM = 0;
-
-#pragma pack (push, 1)
-
-struct CS_LOGIN_PACK {
-	char size;
-	char type;
-
-	char Token[60];
-	char Token_size;
-};
-
-struct CS_QUEST_INVENTORY_PACK {
-	char size;
-	char type;
-};
-
-struct CS_SAVE_INVENTORY_PACK {
-	char size;
-	char type;
-
-	char _name[CHAR_SIZE];
-	char _cnt;
-};
-
-struct CS_PARTY_SEARCHING_PACK {
-	char size;
-	char type;
-};
-
-struct CS_PARTY_INFO_PACK {
-	char size;
-	char type;
-
-	char party_num;
-};
-
-struct CS_PARTY_ENTER_PACK {
-	char size;
-	char type;
-
-	char party_num;
-};
-
-struct SC_PARTY_ENTER_OK_PACK {
-	char size;
-	char type;
-};
-
-///////// Á¦°Å ´ë»ó ////////
-struct CS_PARTY_READY_PACK {
-	char size;
-	char type;
-
-	char readyState = 0;
-};
-
-struct CS_CHAT_TEXT_PACK {
-	char size;
-	char type;
-
-	char content[60];
-};
-
-////////////////////////////
-
-struct CS_PARTY_LEAVE_PACK {
-	char size;
-	char type;
-
-	char party_num;
-	char name[CHAR_SIZE];
-};
-
-struct CS_LOGOUT_PACK {
-	char size;
-	char type;
-
-	char name[CHAR_SIZE];
-};
-
-struct CS_QUEST_STORAGE_PACK {
-	char size;
-	char type;
-};
-
-/////////////////////////////////////////
-
-struct SC_FAIL_PACK {
-	char size;
-	char type;
-};
-
-struct SC_LOGIN_SUCCESS_PACK {
-	char size;
-	char type;
-};
-
-struct SC_LOGIN_INFO_PACK {
-	char size;
-	char type;
-	char name[CHAR_SIZE];
-
-	char _player_skin;
-	char _pet_num[CHAR_SIZE];
-
-	char _q_item;
-	char _q_skill[CHAR_SIZE];
-};
-
-struct SC_PARTIES_INFO_PACK {
-	char size;
-	char type;
-
-	char _staff_count[MAX_PARTY];
-	char Inaccessible[MAX_PARTY];
-};
-
-struct SC_PARTY_INFO_PACK {	
-	char size;
-	char type;
-
-	char _my_name[CHAR_SIZE];
-	char _mem[CHAR_SIZE];
-	char _mem_pet[CHAR_SIZE];
-	char _mem_state;
-};
-
-struct SC_PARTY_JOIN_RESULT_PACK {
-	char size;
-	char type;
-
-	char _result;
-	char memberState[4];
-};
-
-struct SC_PARTY_STAFF_READY_PACK {
-	char size;
-	char type;
-
-	char _staff_num;
-};
-
-struct SC_PARTY_LEAVE_SUCCESS_PACK {
-	char size;
-	char type;
-
-	char _mem[CHAR_SIZE];
-	char _mem_pet;
-	char _mem_state;
-};
-
-struct SC_LOGOUT_RESULT_PACK {
-	char size;
-	char type;
-
-	char _result[CHAR_SIZE];
-};
-
-struct SC_ITEM_INFO_PACK {
-	char size;
-	char type;
-
-	char _name[CHAR_SIZE];
-	char _cnt;
-};
-
-#pragma pack (pop)
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    public class SC_LOGIN_INFO_PACK : BASE_PACKET
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = RULE.CHAR_SIZE)]
+        public string name;
+        public byte _player_skin;
+        public byte _pet_num;
+    };
+}

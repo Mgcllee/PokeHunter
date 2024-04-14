@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.SqlServer.Server;
+using Protocol;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,6 +13,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
+using static Protocol.PACKET_TYPE;
 
 namespace winform_dummy_client
 {
@@ -18,18 +22,13 @@ namespace winform_dummy_client
     {
         private network_module net = new network_module();
         private Thread recv_thread;
-        private System.Timers.Timer timer;
 
         public dummy_client()
         {
             InitializeComponent();
 
-            net.Connect();
-            recv_thread = new Thread(recv_chat);
+            recv_thread = new Thread(recv_packet);
             recv_thread.IsBackground = true;
-            recv_thread.Start();
-
-            timer = new System.Timers.Timer();
         }
 
         private void user_textBox_Enter(object sender, KeyEventArgs e)
@@ -38,38 +37,55 @@ namespace winform_dummy_client
             {
                 if(user_textBox.Text.Length == 0)
                 {
-                    // net.Colse();
                     user_textBox.Text = "연결이 종료되었습니다.";
                 }
-                if(net.name.Length == 0)
+                if(net._name.Length == 0)
                 {
-                    net.name = user_textBox.Text.ToString();
-                    net.send_name();
+                    if(net.Connect(user_textBox.Text.ToString()))
+                    {
+                        recv_thread.Start();
+                        chat_box.Text += ("\n" + String.Format("{0} [스킨: {1}, 펫: {2}]", net._name, net._player_skin, net._pet_num));
+                    }
+                    else
+                    {
+                        user_textBox.Text = "이름을 입력해 주세요.";
+                    }
                 }
                 else
                 {
                     net.send_msg(user_textBox.Text.ToString());
-                    // recv_chat();
                 }
                 user_textBox.Clear();
             }
         }
 
-        private void recv_chat()
+        private void recv_packet()
         {
             while (true)
             {
-                string recv_str = net.recv_msg();
-
-                if (true == chat_box.InvokeRequired)
+                switch (net.recv_packet())
                 {
-                    chat_box.Invoke(new MethodInvoker(delegate
-                    {
-                        chat_box.Text += ("\n" + recv_str).ToString();
-                    }));
+                    case SC_LOGIN_INFO:
+                        {
+                            
+                        }
+                        break;
+                    case SC_CHAT:
+                        {
+                            if (true == chat_box.InvokeRequired)
+                            {
+                                chat_box.Invoke(new MethodInvoker(delegate
+                                {
+                                    chat_box.Text += ("\n" + net.new_chat);
+                                }));
+                            }
+                            else
+                                chat_box.Text += ("\n" + net.new_chat);
+                        }
+                        break;
+                    default:
+                        break;
                 }
-                else
-                    chat_box.Text += ("\n" + recv_str).ToString();
             }
         }
     }

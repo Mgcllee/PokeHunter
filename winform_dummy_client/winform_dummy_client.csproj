@@ -53,8 +53,10 @@
       <DependentUpon>dummy_client.cs</DependentUpon>
     </Compile>
     <Compile Include="network_module.cs" />
+    <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Protocol.cs" />
     <EmbeddedResource Include="dummy_client.resx">
       <DependentUpon>dummy_client.cs</DependentUpon>
     </EmbeddedResource>
