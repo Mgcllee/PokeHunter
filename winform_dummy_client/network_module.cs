@@ -14,6 +14,7 @@ using static Protocol.PACKET_TYPE;
 using PLAYER;
 using System.Collections.Generic;
 using static PLAYER.PLAYERS;
+using System.Drawing.Drawing2D;
 
 namespace winform_dummy_client
 {
@@ -43,12 +44,12 @@ namespace winform_dummy_client
 
             return RawData;
         }
-        private object ByteToObject(byte[] buffer)
+        private object ByteToObject(byte[] buffer, object packet_type)
         {
             try
             {
                 GCHandle gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                var ret = Marshal.PtrToStructure(gcHandle.AddrOfPinnedObject(), typeof(SC_LOGIN_INFO_PACK));
+                var ret = Marshal.PtrToStructure(gcHandle.AddrOfPinnedObject(), packet_type.GetType());
                 gcHandle.Free();
                 return ret;
             }
@@ -124,7 +125,7 @@ namespace winform_dummy_client
             if (recv_byte_cnt == 0)
                 return 0;
 
-            byte[] recv_pack = new byte[recv_byte_cnt];
+            byte[] recv_pack = new byte[recv_buffer[0]];
             Array.Copy(recv_buffer, recv_pack, recv_pack.Length);
 
             switch (recv_pack[1])
@@ -132,21 +133,21 @@ namespace winform_dummy_client
                 case SC_LOGIN_INFO:
                     {
                         // is not my player info
-                        SC_LOGIN_INFO_PACK packet = (SC_LOGIN_INFO_PACK)ByteToObject(recv_pack);
+                        SC_LOGIN_INFO_PACK packet = (SC_LOGIN_INFO_PACK)ByteToObject(recv_pack, new SC_LOGIN_INFO_PACK());
                         if(packet != null)
                             players.Add(packet.name, new Player(packet.name));
                     }
                     break;
                 case SC_CHAT:
                     {
-                        SC_CHAT_PACK packet = (SC_CHAT_PACK)ByteToObject(recv_pack);
+                        SC_CHAT_PACK packet = (SC_CHAT_PACK)ByteToObject(recv_pack, new SC_CHAT_PACK());
                         if(packet != null)
                             new_chat = packet.content;
                     }
                     break;
             }
 
-            return recv_pack[0];
+            return recv_pack[1];
         }
 
 
