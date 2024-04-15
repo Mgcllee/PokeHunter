@@ -1,22 +1,10 @@
 #pragma once
 
 #include "DBModule.h"
+#include "netModule.h"
 
 #include <atlstr.h>
 #include <ctime>	// Player Skin을 적용할 때 랜덤시드로 사용
-
-int g_c_uid = 0;
-int get_player_uid() {
-	
-	return g_c_uid += 1;
-
-	/*for (int i = 0; i < MAX_USER; ++i) {
-		std::lock_guard <std::mutex> ll{ clients[i]._lock };
-		if ((clients[i]._state == ST_FREE) && (clients[i]._socket == NULL))
-			return i;
-	}*/
-	return -1;
-}
 
 void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode)
 {
@@ -584,7 +572,6 @@ bool Logout_UDB(int& c_uid)
 	return false;
 }
 
-
 // SQL을 MSDB에서 직접 실행하여 소스코드 줄이기 필요.
 bool Get_ALL_ItemDB(int& c_uid) {
 	bool reVal = false;
@@ -952,5 +939,70 @@ bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order) {
 		}
 		SQLFreeHandle(SQL_HANDLE_ENV, henv);
 	}
+	return false;
+}
+
+USER_DB_MANAGER::USER_DB_MANAGER()
+{
+	user_id = 1;	// don't use 0 index
+}
+
+USER_DB_MANAGER::~USER_DB_MANAGER()
+{
+	/*for (PARTY& party : parties)
+	{
+	}
+	for (PLAYER& player : clients)
+	{
+	}*/
+
+	user_id = 1;
+
+}
+
+int USER_DB_MANAGER::get_uid()
+{
+	return user_id;
+}
+
+
+bool USER_DB_MANAGER::get_login_user_data(int& user_id)
+{
+	if (0 != user_id)
+	{
+		
+	}
+	else if (init_user_data())
+	{
+
+	}
+
+	return false;
+}
+
+bool USER_DB_MANAGER::save_logout_user_data(int& user_id)
+{
+	if (0 != user_id)
+	{
+		
+	}
+
+	return false;
+}
+
+bool USER_DB_MANAGER::get_user_data(int& user_id)
+{
+	if (0 != user_id)
+	{
+
+	}
+
+	return false;
+}
+
+bool USER_DB_MANAGER::init_user_data()
+{
+
+
 	return false;
 }

@@ -29,10 +29,10 @@
 
 class SESSION {
 public:
-	SESSION() /*:
-		_recv_over(NULL)
-		, _socket(NULL)
-		, _prev_size(0)*/
+	SESSION() :
+		_prev_size(0)
+		/*, _recv_over(NULL)
+		, _socket(NULL)*/
 	{
 		_socket = NULL;
 	}
@@ -40,12 +40,12 @@ public:
 	{
 		closesocket(_socket);
 	}
-	bool recycle_session() 
+	bool recycle_session()
 	{
 		return false;
 	}
 
-	SESSION& operator=(SESSION& ref) 
+	SESSION& operator=(SESSION& ref)
 	{
 		this->_recv_over = ref._recv_over;
 		this->_socket = ref._socket;
@@ -53,10 +53,10 @@ public:
 		return *this;
 	}
 
-	void set_socket(SOCKET new_socket) 
+	void set_socket(SOCKET new_socket)
 	{
 		_socket = new_socket;
-		
+
 	}
 	int get_prev_size()
 	{
@@ -366,14 +366,15 @@ void process_packet(int c_uid, char* packet)
 	
 	case CS_CHAT:
 	{
-		CS_CHAT_PACK* tcp = reinterpret_cast<CS_CHAT_PACK*>(packet);
-		std::string buf = std::string("[채팅][").append(clients[c_uid].get_name()) + "]: " + tcp->content;
-		printf("%s\n", buf.c_str());
+		CS_CHAT_PACK* recv_packet = reinterpret_cast<CS_CHAT_PACK*>(packet);
+		std::string chat_log = std::string("[채팅][").append(clients[c_uid].get_name()).append("]: ").append(recv_packet->content);
+		
+		printf("%s\n", chat_log.c_str());
 
 		SC_CHAT_PACK ctp;
 		ctp.size = sizeof(SC_CHAT_PACK);
 		ctp.type = SC_CHAT;
-		strcpy_s(ctp.content, buf.c_str());
+		strcpy_s(ctp.content, chat_log.c_str());
 		
 		for (PLAYER& p : clients)
 		{
@@ -737,7 +738,7 @@ void worker_thread(HANDLE h_iocp)
 		switch (ex_over->c_type) {
 		case ACCEPT:
 		{
-			int new_c_uid = get_player_uid();
+			int new_c_uid = -1;
 
 			if (-1 != new_c_uid) 
 			{

@@ -1,17 +1,8 @@
-/*
-[Refactoring]
-	1. SQL을 MSSQL에서 MySQL로 변경 예정.
-	2. 프로시져, 함수를 사용해 SourceCode 줄이기.
-	3. O.O.D
-*/
-
 #pragma once
 
 #include "netModule.h"
 
 #include <sqlext.h>
-
-int get_player_uid();
 
 void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode);
 
@@ -38,3 +29,22 @@ bool Set_SDB(int& c_uid);
 
 bool Get_ALL_StorageDB(int& c_uid);
 bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order);
+
+class USER_DB_MANAGER 
+{
+public:
+	USER_DB_MANAGER();
+	~USER_DB_MANAGER();
+
+	int get_uid();
+
+	bool get_login_user_data(int& user_id);
+	bool save_logout_user_data(int& user_id);
+	bool get_user_data(int& user_id);
+
+private:
+	int user_id;
+
+	bool init_user_data();
+
+};
