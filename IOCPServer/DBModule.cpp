@@ -946,26 +946,20 @@ USER_DB_MANAGER::USER_DB_MANAGER()
 {
 	user_id = 1;	// don't use 0 index
 }
-
 USER_DB_MANAGER::~USER_DB_MANAGER()
 {
-	/*for (PARTY& party : parties)
+	for (PARTY& party : parties)
 	{
+		party.~PARTY();
 	}
 	for (PLAYER& player : clients)
 	{
-	}*/
+		player.get_session()->disconnect();
+		player.~PLAYER();
+	}
 
 	user_id = 1;
-
 }
-
-int USER_DB_MANAGER::get_uid()
-{
-	return user_id;
-}
-
-
 bool USER_DB_MANAGER::get_login_user_data(int& user_id)
 {
 	if (0 != user_id)
@@ -979,7 +973,6 @@ bool USER_DB_MANAGER::get_login_user_data(int& user_id)
 
 	return false;
 }
-
 bool USER_DB_MANAGER::save_logout_user_data(int& user_id)
 {
 	if (0 != user_id)
@@ -989,7 +982,6 @@ bool USER_DB_MANAGER::save_logout_user_data(int& user_id)
 
 	return false;
 }
-
 bool USER_DB_MANAGER::get_user_data(int& user_id)
 {
 	if (0 != user_id)
@@ -999,7 +991,6 @@ bool USER_DB_MANAGER::get_user_data(int& user_id)
 
 	return false;
 }
-
 bool USER_DB_MANAGER::init_user_data()
 {
 

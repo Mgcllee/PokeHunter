@@ -36,7 +36,7 @@ public:
 	USER_DB_MANAGER();
 	~USER_DB_MANAGER();
 
-	int get_uid();
+	int get_uid() { return user_id; }
 
 	bool get_login_user_data(int& user_id);
 	bool save_logout_user_data(int& user_id);

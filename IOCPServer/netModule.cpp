@@ -1,301 +1,245 @@
 ﻿#pragma once
 
 #include "DBModule.h"
-// #include "AWSModule.h"
-
-//class OVER_EXP {
-//public:
-//	WSAOVERLAPPED	_over;
-//	TYPE			c_type;
-//	WSABUF			_wsabuf;
-//	char			_send_buf[BUF_SIZE];
-//
-//	OVER_EXP()
-//	{
-//		ZeroMemory(&_over, sizeof(_over));
-//		_wsabuf.len = BUF_SIZE;
-//		_wsabuf.buf = _send_buf;
-//		c_type = RECV;
-//	}
-//	OVER_EXP(char* packet)
-//	{
-//		_wsabuf.len = packet[0];
-//		_wsabuf.buf = _send_buf;
-//		ZeroMemory(&_over, sizeof(_over));
-//		c_type = SEND;
-//		memcpy(_send_buf, packet, packet[0]);
-//	}
-//};
-
-class SESSION {
-public:
-	SESSION() :
-		_prev_size(0)
-		/*, _recv_over(NULL)
-		, _socket(NULL)*/
-	{
-		_socket = NULL;
-	}
-	~SESSION()
-	{
-		closesocket(_socket);
-	}
-	bool recycle_session()
-	{
-		return false;
-	}
-
-	SESSION& operator=(SESSION& ref)
-	{
-		this->_recv_over = ref._recv_over;
-		this->_socket = ref._socket;
-		this->_prev_size = ref._prev_size;
-		return *this;
-	}
-
-	void set_socket(SOCKET new_socket)
-	{
-		_socket = new_socket;
-
-	}
-	int get_prev_size()
-	{
-		return _prev_size;
-	}
-	void set_prev_size(int in)
-	{
-		_prev_size = in;
-	}
-	void do_recv()
-	{
-		DWORD recv_flag = 0;
-		memset(&_recv_over._over, 0, sizeof(_recv_over._over));
-		_recv_over._wsabuf.len = BUF_SIZE - _prev_size;
-		_recv_over._wsabuf.buf = _recv_over._send_buf + _prev_size;
-		_recv_over.c_type = RECV;
-		WSARecv(_socket, &_recv_over._wsabuf, 1, 0, &recv_flag, &_recv_over._over, 0);
-	}
-	void do_send(void* packet)
-	{
-		if (packet == nullptr) return;
-		if (_socket == NULL) return;
-
-		OVER_EXP* send_over = new OVER_EXP{ reinterpret_cast<char*>(packet) };
-		WSASend(_socket, &send_over->_wsabuf, 1, 0, 0, &send_over->_over, 0);
-	}
-
-private:
-	OVER_EXP _recv_over;
-	SOCKET _socket;
-	int _prev_size;
-};
-
-class PLAYER {
-public:
-	PLAYER() :
-		_uid(-1)
-		, _name("None")
-		, _pet_num("None")
-		, _player_state(ST_HOME)
-	{
-		
-	}
-	~PLAYER() 
-	{
-
-	}
-	void recycle_player() 
-	{
-
-	}
-
-	void _lock() 
-	{
-		ll.lock();
-	}
-	void _unlock()
-	{
-		ll.unlock();
-	}
-
-	void set_uid(int in)
-	{
-		_uid = in;
-	}
-	SESSION* get_session() 
-	{
-		return &_session;
-	}
-	std::string* get_token()
-	{
-		return &IdToken;
-	}
-
-	PLAYER& operator=(PLAYER& ref) 
-	{
-		strncpy_s(this->_name, ref.get_name(), strlen(ref.get_name()));
-		this->_uid = ref._uid;
-
-		strncpy_s(this->_pet_num, ref._pet_num, strlen(ref._pet_num));
-		this->_player_skin = ref._player_skin;
-
-		this->_player_state = ref._player_state;
-
-		this->_session = ref._session;
-		ref.get_session()->~SESSION();
-
-		return *this;
-	}
-
-	bool operator== (const PLAYER & rhs) const
-	{
-		return _uid == rhs._uid;
-	}
-
-	char* get_name() 
-	{
-		return _name;
-	}
-	void set_name(const char* in) 
-	{
-		strncpy_s(_name, sizeof(in), in, sizeof(in));
-	}
-
-	void set_item(const char* in_item_name, short index, char cnt) 
-	{
-		
-	}
-	short get_item()
-	{
-
-	}
-
-	short get_storage_item()
-	{
-		
-	}
-
-	void send_fail(const char* fail_reason = "NONE")
-	{
-		SC_FAIL_PACK fail_pack;
-		fail_pack.size = sizeof(SC_FAIL_PACK);
-		fail_pack.type = SC_FAIL;
-		_session.do_send(&fail_pack);
-		printf("[Fail Log][%d] : %s\n", _uid, fail_reason);
-	}
-
-	void send_self_info(const char* success_message = "NONE")
-	{
-		SC_LOGIN_INFO_PACK info_pack = SC_LOGIN_INFO_PACK();
-		info_pack.size = (char)sizeof(info_pack);
-		info_pack.type = SC_LOGIN_INFO;
-
-		strcpy_s(info_pack.name, _name);
-		info_pack._player_skin = 1;
-		info_pack._pet_num = 1;
-		
-		_session.do_send(&info_pack);
-
-		printf("[Success Log][%d] : %s\n", _uid, success_message);
-	}
-
-private:
-	char _name[CHAR_SIZE];
-	short _uid = -1;
-	char _pet_num[CHAR_SIZE];
-	char _player_skin;
-
-	std::map<std::string, short> inventory_data;
-	std::map<std::string, short> storage_data;
-
-	char _party_num = -1;
-
-	std::string IdToken;
-	short IdTokenLenght;
-
-	// std::mutex ll;
-	class dummy_mutex
-	{
-	public:
-		void lock() {}
-		void unlock() {}
-	} ll;
-
-	PLAYER_STATE _player_state;
-
-	SESSION _session;
-};
-
-class PARTY {
-public:
-	PARTY() :
-		_mem_count(0)
-		, _inStage(false)
-		, _name("Empty")
-	{
-
-	}
-	~PARTY()
-	{
-		
-	}
-
-	bool new_member(PLAYER& new_mem)
-	{
-		if (_mem_count >= PARTY_MAX_NUM) 
-			return false;
-		
-		ll.lock();
-		member.push_back(new_mem);
-		++_mem_count;
-		ll.unlock();
-
-		return true;
-	}
-	bool leave_member(char* mem_name) {
-		if (_mem_count <= 0) 
-			return false;
-
-		ll.lock();
-		for (PLAYER& mem : member) 
-		{
-			if (0 == strcmp(mem.get_name(), mem_name)) 
-			{
-				member.remove(mem);
-				if (0 == --_mem_count)
-					_inStage = false;
-
-				ll.unlock();
-				return true;
-			}
-		}
-
-		ll.unlock();
-		return false;
-	}
-
-	bool get_party_in_stage()
-	{
-		return _inStage;
-	}
-	short get_mem_count()
-	{
-		return _mem_count;
-	}
-
-	std::list<PLAYER> member;
-
-private:
-	char _name[CHAR_SIZE];
-	short _mem_count = 0;
-	bool _inStage;
-
-	std::mutex ll;
-	
-};
 
 std::array<PLAYER, MAX_USER> clients;
 std::array<PARTY, MAX_PARTY> parties;
+
+
+OVER_EXP::OVER_EXP() :
+	_send_buf("")
+{
+	ZeroMemory(&_over, sizeof(_over));
+	_wsabuf.len = BUF_SIZE;
+	_wsabuf.buf = _send_buf;
+	c_type = RECV;
+}
+OVER_EXP::OVER_EXP(char* packet) :
+	_send_buf("")
+{
+	_wsabuf.len = packet[0];
+	_wsabuf.buf = _send_buf;
+	ZeroMemory(&_over, sizeof(_over));
+	c_type = SEND;
+	memcpy(_send_buf, packet, packet[0]);
+}
+OVER_EXP::~OVER_EXP()
+{
+	free(&_over);
+	free(&_wsabuf);
+	free(&c_type);
+}
+
+SESSION::SESSION() :
+	_prev_size(0)
+	/*, _recv_over(NULL)
+	, _socket(NULL)*/
+{
+	_socket = NULL;
+}
+SESSION::~SESSION()
+{
+	closesocket(_socket);
+}
+bool SESSION::recycle_session()
+{
+	return false;
+}
+SESSION& SESSION::operator=(const SESSION& ref)
+{
+	this->_recv_over = ref._recv_over;
+	this->_socket = ref._socket;
+	this->_prev_size = ref._prev_size;
+	return *this;
+}
+void SESSION::set_socket(SOCKET new_socket)
+{
+	_socket = new_socket;
+
+}
+int SESSION::get_prev_size()
+{
+	return _prev_size;
+}
+void SESSION::set_prev_size(int in)
+{
+	_prev_size = in;
+}
+void SESSION::do_recv()
+{
+	DWORD recv_flag = 0;
+	memset(&_recv_over._over, 0, sizeof(_recv_over._over));
+	_recv_over._wsabuf.len = BUF_SIZE - _prev_size;
+	_recv_over._wsabuf.buf = _recv_over._send_buf + _prev_size;
+	_recv_over.c_type = RECV;
+	WSARecv(_socket, &_recv_over._wsabuf, 1, 0, &recv_flag, &_recv_over._over, 0);
+}
+void SESSION::do_send(void* packet)
+{
+	if (packet == nullptr) return;
+	if (_socket == NULL) return;
+
+	OVER_EXP* send_over = new OVER_EXP{ reinterpret_cast<char*>(packet) };
+	WSASend(_socket, &send_over->_wsabuf, 1, 0, 0, &send_over->_over, 0);
+}
+void SESSION::disconnect()
+{
+	_recv_over.~OVER_EXP();
+	closesocket(_socket);
+}
+
+PLAYER::PLAYER() :
+	_uid(-1)
+	, _name("None")
+	, _pet_num("None")
+	, _player_state(ST_HOME)
+{
+	
+}
+PLAYER::PLAYER(const PLAYER& rhs) :
+	_uid(-1)
+	, _name("None")
+	, _pet_num("None")
+	, _player_state(ST_HOME)
+{
+
+}
+PLAYER::~PLAYER()
+{
+
+}
+void PLAYER::recycle_player()
+{
+
+}
+SESSION* PLAYER::get_session()
+{
+	return &_session;
+}
+std::string* PLAYER::get_token()
+{
+	return &IdToken;
+}
+PLAYER& PLAYER::operator=(const PLAYER& ref)
+{
+	if (this != &ref)
+	{
+		std::lock(this->ll, ref.ll);
+		std::lock_guard<std::mutex> this_lock(this->ll, std::adopt_lock);
+		std::lock_guard<std::mutex> ref_lock(ref.ll, std::adopt_lock);
+
+		strncpy_s(this->_name, ref._name, strlen(ref._name));
+		this->_uid = ref._uid;
+		strncpy_s(this->_pet_num, ref._pet_num, strlen(ref._pet_num));
+		this->_player_skin = ref._player_skin;
+		this->_player_state = ref._player_state;
+		this->_session = ref._session;
+		this->inventory_data = ref.inventory_data;
+		this->storage_data = ref.storage_data;
+
+	}
+
+	return *this;
+}
+bool PLAYER::operator== (const PLAYER & rhs) const
+{
+	return _uid == rhs._uid;
+}
+char* PLAYER::get_name()
+{
+	return _name;
+}
+void PLAYER::set_name(const char* in)
+{
+	strncpy_s(_name, sizeof(in), in, sizeof(in));
+}
+void PLAYER::set_item(const char* in_item_name, short index, char cnt)
+{
+	
+}
+short PLAYER::get_item()
+{
+	return 0;
+}
+short PLAYER::get_storage_item()
+{
+	return 0;
+}
+void PLAYER::send_fail(const char* fail_reason)
+{
+	SC_FAIL_PACK fail_pack;
+	fail_pack.size = sizeof(SC_FAIL_PACK);
+	fail_pack.type = SC_FAIL;
+	_session.do_send(&fail_pack);
+	printf("[Fail Log][%d] : %s\n", _uid, fail_reason);
+}
+void PLAYER::send_self_info(const char* success_message)
+{
+	SC_LOGIN_INFO_PACK info_pack = SC_LOGIN_INFO_PACK();
+	info_pack.size = (char)sizeof(info_pack);
+	info_pack.type = SC_LOGIN_INFO;
+
+	strcpy_s(info_pack.name, _name);
+	info_pack._player_skin = 1;
+	info_pack._pet_num = 1;
+	
+	_session.do_send(&info_pack);
+
+	printf("[Success Log][%d] : %s\n", _uid, success_message);
+}
+
+PARTY::PARTY() :
+	_mem_count(0)
+	, _inStage(false)
+	, _name("Empty")
+{
+
+}
+PARTY::~PARTY()
+{
+	
+}
+bool PARTY::new_member(PLAYER& new_mem)
+{
+	if (_mem_count >= PARTY_MAX_NUM) 
+		return false;
+	
+	ll.lock();
+	member.push_back(new_mem);
+	++_mem_count;
+	ll.unlock();
+
+	return true;
+}
+bool PARTY::leave_member(char* mem_name) {
+	if (_mem_count <= 0) 
+		return false;
+
+	ll.lock();
+	for (PLAYER& mem : member) 
+	{
+		if (0 == strcmp(mem.get_name(), mem_name)) 
+		{
+			member.remove(mem);
+			if (0 == --_mem_count)
+				_inStage = false;
+
+			ll.unlock();
+			return true;
+		}
+	}
+
+	ll.unlock();
+	return false;
+}
+bool PARTY::get_party_in_stage()
+{
+	return _inStage;
+}
+short PARTY::get_mem_count()
+{
+	return _mem_count;
+}
 
 void process_packet(int c_uid, char* packet)
 {
@@ -708,12 +652,10 @@ void process_packet(int c_uid, char* packet)
 	break;
 	}
 }
-
 void disconnect(int c_uid)
 {
 	clients[c_uid].get_session()->~SESSION();
 }
-
 void worker_thread(HANDLE h_iocp)
 {
 	while (true) {

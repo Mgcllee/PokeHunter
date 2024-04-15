@@ -1,23 +1,15 @@
-﻿/*
-[Refactoring]
-	1. O.O.D
-	2. update SESSION Design
-*/
-
-#pragma once
+﻿#pragma once
 
 #include <WS2tcpip.h>
 #include <MSWSock.h>
 #include <map>
-
 #include <list>
-
-#include "stdafx.h"
-#include "protocol.h"
-
 
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
+
+#include "stdafx.h"
+#include "protocol.h"
 
 enum TYPE { ACCEPT, RECV, SEND, LOGOUT };
 enum SESSION_STATE { ST_FREE, ST_ALLOC };
@@ -30,61 +22,45 @@ public:
 	WSABUF			_wsabuf;
 	char			_send_buf[BUF_SIZE];
 
-	OVER_EXP()
-	{
-		ZeroMemory(&_over, sizeof(_over));
-		_wsabuf.len = BUF_SIZE;
-		_wsabuf.buf = _send_buf;
-		c_type = RECV;
-	}
-	OVER_EXP(char* packet)
-	{
-		_wsabuf.len = packet[0];
-		_wsabuf.buf = _send_buf;
-		ZeroMemory(&_over, sizeof(_over));
-		c_type = SEND;
-		memcpy(_send_buf, packet, packet[0]);
-	}
+	OVER_EXP();
+	OVER_EXP(char* packet);
+	~OVER_EXP();
 };
-
-extern OVER_EXP g_a_over;
-extern HANDLE h_iocp;
-extern SOCKET g_s_socket, g_c_socket;
-
 class SESSION {
 public:
 	SESSION();
 	~SESSION();
 	bool recycle_session();
 
-	SESSION& operator=(SESSION& ref);
+	SESSION& operator=(const SESSION& ref);
 
 	void set_socket(SOCKET new_socket);
 	int get_prev_size();
 	void set_prev_size(int in);
 	void do_recv();
 	void do_send(void* packet);
+	void disconnect();
 
 private:
 	OVER_EXP _recv_over;
 	SOCKET _socket;
 	int _prev_size;
 };
-
 class PLAYER {
 public:
 	PLAYER();
+	PLAYER(const PLAYER& rhs);
 	~PLAYER();
 	void recycle_player();
 
-	void _lock();
-	void _unlock();
+	inline void _lock() { ll.lock(); }
+	inline void _unlock() { ll.unlock(); }
 
-	void set_uid(int in);
+	void set_uid(int in) { _uid = in; }
 	SESSION* get_session();
 	std::string* get_token();
 
-	PLAYER& operator=(PLAYER& ref);
+	PLAYER& operator=(const PLAYER& ref);
 
 	bool operator== (const PLAYER& rhs) const;
 
@@ -98,6 +74,8 @@ public:
 	void send_self_info(const char* success_message = "NONE");
 
 private:
+	mutable std::mutex ll;
+
 	char _name[CHAR_SIZE];
 	short _uid = -1;
 	char _pet_num[CHAR_SIZE];
@@ -111,29 +89,38 @@ private:
 	std::string IdToken;
 	short IdTokenLenght;
 
-	// std::mutex ll;
-	class dummy_mutex
-	{
-	public:
-		void lock() {}
-		void unlock() {}
-	} ll;
-
 	PLAYER_STATE _player_state;
 
 	SESSION _session;
 };
-class PARTY;
+class PARTY {
+public:
+	PARTY();
+	~PARTY();
+
+	bool new_member(PLAYER& new_mem);
+	bool leave_member(char* mem_name);
+	bool get_party_in_stage();
+	short get_mem_count();
+
+	std::list<PLAYER> member;
+
+private:
+	char _name[CHAR_SIZE];
+	short _mem_count = 0;
+	bool _inStage;
+
+	std::mutex ll;
+
+};
+
+extern OVER_EXP g_a_over;
+extern HANDLE h_iocp;
+extern SOCKET g_s_socket, g_c_socket;
+
 extern std::array<PLAYER, MAX_USER> clients;
 extern std::array<PARTY, MAX_PARTY> parties;
 
-
-// Dummy Client용
-extern int g_c_uid;
-
-
 void worker_thread(HANDLE h_iocp);
-
 void process_packet(int c_uid, char* packet);
-
 void disconnect(int c_uid);
