@@ -4,7 +4,7 @@
 #include "netModule.h"
 
 #include <atlstr.h>
-#include <ctime>	// Player Skin을 적용할 때 랜덤시드로 사용
+#include <ctime>
 
 void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode)
 {
@@ -944,6 +944,8 @@ bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order) {
 
 USER_DB_MANAGER::USER_DB_MANAGER()
 {
+	std::cout << "SQLDB Version: " << mysql_get_client_info() << "\n";
+
 	user_id = 1;	// don't use 0 index
 }
 USER_DB_MANAGER::~USER_DB_MANAGER()

@@ -1,5 +1,7 @@
 ﻿#pragma once
+
 #include "netModule.h"
+#include "DBModule.h"
 
 OVER_EXP g_a_over;
 SOCKET g_s_socket, g_c_socket;

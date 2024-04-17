@@ -4,6 +4,9 @@
 
 #include <sqlext.h>
 
+#include <mysql.h>
+#pragma comment(lib, "libmysql.lib")
+
 void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode);
 
 bool SetNew_UDB(int& c_uid, std::string& in_name);
