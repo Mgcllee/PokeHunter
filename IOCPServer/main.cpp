@@ -42,6 +42,9 @@ int main() {
 		worker_threads.emplace_back(worker_thread, h_iocp);
 	// === ====  ==== ===
 
+	/*USER_DB_MANAGER db;
+	db.test_mysql_function();*/
+
 	for (auto& th : worker_threads)
 		th.join();
 	closesocket(g_s_socket);
