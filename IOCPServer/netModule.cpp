@@ -258,7 +258,7 @@ void process_packet(int c_uid, char* packet)
 
 
 
-			if (Login_UDB(c_uid, nameBuffer)) {
+			/*if (Login_UDB(c_uid, nameBuffer)) {
 				clients[c_uid].send_self_info(
 					std::string("Login player name is ").append(clients[c_uid].get_name()).c_str()
 				);
@@ -272,7 +272,7 @@ void process_packet(int c_uid, char* packet)
 				else {
 					clients[c_uid].send_fail("Failed to initialize player");
 				}
-			}
+			}*/
 		}
 		else if (0 == strncmp(token_pack->Token, "theEnd", strlen("theEnd"))) {
 			
@@ -284,7 +284,7 @@ void process_packet(int c_uid, char* packet)
 			if ("TokenError" == nameBuffer || "Token Error" == nameBuffer || "Empty" == nameBuffer) {
 				clients[c_uid].send_fail("Token error");
 			}
-			else if (Login_UDB(c_uid, nameBuffer)) {
+			/*else if (Login_UDB(c_uid, nameBuffer)) {
 				clients[c_uid].send_self_info(
 					std::string("Login player name is ").append(clients[c_uid].get_name()).c_str()
 				);
@@ -298,7 +298,7 @@ void process_packet(int c_uid, char* packet)
 				else {
 					clients[c_uid].send_fail("Failed to initialize player");
 				}
-			}
+			}*/
 		}
 		else {
 			std::string tokenBuffer;
@@ -329,7 +329,7 @@ void process_packet(int c_uid, char* packet)
 
 	case CS_QUEST_INVENTORY:
 	{
-		Get_ALL_ItemDB(c_uid);
+		// Get_ALL_ItemDB(c_uid);
 		 
 		SC_ITEM_INFO_PACK item_pack;
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
@@ -401,7 +401,7 @@ void process_packet(int c_uid, char* packet)
 	break;
 	case CS_QUEST_STORAGE:
 	{
-		Get_ALL_StorageDB(c_uid);
+		// Get_ALL_StorageDB(c_uid);
 
 		SC_ITEM_INFO_PACK item_pack;
 		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
@@ -630,6 +630,9 @@ void process_packet(int c_uid, char* packet)
 		SC_LOGOUT_RESULT_PACK out_client;
 		out_client.size = sizeof(SC_LOGOUT_RESULT_PACK);
 		out_client.type = SC_LOGOUT_RESULT;
+
+
+		/*
 		if (Set_ALL_ItemDB(c_uid) && Logout_UDB(c_uid)) {
 			printf("[Success]->SaveData Logout %s\n", clients[c_uid].get_name());
 		}
@@ -637,8 +640,6 @@ void process_packet(int c_uid, char* packet)
 			printf("[Fail]->SaveData Logout %s\n", clients[c_uid].get_name());
 		}
 
-		/*
-		
 		{
 			std::lock_guard<std::mutex> ll{ clients[c_uid]._lock };
 			strcpy_s(out_client._result, "1");

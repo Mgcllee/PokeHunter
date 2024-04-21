@@ -7,25 +7,6 @@
 #include <mysql.h>
 #pragma comment(lib, "libmysql.lib")
 
-void show_error(SQLHANDLE hHandle, SQLSMALLINT hType, RETCODE RetCode){ return; }
-bool SetNew_UDB(int& c_uid, std::string& in_name){ return false; }
-bool SetNew_ALL_ItemDB(int& c_uid, std::string& in_nam){ return false; }
-bool SetNew_IDB(int& c_uid, std::string SQL_Order){ return false; }
-bool Login_UDB(int& in_uid, std::string& in_name){ return false; }
-bool Logout_UDB(int& in_c_uid){ return false; }
-std::string Get_ItemID(short item_ID, bool full_name){ return false; }
-std::string Get_ItemName(short category, short item_ID){ return false; }
-std::string get_invenDB_SQL(int index){ return false; }
-std::string set_invenDB_SQL(int index, char itemArray[]){ return false; }
-bool Get_ALL_ItemDB(int& c_uid){ return false; }
-bool Get_IDB(int& c_uid, char itemArray[], std::string SQL_Order){ return false; }
-bool Set_ALL_ItemDB(int& c_uid){ return false; }
-bool Set_IDB(int& in_c_uid, std::string SQL_Order){ return false; }
-bool Get_SDB(int& c_uid){ return false; }
-bool Set_SDB(int& c_uid){ return false; }
-bool Get_ALL_StorageDB(int& c_uid){ return false; }
-bool Get_StorageDB(int& c_uid, char storageArray[], std::string SQL_Order){ return false; }
-
 class SQL_ERROR_MSG
 {
 public:
@@ -50,10 +31,10 @@ class USER_DB_MANAGER
 {
 public:
 	USER_DB_MANAGER(
-		std::string DB_HOST
-		, std::string USER
-		, std::string PASS
-		, std::string NAME);
+		const char* DB_HOST
+		, const char* DB_USER
+		, const char* DB_PASS
+		, const char* DB_NAME);
 	~USER_DB_MANAGER();
 
 	void test_mysql_function();

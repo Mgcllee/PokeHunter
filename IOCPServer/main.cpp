@@ -42,8 +42,8 @@ int main() {
 		worker_threads.emplace_back(worker_thread, h_iocp);
 	// === ====  ==== ===
 
-	/*USER_DB_MANAGER db;
-	db.test_mysql_function();*/
+	USER_DB_MANAGER* db = new USER_DB_MANAGER("localhost", "root", "0000", "user_info_db");
+	db->test_mysql_function();
 
 	for (auto& th : worker_threads)
 		th.join();

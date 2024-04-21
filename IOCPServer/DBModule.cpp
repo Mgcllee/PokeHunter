@@ -6,10 +6,10 @@
 #include <atlstr.h>
 
 USER_DB_MANAGER::USER_DB_MANAGER(
-	std::string DB_HOST
-	, std::string DB_USER
-	, std::string DB_PASS
-	, std::string DB_NAME
+	const char* DB_HOST
+	, const char* DB_USER
+	, const char* DB_PASS
+	, const char* DB_NAME
 )
 {
 	user_id = 0;
@@ -18,13 +18,15 @@ USER_DB_MANAGER::USER_DB_MANAGER(
 	mysql_init(&connection);
 	conn = mysql_real_connect(
 		&connection, 
-		DB_HOST.c_str(), DB_USER.c_str(), DB_PASS.c_str(), DB_NAME.c_str(),
+		DB_HOST, DB_USER, DB_PASS, DB_NAME,
 		3306,			// port_number
 		(char*)NULL,	// unix_socket
 		0);				// client_flag
 }
 USER_DB_MANAGER::~USER_DB_MANAGER()
 {
+	mysql_close(conn);
+
 	for (PARTY& party : parties)
 	{
 		party.~PARTY();
@@ -42,25 +44,9 @@ void USER_DB_MANAGER::test_mysql_function()
 	MYSQL_RES* result;
 	MYSQL_ROW row;
 
-	char sql[1024];
-	char str1[1024], str2[1024];
-
-	strcpy_s(sql, "SELECT Name, Continent FROM world.country");
-	if (mysql_query(conn, sql) == 0) {
-		result = mysql_store_result(conn);
-		while ((row = mysql_fetch_row(result)) != NULL)
-		{
-			strcpy_s(str1, row[0]);
-			strcpy_s(str2, row[1]);
-			std::cout << str1 << " : " << str2 << "\n";
-		}
-		mysql_free_result(result);
-	}
-	else {
-		std::cout << "fail!";
-	}
-
-	mysql_close(conn);
+	process_sql("SELECT GROUP_CONCAT(col_name separator ', ') as name FROM(SELECT COLUMN_NAME as col_name FROM INFORMATION_SCHEMA.COLUMNS WHERE  TABLE_NAME = 'user_info_table') as field_name;");
+	process_sql("SELECT * FROM user_info_db.user_info_table");
+	
 	return;
 }
 std::string USER_DB_MANAGER::process_sql(std::string sql)
@@ -71,10 +57,14 @@ std::string USER_DB_MANAGER::process_sql(std::string sql)
 
 		if (mysql_query(conn, sql.c_str()) == 0) {
 			result = mysql_store_result(conn);
+			int loop_cnt = mysql_num_fields(result);
+
 			while ((row = mysql_fetch_row(result)) != NULL)
 			{
-				row[0];
-				// row[1];
+				for (int i = 0; i < loop_cnt; ++i)
+				{
+					printf("%s\t", row[i]);
+				}	printf("\n");
 			}
 			mysql_free_result(result);
 		}
