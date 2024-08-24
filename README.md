@@ -1,6 +1,5 @@
-# PokeHunter Login Server
-* 포키헌터의 로그인 서버 소스코드
-* AWS GameLift와 Lambda, Cognito 를 사용한 서비스
+# Develop Branch
+개발 전용 브랜치로 **main 브랜치** 와 병합 전 최종 확인 브랜치
 
 <br/>
 
@@ -10,7 +9,3 @@
 * ~_SQL 함수를 MSDB 기능으로 대체 예정
 * 새로운 유저 Init 을 MSDB로 대체 예정
 * Dummy client를 C++ 콘솔 베이스에서 C# 윈폼 베이스로 변경
-
-# 브랜치 소개
-* beta_test : 메인 브랜치와 병합 전 최종 테스트 브랜치
-* refactoring_net_module : net_module 파일 리팩토링 전용 브랜치
