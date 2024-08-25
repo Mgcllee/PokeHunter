@@ -3,9 +3,26 @@
 
 <br/>
 
-# 진행중인 계획
-* OOD 강화
-* DBMS를 MSSQL에서 MySQL로 변경
-* ~_SQL 함수를 MSDB 기능으로 대체 예정
-* 새로운 유저 Init 을 MSDB로 대체 예정
-* Dummy client를 C++ 콘솔 베이스에서 C# 윈폼 베이스로 변경
+# Naming Rules
+Base: [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)  
+
+|Type|Rule|
+|---|---|
+|Class, Function| CamelCase|
+|Variable, Class Field| snake_case|
+|enum Field| KEBAB_CASE|
+
+```c++
+enum COMPUTER_TYPE { NOTE_BOOK, DESKTOP };
+
+class A {
+  void FunctionName();
+
+  int my_age;
+}
+```
+
+<br/>
+
+# 참고
+[모두의 코드, 씹어먹는 C++ - <22. 구글에서는 C++ 을 어떻게 쓰는가?>](https://modoocode.com/335)  
