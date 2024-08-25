@@ -2,7 +2,7 @@
 
 #include <WS2tcpip.h>
 #include <MSWSock.h>
-#include <map>
+#include <unordered_map>
 #include <list>
 
 #pragma comment(lib, "WS2_32.lib")
@@ -11,115 +11,132 @@
 #include "stdafx.h"
 #include "protocol.h"
 
-enum TYPE { ACCEPT, RECV, SEND, LOGOUT };
-enum SESSION_STATE { ST_FREE, ST_ALLOC };
-enum PLAYER_STATE { ST_HOME, ST_NOTREADY, ST_READY, ST_STAGE };
+enum SOCKET_TYPE	{ ACCEPT, RECV, SEND, LOGOUT };
+enum SESSION_TYPE	{ FREE, ALLOC };
+enum PLAYER_STATE	{ HOME, NOT_READY, READY, STAGE };
 
-class OVER_EXP {
+class OverlappedExpansion {
 public:
-	WSAOVERLAPPED	_over;
-	TYPE			c_type;
-	WSABUF			_wsabuf;
-	char			_send_buf[BUF_SIZE];
-
-	OVER_EXP();
-	OVER_EXP(char* packet);
-	~OVER_EXP();
-};
-class SESSION {
-public:
-	SESSION();
-	~SESSION();
-	bool recycle_session();
-
-	SESSION& operator=(const SESSION& ref);
-
-	void set_socket(SOCKET new_socket);
-	int get_prev_size();
-	void set_prev_size(int in);
-	void do_recv();
-	void do_send(void* packet);
-	void disconnect();
+	OverlappedExpansion();
+	OverlappedExpansion(char* packet);
+	~OverlappedExpansion();
 
 private:
-	OVER_EXP _recv_over;
-	SOCKET _socket;
-	int _prev_size;
-};
-class PLAYER {
+
 public:
-	PLAYER();
-	PLAYER(const PLAYER& rhs);
-	~PLAYER();
-	void recycle_player();
+	WSAOVERLAPPED	overlapped;
+	SOCKET_TYPE		socket_type;
+	WSABUF			wsa_buffer;
+	char			packet_buffer[BUF_SIZE];
 
-	inline void _lock() { ll.lock(); }
-	inline void _unlock() { ll.unlock(); }
+private:
 
-	void set_uid(int in) { _uid = in; }
-	SESSION* get_session();
-	std::string* get_token();
+};
 
-	PLAYER& operator=(const PLAYER& ref);
+class Session : public OverlappedExpansion {
+public:
+	Session();
+	~Session();
 
-	bool operator== (const PLAYER& rhs) const;
+	Session& operator=(const Session& ref);
 
-	char* get_name();
-	void set_name(const char* in);
+	void set_socket(SOCKET new_socket);
+	void recv_packet();
+	void send_packet(void* packet);
+	
+	int get_prev_remain_packet_size();
+	void set_curr_remain_packet_size(int in);
+	
+	void disconnect();
+
+	bool recycle_session();
+
+private:
+
+public:
+
+private:
+	SOCKET socket;
+	int remain_packet_size;
+};
+
+class Player {
+public:
+	Player();
+	Player(const Player& rhs);
+	~Player();
+
+	Player& operator=(const Player& ref);
+	bool operator== (const Player& rhs) const;
+
+	void lock() { ll.lock(); }
+	void unlock() { ll.unlock(); }
+
+	void set_user_id(int new_user_id) { user_id = new_user_id; }
+	Session* get_session();
+	std::string* get_cognito_id_token();
+
+	char* get_user_name();
+	void set_user_name(const char* in);
 
 	void set_item(const char* in_item_name, short index, char cnt);
 	short get_item();
 	short get_storage_item();
-	void send_fail(const char* fail_reason = "NONE");
-	void send_self_info(const char* success_message = "NONE");
+	void send_fail_reason(const char* fail_reason = "NONE");
+	void send_self_user_info(const char* success_message = "NONE");
+
+	void recycle_player();
+
+private:
+
+public:
 
 private:
 	mutable std::mutex ll;
 
-	char _name[CHAR_SIZE];
-	short _uid = -1;
-	char _pet_num[CHAR_SIZE];
-	char _player_skin;
+	char name[CHAR_SIZE];
+	short user_id;
+	char pet_type[CHAR_SIZE];
+	char player_skin_type;
 
-	std::map<std::string, short> inventory_data;
-	std::map<std::string, short> storage_data;
+	std::unordered_map<std::string, short> inventory_data;
+	std::unordered_map<std::string, short> storage_data;
 
-	char _party_num = -1;
+	char party_num;
 
-	std::string IdToken;
-	short IdTokenLenght;
+	std::string cognito_id_token;
 
-	PLAYER_STATE _player_state;
+	PLAYER_STATE player_state;
 
-	SESSION _session;
+	Session session;
 };
-class PARTY {
-public:
-	PARTY();
-	~PARTY();
 
-	bool new_member(PLAYER& new_mem);
+class Party {
+public:
+	Party();
+	~Party();
+
+	bool new_member(Player& new_mem);
 	bool leave_member(char* mem_name);
 	bool get_party_in_stage();
-	short get_mem_count();
+	short get_member_count();
 
-	std::list<PLAYER> member;
+	std::list<Player> member;
 
 private:
-	char _name[CHAR_SIZE];
-	short _mem_count = 0;
-	bool _inStage;
+	char name[CHAR_SIZE];
+	short member_count;
+	bool in_stage;
 
 	std::mutex ll;
-
 };
 
-extern OVER_EXP g_a_over;
-extern HANDLE h_iocp;
-extern SOCKET g_s_socket, g_c_socket;
+extern OverlappedExpansion glbal_overlapped;
+extern HANDLE handle_iocp;
+extern SOCKET global_server_socket, global_client_accept_socket;
 
-extern std::array<PLAYER, MAX_USER> clients;
-extern std::array<PARTY, MAX_PARTY> parties;
+extern std::array<Player, MAX_USER> clients;
+extern std::array<Party, MAX_PARTY> parties;
 
 void worker_thread(HANDLE h_iocp);
 void process_packet(int c_uid, char* packet);

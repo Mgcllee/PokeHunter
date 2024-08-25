@@ -217,7 +217,7 @@ struct SC_ITEM_INFO_PACK {
 	char size;
 	char type;
 
-	char _name[CHAR_SIZE];
+	char name[CHAR_SIZE];
 	char _cnt;
 };
 
