@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "DBModule.h"
+#include "AWSModule.h"
 
 std::array<Player, MAX_USER> clients;
 std::array<Party, MAX_PARTY> parties;
@@ -88,6 +89,15 @@ void Session::send_packet(void* packet)
 	OverlappedExpansion* sendoverlapped = new OverlappedExpansion{ reinterpret_cast<char*>(packet) };
 	WSASend(socket, &sendoverlapped->wsa_buffer, 1, 0, 0, &sendoverlapped->overlapped, 0);
 }
+
+void Session::send_all_client(void* packet)
+{
+	for (Player& p : clients)
+	{
+		p.get_session()->send_packet(&packet);
+	}
+}
+
 void Session::disconnect()
 {
 	closesocket(socket);
@@ -119,6 +129,106 @@ void Player::recycle_player()
 {
 
 }
+
+void Player::check_exists_token(char* login_token)
+{
+	if (0 == strncmp(login_token, "theEnd", strlen("theEnd")))
+	{
+		std::string nameBuffer = GetPlayerName(*get_cognito_id_token());
+		
+		if ("TokenError" == nameBuffer || "Token Error" == nameBuffer || "Empty" == nameBuffer) {
+			clients[user_id].send_fail_reason("Token error");
+		}
+		else if (Login_UDB(user_id, nameBuffer)) {
+			clients[user_id].send_self_user_info(
+				std::string("Login player name is ").append(clients[user_id].getname()).c_str()
+			);
+		}
+		else {
+			if (SetNew_UDB(user_id, nameBuffer)) {
+				clients[user_id].send_self_user_info(
+					std::string("New login player name is ").append(clients[user_id].getname()).c_str()
+				);
+			}
+			else {
+				clients[user_id].send_fail_reason("Failed to initialize player");
+			}
+		}
+	}
+	else
+	{
+		std::string tokenBuffer;
+		tokenBuffer.assign(login_token, (size_t)login_token);
+		clients[user_id].get_cognito_id_token()->append(tokenBuffer);
+	}
+}
+
+void Player::get_all_inventory_item()
+{
+	SC_ITEM_INFO_PACK item_pack;
+	item_pack.size = sizeof(SC_ITEM_INFO_PACK);
+	item_pack.type = SC_ITEM_INFO;
+
+	/*
+
+	for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
+		for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
+
+			std::string itemname = Get_ItemName(category, item_num);
+			int cnt = clients[user_id].get_item_arrayName(category)[item_num];
+
+			if (false == itemname.compare("None")) continue;
+			if (0 == cnt) continue;
+
+			printf("[%s] : %d\n", itemname.c_str(), cnt);
+			{
+				std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
+				// clients[user_id].itemData.insert({ itemname, cnt });
+			}
+
+			strncpy_s(item_pack.name, CHAR_SIZE, itemname.c_str(), strlen(itemname.c_str()));
+			item_pack._cnt = cnt;
+			// clients[user_id].do_send(&item_pack);
+		}
+	}
+
+	*/
+
+	strncpy_s(item_pack.name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
+	// clients[user_id].do_send(&item_pack);
+	std::cout << "End\n";
+}
+
+bool Player::set_inventory_item(char* item_name, char item_count)
+{
+	/*
+
+		std::map<std::string, short>::iterator info = clients[user_id].itemData.find(save_pack->name);
+		if (clients[user_id].itemData.end() != info) {
+			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
+			info->second = cnt;
+		}
+		else if (0 == strcmp(save_pack->name, "theEnd")) {
+			for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
+				for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
+
+					std::map<std::string, short>::iterator it = clients[user_id].itemData.find(Get_ItemName(category, item_num));
+					if (clients[user_id].itemData.end() != it) {
+						clients[user_id].get_item_arrayName(category)[item_num] = it->second;
+						std::cout << "<" << it->first << "> - " << it->second << std::endl;
+					}
+					else {
+						clients[user_id].get_item_arrayName(category)[item_num] = 0;
+						std::cout << "<" << it->first << "> - " << 0 << std::endl;
+					}
+				}
+			}
+		}
+
+		*/
+	return false;
+}
+
 Session* Player::get_session()
 {
 	return &session;
@@ -259,164 +369,24 @@ short Party::get_member_count()
 	return member_count;
 }
 
-void process_packet(int user_id, char* packet)
+void PacketWorker::process_packet(int user_id, char* packet)
 {
 	switch (packet[1]) {
 	case CS_LOGIN:
-	{
-		CS_LOGIN_PACK* token_pack = reinterpret_cast<CS_LOGIN_PACK*>(packet);
-
-		if (0 == strncmp(token_pack->Token, "dummy_client_", strlen("dummy_client_"))) {
-			std::string nameBuffer = token_pack->Token;
-			nameBuffer = nameBuffer.erase(0, strlen("dummy_client_"));
-			clients[user_id].set_user_name(nameBuffer.c_str());
-			
-			printf("dummy client name : %s\n", clients[user_id].get_user_name());
-			clients[user_id].send_self_info(clients[user_id].get_user_name());
-			break;
-
-
-
-			/*if (Login_UDB(user_id, nameBuffer)) {
-				clients[user_id].send_self_info(
-					std::string("Login player name is ").append(clients[user_id].getname()).c_str()
-				);
-			}
-			else {
-				if (SetNew_UDB(user_id, nameBuffer)) {
-					clients[user_id].send_self_info(
-						std::string("New login player name is ").append(clients[user_id].getname()).c_str()
-					);
-				}
-				else {
-					clients[user_id].send_fail("Failed to initialize player");
-				}
-			}*/
-		}
-		else if (0 == strncmp(token_pack->Token, "theEnd", strlen("theEnd"))) {
-			
-			// AWS Cognito API를 사용하는 함수.
-			
-			// std::string nameBuffer = GetPlayerName(*clients[user_id].get_token());
-			std::string nameBuffer;
-
-			if ("TokenError" == nameBuffer || "Token Error" == nameBuffer || "Empty" == nameBuffer) {
-				clients[user_id].send_fail("Token error");
-			}
-			/*else if (Login_UDB(user_id, nameBuffer)) {
-				clients[user_id].send_self_info(
-					std::string("Login player name is ").append(clients[user_id].getname()).c_str()
-				);
-			}
-			else {
-				if (SetNew_UDB(user_id, nameBuffer)) {
-					clients[user_id].send_self_info(
-						std::string("New login player name is ").append(clients[user_id].getname()).c_str()
-					);
-				}
-				else {
-					clients[user_id].send_fail("Failed to initialize player");
-				}
-			}*/
-		}
-		else {
-			std::string tokenBuffer;
-			tokenBuffer.assign(token_pack->Token, (size_t)token_pack->Token_size);
-			clients[user_id].get_cognito_id_token()->append(tokenBuffer);
-		}
- 	}
-	break;
-	
-	case CS_CHAT:
-	{
-		CS_CHAT_PACK* recv_packet = reinterpret_cast<CS_CHAT_PACK*>(packet);
-		std::string chat_log = std::string("[채팅][").append(clients[user_id].get_user_name()).append("]: ").append(recv_packet->content);
-		
-		printf("%s\n", chat_log.c_str());
-
-		SC_CHAT_PACK ctp;
-		ctp.size = sizeof(SC_CHAT_PACK);
-		ctp.type = SC_CHAT;
-		strcpy_s(ctp.content, chat_log.c_str());
-		
-		for (Player& p : clients)
-		{
-			p.get_session()->send_packet(&ctp);
-		}
-	}
-	break;
-
-	case CS_QUEST_INVENTORY:
-	{
-		// Get_ALL_ItemDB(user_id);
-		 
-		SC_ITEM_INFO_PACK item_pack;
-		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
-		item_pack.type = SC_ITEM_INFO;
-
-		/*
-
-		for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
-			for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
-
-				std::string itemname = Get_ItemName(category, item_num);
-				int cnt = clients[user_id].get_item_arrayName(category)[item_num];
-
-				if (false == itemname.compare("None")) continue;
-				if (0 == cnt) continue;
-
-				printf("[%s] : %d\n", itemname.c_str(), cnt);
-				{
-					std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-					// clients[user_id].itemData.insert({ itemname, cnt });
-				}
-
-				strncpy_s(item_pack.name, CHAR_SIZE, itemname.c_str(), strlen(itemname.c_str()));
-				item_pack._cnt = cnt;
-				// clients[user_id].do_send(&item_pack);
-			}
-		}
-		
-		*/
-
-		strncpy_s(item_pack.name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
-		// clients[user_id].do_send(&item_pack);
-		std::cout << "End\n";
-	}
-	break;
-	case CS_SAVE_INVENTORY:
-	{
-		CS_SAVE_INVENTORY_PACK* save_pack = reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet);
-		short cnt = save_pack->_cnt;
-		
+		CS_LOGIN_PACK* token_packet = reinterpret_cast<CS_LOGIN_PACK*>(packet);
+		clients[user_id].check_exists_token(token_packet->Token);
 		break;
-
-		/*
-		
-		std::map<std::string, short>::iterator info = clients[user_id].itemData.find(save_pack->name);
-		if (clients[user_id].itemData.end() != info) {
-			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-			info->second = cnt;
-		}
-		else if (0 == strcmp(save_pack->name, "theEnd")) {
-			for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
-				for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
-
-					std::map<std::string, short>::iterator it = clients[user_id].itemData.find(Get_ItemName(category, item_num));
-					if (clients[user_id].itemData.end() != it) {
-						clients[user_id].get_item_arrayName(category)[item_num] = it->second;
-						std::cout << "<" << it->first << "> - " << it->second << std::endl;
-					}
-					else {
-						clients[user_id].get_item_arrayName(category)[item_num] = 0;
-						std::cout << "<" << it->first << "> - " << 0 << std::endl;
-					}
-				}
-			}
-		}
-		
-		*/
-	}
+	case CS_CHAT:
+		CS_CHAT_PACK* chatting_packet = reinterpret_cast<CS_CHAT_PACK*>(packet);
+		sync_new_chatting_all_client(user_id, chatting_packet->content);
+		break;
+	case CS_QUEST_INVENTORY:
+		clients[user_id].get_all_inventory_item();
+		break;
+	case CS_SAVE_INVENTORY:
+		CS_SAVE_INVENTORY_PACK* item_packet = reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet);
+		clients[user_id].set_inventory_item(item_packet->_name, item_packet->_cnt);
+		break;
 	break;
 	case CS_QUEST_STORAGE:
 	{
@@ -672,6 +642,19 @@ void process_packet(int user_id, char* packet)
 	break;
 	}
 }
+
+void PacketWorker::sync_new_chatting_all_client(int user_id, std::string content)
+{
+	std::string chat_log = std::string("[채팅][").append(clients[user_id].get_user_name()).append("]: ").append(content);
+
+	SC_CHAT_PACK ctp;
+	ctp.size = sizeof(SC_CHAT_PACK);
+	ctp.type = SC_CHAT;
+	strcpy_s(ctp.content, chat_log.c_str());
+
+	clients[user_id].get_session()->send_all_client(&ctp);
+}
+
 void disconnect(int user_id)
 {
 	clients[user_id].get_session()->~Session();

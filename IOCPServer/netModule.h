@@ -43,6 +43,8 @@ public:
 	void set_socket(SOCKET new_socket);
 	void recv_packet();
 	void send_packet(void* packet);
+
+	void send_all_client(void* packet);
 	
 	int get_prev_remain_packet_size();
 	void set_curr_remain_packet_size(int in);
@@ -87,6 +89,11 @@ public:
 
 	void recycle_player();
 
+	void check_exists_token(char*);
+
+	void get_all_inventory_item();
+	bool set_inventory_item(char* item_name, char item_count);
+
 private:
 
 public:
@@ -129,6 +136,19 @@ private:
 	bool in_stage;
 
 	std::mutex ll;
+};
+
+class PacketWorker {
+	/*
+	1. packet convert
+	2. process packet content
+	3. sync all client
+	*/
+
+public:
+
+	void process_packet(int, char*);
+	void sync_new_chatting_all_client(int user_id, std::string content);
 };
 
 extern OverlappedExpansion glbal_overlapped;

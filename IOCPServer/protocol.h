@@ -1,56 +1,52 @@
 #pragma once
 
-// pz only use English
-
-constexpr int MAX_USER = 10;
-constexpr int MAX_PARTY = 100;
-constexpr int BUF_SIZE = 128;
-constexpr int PORT_NUM = 7777;
+enum SERVER_SOCKET_SETTINGS
+{
+	MAX_USER = 10,
+	MAX_PARTY = 100,
+	BUF_SIZE = 128,
+	PORT_NUM = 7777,
+	CHAR_SIZE = 64
+};
 
 constexpr short MAX_ITEM_CATEGORY = 4;
 constexpr short MAX_ITEM_COUNT = 9;
 
-constexpr short CHAR_SIZE = 64;
+enum SEND_CLIENT_TO_SERVER_PACKET_TYPE
+{
+	CS_LOGIN = 1,
+	CS_PARTY_SEARCHING,
+	CS_PARTY_INFO,
+	CS_PARTY_ENTER,
+	CS_PARTY_READY,
+	CS_PARTY_LEAVE,
+	CS_QUEST_INVENTORY,
+	CS_SAVE_INVENTORY,
+	CS_LOGOUT,
+	CS_QUEST_STORAGE,
+	CS_CHAT
+};
 
-constexpr char CS_LOGIN				= 0;
-
-constexpr char CS_PARTY_SEARCHING	= 2;
-constexpr char CS_PARTY_INFO		= 3;
-
-constexpr char CS_PARTY_ENTER		= 4;
-constexpr char SC_PARTY_ENTER_OK	= 5;
-
-constexpr char CS_PARTY_READY		= 6;
-constexpr char CS_PARTY_LEAVE		= 8;
-
-constexpr char CS_QUEST_INVENTORY	= 9;
-constexpr char CS_SAVE_INVENTORY	= 10;
-constexpr char CS_LOGOUT			= 11;
-constexpr char CS_QUEST_STORAGE		= 12;
-
-/////////////////////////////////////////////
-
-constexpr char SC_FAIL			= 20;
-constexpr char SC_LOGIN_SUCCESS			= 21;
-constexpr char SC_LOGIN_INFO			= 22;
-constexpr char SC_PARTY_LIST_INFO		= 23;
-constexpr char SC_PARTY_INFO			= 24;
-constexpr char SC_PARTY_STAFF_READY		= 25;
-constexpr char SC_PARTY_START			= 26;
-constexpr char SC_PARTY_JOIN_FAIL		= 27;
-constexpr char SC_PARTY_JOIN_SUCCESS	= 28;
-constexpr char SC_PARTY_LEAVE_FAIL		= 29;
-constexpr char SC_PARTY_LEAVE_SUCCESS	= 30;
-constexpr char SC_LOGOUT_RESULT			= 31;
-constexpr char SC_ITEM_INFO				= 33;
-
-
-constexpr char CS_CHAT = 98;
-constexpr char SC_CHAT = 99;
-
+enum SEND_SERVER_TO_CLIENT_PACKET_TYPE
+{
+	SC_PARTY_ENTER_OK = 1,
+	SC_FAIL,
+	SC_LOGIN_SUCCESS,
+	SC_LOGIN_INFO,		
+	SC_PARTY_LIST_INFO,
+	SC_PARTY_INFO,	
+	SC_PARTY_STAFF_READY,
+	SC_PARTY_START,	
+	SC_PARTY_JOIN_FAIL,
+	SC_PARTY_JOIN_SUCCESS,
+	SC_PARTY_LEAVE_FAIL,
+	SC_PARTY_LEAVE_SUCCESS,
+	SC_LOGOUT_RESULT,	
+	SC_ITEM_INFO,			
+	SC_CHAT
+};
 
 #define PARTY_MAX_NUM 4
-constexpr int CURR_USER_NUM = 0;
 
 #pragma pack (push, 1)
 
