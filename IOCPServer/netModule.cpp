@@ -127,7 +127,23 @@ Player::~Player()
 }
 void Player::recycle_player()
 {
+	/*
+	if (Set_ALL_ItemDB(user_id) && Logout_UDB(user_id)) {
+		printf("[Success]->SaveData Logout %s\n", clients[user_id].getname());
+	}
+	else {
+		printf("[Fail]->SaveData Logout %s\n", clients[user_id].getname());
+	}
 
+	{
+		std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
+		strcpy_s(out_client._result, "1");
+		clients[user_id].do_send(&out_client);
+	}
+
+	*/
+
+	disconnect(user_id);
 }
 
 void Player::check_exists_token(char* login_token)
@@ -139,7 +155,7 @@ void Player::check_exists_token(char* login_token)
 		if ("TokenError" == nameBuffer || "Token Error" == nameBuffer || "Empty" == nameBuffer) {
 			clients[user_id].send_fail_reason("Token error");
 		}
-		else if (Login_UDB(user_id, nameBuffer)) {
+		/*else if (Login_UDB(user_id, nameBuffer)) {
 			clients[user_id].send_self_user_info(
 				std::string("Login player name is ").append(clients[user_id].getname()).c_str()
 			);
@@ -153,7 +169,7 @@ void Player::check_exists_token(char* login_token)
 			else {
 				clients[user_id].send_fail_reason("Failed to initialize player");
 			}
-		}
+		}*/
 	}
 	else
 	{
@@ -168,7 +184,7 @@ void Player::get_all_inventory_item()
 	SC_ITEM_INFO_PACK item_pack;
 	item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 	item_pack.type = SC_ITEM_INFO;
-
+	
 	/*
 
 	for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
@@ -227,6 +243,205 @@ bool Player::set_inventory_item(char* item_name, char item_count)
 
 		*/
 	return false;
+}
+
+void Player::get_all_storage_item()
+{
+	// Get_ALL_StorageDB(user_id);
+
+	SC_ITEM_INFO_PACK item_pack;
+	item_pack.size = sizeof(SC_ITEM_INFO_PACK);
+	item_pack.type = SC_ITEM_INFO;
+
+	/*
+
+	for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
+		for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
+
+			std::string itemname = Get_ItemName(category, item_num);
+			int cnt = clients[user_id].get_storage_item_arrayName(category)[item_num];
+			if (false == itemname.compare("None"))continue;
+			else if (0 == cnt)							continue;
+
+			printf("[%s] : %d\n", itemname.c_str(), cnt);
+
+			strncpy_s(item_pack.name, CHAR_SIZE, itemname.c_str(), strlen(itemname.c_str()));
+			item_pack._cnt = cnt;
+			clients[user_id].do_send(&item_pack);
+		}
+	}
+
+	strncpy_s(item_pack.name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
+	clients[user_id].do_send(&item_pack);
+
+	*/
+}
+
+void Player::enter_party(int party_number)
+{
+	if (0 > party_number || party_number > 8) return;
+
+	int cur_party_member_count = parties[party_number].get_member_count();
+	if (0 <= cur_party_member_count && cur_party_member_count <= 3) {
+
+		/*strncpy_s(parties[party_number].member[cur_party_member_count].name, CHAR_SIZE, clients[user_id].name, CHAR_SIZE);
+		parties[party_number].member[cur_party_member_count].user_id = user_id;
+
+		strncpy_s(parties[party_number].member[cur_party_member_count]._pet_num, CHAR_SIZE, clients[user_id]._pet_num, CHAR_SIZE);
+		{
+			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
+			parties[party_number].member[cur_party_member_count]._player_state = ST_NOTREADY;
+			clients[user_id]._player_state = ST_NOTREADY;
+		}
+
+		parties[party_number].mem_count += 1;
+
+		SC_PARTY_ENTER_OK_PACK ok_pack;
+		ok_pack.size = sizeof(SC_PARTY_ENTER_OK_PACK);
+		ok_pack.type = SC_PARTY_ENTER_OK;
+		clients[user_id].do_send(&ok_pack);
+		clients[user_id]._party_num = party_number;
+
+		printf("%s party connection Success\n", clients[user_id].getname());*/
+
+
+		// CS_PARTY_INFO
+		SC_PARTY_INFO_PACK in_party;
+		in_party.size = sizeof(SC_PARTY_INFO_PACK);
+		in_party.type = SC_PARTY_INFO;
+
+		/*
+
+		for (Session& cl : parties[clients[user_id]._party_num].member) {
+			if (0 == strcmp("None", cl.name)) continue;
+			else  if (-1 == cl.user_id)						continue;
+
+			strncpy_s(in_party._mem, CHAR_SIZE, cl.name, CHAR_SIZE);
+			strncpy_s(in_party._mem_pet, CHAR_SIZE, cl._pet_num, CHAR_SIZE);
+
+			{
+				std::lock_guard<std::mutex> ll{ cl._lock };
+				if (ST_READY == cl._player_state) {
+					in_party._mem_state = 2;
+				}
+				else in_party._mem_state = 0;
+			}
+
+			clients[user_id].do_send(&in_party);
+		}
+
+		strncpy_s(in_party._mem, CHAR_SIZE, "theEnd", strlen("theEnd"));
+		strncpy_s(in_party._myname, CHAR_SIZE, clients[user_id].name, strlen(clients[user_id].name));
+		clients[user_id].do_send(&in_party);
+
+		*/
+	}
+	else {
+		// printf("%s party connection failed\n", clients[user_id].getname());
+	}
+}
+
+void Player::set_ready_in_party()
+{
+	/*
+
+		int cur_member = 0;
+		int ready_member = 0;
+		int party_num = clients[user_id]._party_num;
+
+		{
+			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
+			if (clients[user_id]._player_state != ST_READY) {
+				clients[user_id]._player_state = ST_READY;
+			}
+		}
+
+		SC_PARTY_JOIN_RESULT_PACK result_pack;
+		result_pack.size = sizeof(SC_PARTY_JOIN_RESULT_PACK);
+		result_pack.type = SC_PARTY_JOIN_SUCCESS;
+
+		int curMem = 0;
+		for (Session& cl : parties[party_num].member) {
+			if (0 != strcmp("None", cl.name)) {
+				cur_member += 1;
+			}
+
+			if (user_id == cl.user_id) {
+				cl._player_state = ST_READY;
+				result_pack.memberState[curMem] = 2;
+			}
+
+			{
+				if (ST_READY == cl._player_state) {
+					ready_member += 1;
+					result_pack.memberState[curMem] = 2;
+				}
+				else result_pack.memberState[curMem] = 0;
+			}
+
+			curMem += 1;
+		}
+
+		// if ((ready_member == curMem) && (false == parties[party_num]._inStage)) {
+		if ((ready_member == cur_member)) {
+			result_pack._result = 1;
+			parties[party_num]._inStage = true;
+			for (Session& cl : parties[party_num].member) {
+				if (0 != strcmp("None", cl.name)) {
+					printf("%s in Stage!\n", clients[cl.user_id].name);
+					clients[cl.user_id].do_send(&result_pack);
+				}
+			}
+		}
+		// else if(false == parties[party_num]._inStage) {
+		else {
+			result_pack._result = 0;
+
+			for (Session& cl : parties[party_num].member) {
+				if (0 != strcmp("None", cl.name)) {
+					clients[cl.user_id].do_send(&result_pack);
+				}
+			}
+		}
+
+		*/
+}
+
+void Player::leave_current_party()
+{
+	/*
+
+		int party_num = clients[user_id]._party_num;
+
+		if (0 <= party_num) {
+			if (parties[party_num].leave_member(clients[user_id].name)) {
+				clients[user_id]._player_state = ST_HOME;
+				clients[user_id]._party_num = -1;
+
+				SC_PARTY_LEAVE_SUCCESS_PACK leave_pack;
+				leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
+				leave_pack.type = SC_PARTY_LEAVE_SUCCESS;
+				strncpy_s(leave_pack._mem, CHAR_SIZE, clients[user_id].name, CHAR_SIZE);
+				clients[user_id].do_send(&leave_pack);
+				printf("[%s] left the party.\n", clients[user_id].getname());
+			}
+			else {
+				SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
+				fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
+				fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
+				clients[user_id].do_send(&fail_leave_pack);
+			}
+		}
+		else {
+			printf("[%s] not [%d]party member.\n", clients[user_id].getname(), party_num);
+			SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
+			fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
+			fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
+			clients[user_id].do_send(&fail_leave_pack);
+		}
+
+		*/
+
 }
 
 Session* Player::get_session()
@@ -371,275 +586,51 @@ short Party::get_member_count()
 
 void PacketWorker::process_packet(int user_id, char* packet)
 {
-	switch (packet[1]) {
+	switch (packet[1]) 
+	{
 	case CS_LOGIN:
 		CS_LOGIN_PACK* token_packet = reinterpret_cast<CS_LOGIN_PACK*>(packet);
 		clients[user_id].check_exists_token(token_packet->Token);
 		break;
+
 	case CS_CHAT:
 		CS_CHAT_PACK* chatting_packet = reinterpret_cast<CS_CHAT_PACK*>(packet);
 		sync_new_chatting_all_client(user_id, chatting_packet->content);
 		break;
+
 	case CS_QUEST_INVENTORY:
 		clients[user_id].get_all_inventory_item();
 		break;
+
 	case CS_SAVE_INVENTORY:
 		CS_SAVE_INVENTORY_PACK* item_packet = reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet);
 		clients[user_id].set_inventory_item(item_packet->_name, item_packet->_cnt);
 		break;
-	break;
+
 	case CS_QUEST_STORAGE:
-	{
-		// Get_ALL_StorageDB(user_id);
+		clients[user_id].get_all_storage_item();
+		break;
 
-		SC_ITEM_INFO_PACK item_pack;
-		item_pack.size = sizeof(SC_ITEM_INFO_PACK);
-		item_pack.type = SC_ITEM_INFO;
-
-		/*
-		
-		for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
-			for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
-
-				std::string itemname = Get_ItemName(category, item_num);
-				int cnt = clients[user_id].get_storage_item_arrayName(category)[item_num];
-				if (false == itemname.compare("None"))continue;
-				else if (0 == cnt)							continue;
-
-				printf("[%s] : %d\n", itemname.c_str(), cnt);
-
-				strncpy_s(item_pack.name, CHAR_SIZE, itemname.c_str(), strlen(itemname.c_str()));
-				item_pack._cnt = cnt;
-				clients[user_id].do_send(&item_pack);
-			}
-		}
-
-		strncpy_s(item_pack.name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
-		clients[user_id].do_send(&item_pack);
-		
-		*/
-	}
-	break;
 	case CS_PARTY_SEARCHING:
-	{
-		SC_PARTIES_INFO_PACK party_list;
-		party_list.size = sizeof(SC_PARTIES_INFO_PACK);
-		party_list.type = SC_PARTY_LIST_INFO;
+		get_party_list(user_id);	
+		break;
 
-		for (int i = 0; i < MAX_PARTY; ++i) {
-			party_list._staff_count[i] = static_cast<char>(parties[i].get_member_count());
-			
-			if (parties[i].get_party_in_stage()) 
-				party_list.Inaccessible[i] = 1;
-			else 
-				party_list.Inaccessible[i] = 0;
-		}
-
-		clients[user_id].get_session()->send_packet(&party_list);
-	}
-	break;
 	case CS_PARTY_ENTER:
-	{
 		CS_PARTY_ENTER_PACK* party_info = reinterpret_cast<CS_PARTY_ENTER_PACK*>(packet);
-		int party_number = static_cast<int>(party_info->party_num);
-		if (0 > party_number || party_number > 8) break;
+		clients[user_id].enter_party(party_info->party_num);
+		break;
 
-		/*
-
-		int cur_party_member_count = parties[party_number]._mem_count;
-		if (0 <= cur_party_member_count && cur_party_member_count <= 3) {
-
-			strncpy_s(parties[party_number].member[cur_party_member_count].name, CHAR_SIZE, clients[user_id].name, CHAR_SIZE);
-			parties[party_number].member[cur_party_member_count].user_id = user_id;
-
-			strncpy_s(parties[party_number].member[cur_party_member_count]._pet_num, CHAR_SIZE, clients[user_id]._pet_num, CHAR_SIZE);
-			{
-				std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-				parties[party_number].member[cur_party_member_count]._player_state = ST_NOTREADY;
-				clients[user_id]._player_state = ST_NOTREADY;
-			}
-			
-			parties[party_number]._mem_count += 1;
-
-			SC_PARTY_ENTER_OK_PACK ok_pack;
-			ok_pack.size = sizeof(SC_PARTY_ENTER_OK_PACK);
-			ok_pack.type = SC_PARTY_ENTER_OK;
-			clients[user_id].do_send(&ok_pack);
-			clients[user_id]._party_num = party_number;
-
-			printf("%s party connection Success\n", clients[user_id].getname());
-		}
-		else {
-			printf("%s party connection failed\n", clients[user_id].getname());
-		}
-
-		*/
-		
-	}
-	break;
-	case CS_PARTY_INFO:
-	{
-		SC_PARTY_INFO_PACK in_party;
-		in_party.size = sizeof(SC_PARTY_INFO_PACK);
-		in_party.type = SC_PARTY_INFO;
-
-		/*
-
-		for (Session& cl : parties[clients[user_id]._party_num].member) {
-			if (0 == strcmp("None", cl.name)) continue;
-			else  if (-1 == cl.user_id)						continue;
-
-			strncpy_s(in_party._mem, CHAR_SIZE, cl.name, CHAR_SIZE);
-			strncpy_s(in_party._mem_pet, CHAR_SIZE, cl._pet_num, CHAR_SIZE);
-			
-			{
-				std::lock_guard<std::mutex> ll{ cl._lock };
-				if (ST_READY == cl._player_state) {
-					in_party._mem_state = 2;
-				}
-				else in_party._mem_state = 0;
-			}
-
-			clients[user_id].do_send(&in_party);
-		}
-
-		strncpy_s(in_party._mem, CHAR_SIZE, "theEnd", strlen("theEnd"));
-		strncpy_s(in_party._myname, CHAR_SIZE, clients[user_id].name, strlen(clients[user_id].name));
-		clients[user_id].do_send(&in_party);
-
-		*/
-	}
-	break;
 	case CS_PARTY_READY:
-	{
-		/*
+		clients[user_id].set_ready_in_party();
+		break;
 
-		int cur_member = 0;
-		int ready_member = 0;
-		int party_num = clients[user_id]._party_num;
-		
-		{
-			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-			if (clients[user_id]._player_state != ST_READY) {
-				clients[user_id]._player_state = ST_READY;
-			}
-		}
-		
-		SC_PARTY_JOIN_RESULT_PACK result_pack;
-		result_pack.size = sizeof(SC_PARTY_JOIN_RESULT_PACK);
-		result_pack.type = SC_PARTY_JOIN_SUCCESS;
-
-		int curMem = 0;
-		for (Session& cl : parties[party_num].member) {
-			if (0 != strcmp("None", cl.name)) {
-				cur_member += 1;
-			}
-
-			if (user_id == cl.user_id) {
-				cl._player_state = ST_READY;
-				result_pack.memberState[curMem] = 2;
-			}
-
-			{
-				if (ST_READY == cl._player_state) {
-					ready_member += 1;
-					result_pack.memberState[curMem] = 2;
-				}
-				else result_pack.memberState[curMem] = 0;
-			}
-
-			curMem += 1;
-		}
-
-		// if ((ready_member == curMem) && (false == parties[party_num]._inStage)) {
-		if ((ready_member == cur_member)) {
-			result_pack._result = 1;
-			parties[party_num]._inStage = true;
-			for (Session& cl : parties[party_num].member) {
-				if (0 != strcmp("None", cl.name)) {
-					printf("%s in Stage!\n", clients[cl.user_id].name);
-					clients[cl.user_id].do_send(&result_pack);
-				}
-			}
-		}
-		// else if(false == parties[party_num]._inStage) {
-		else {
-			result_pack._result = 0;
-			
-			for (Session& cl : parties[party_num].member) {
-				if (0 != strcmp("None", cl.name)) {
-					clients[cl.user_id].do_send(&result_pack);
-				}
-			}
-		}
-
-		*/
-	}
-	break;
 	case CS_PARTY_LEAVE:
-	{
-		/*
-		
-		int party_num = clients[user_id]._party_num;
+		clients[user_id].leave_current_party();
+		break;
 
-		if (0 <= party_num) {
-			if (parties[party_num].leave_member(clients[user_id].name)) {
-				clients[user_id]._player_state = ST_HOME;
-				clients[user_id]._party_num = -1;
-
-				SC_PARTY_LEAVE_SUCCESS_PACK leave_pack;
-				leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
-				leave_pack.type = SC_PARTY_LEAVE_SUCCESS;
-				strncpy_s(leave_pack._mem, CHAR_SIZE, clients[user_id].name, CHAR_SIZE);
-				clients[user_id].do_send(&leave_pack);
-				printf("[%s] left the party.\n", clients[user_id].getname());
-			}
-			else {
-				SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
-				fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
-				fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
-				clients[user_id].do_send(&fail_leave_pack);
-			}
-		}
-		else {
-			printf("[%s] not [%d]party member.\n", clients[user_id].getname(), party_num);
-			SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
-			fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
-			fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
-			clients[user_id].do_send(&fail_leave_pack);
-		}
-
-		*/
-	}
-	break;
 	case CS_LOGOUT:
-	{
-		CS_LOGOUT_PACK* logout_client = reinterpret_cast<CS_LOGOUT_PACK*>(packet);
-
-		SC_LOGOUT_RESULT_PACK out_client;
-		out_client.size = sizeof(SC_LOGOUT_RESULT_PACK);
-		out_client.type = SC_LOGOUT_RESULT;
-
-
-		/*
-		if (Set_ALL_ItemDB(user_id) && Logout_UDB(user_id)) {
-			printf("[Success]->SaveData Logout %s\n", clients[user_id].getname());
-		}
-		else {
-			printf("[Fail]->SaveData Logout %s\n", clients[user_id].getname());
-		}
-
-		{
-			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-			strcpy_s(out_client._result, "1");
-			clients[user_id].do_send(&out_client);
-		}
-		
-		*/
-
-		disconnect(user_id);
-	}
-	break;
+		clients[user_id].recycle_player();
+		break;
 	}
 }
 
@@ -653,6 +644,24 @@ void PacketWorker::sync_new_chatting_all_client(int user_id, std::string content
 	strcpy_s(ctp.content, chat_log.c_str());
 
 	clients[user_id].get_session()->send_all_client(&ctp);
+}
+
+void PacketWorker::get_party_list(int user_id)
+{
+	SC_PARTIES_INFO_PACK party_list;
+	party_list.size = sizeof(SC_PARTIES_INFO_PACK);
+	party_list.type = SC_PARTY_LIST_INFO;
+
+	for (int i = 0; i < MAX_PARTY; ++i) {
+		party_list._staff_count[i] = static_cast<char>(parties[i].get_member_count());
+
+		if (parties[i].get_party_in_stage())
+			party_list.Inaccessible[i] = 1;
+		else
+			party_list.Inaccessible[i] = 0;
+	}
+
+	clients[user_id].get_session()->send_packet(&party_list);
 }
 
 void disconnect(int user_id)

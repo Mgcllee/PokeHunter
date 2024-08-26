@@ -94,6 +94,13 @@ public:
 	void get_all_inventory_item();
 	bool set_inventory_item(char* item_name, char item_count);
 
+	void get_all_storage_item();
+
+	void enter_party(int party_number);
+
+	void set_ready_in_party();
+	void leave_current_party();
+
 private:
 
 public:
@@ -149,6 +156,8 @@ public:
 
 	void process_packet(int, char*);
 	void sync_new_chatting_all_client(int user_id, std::string content);
+	
+	void get_party_list(int user_id);
 };
 
 extern OverlappedExpansion glbal_overlapped;
