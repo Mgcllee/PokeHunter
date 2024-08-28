@@ -127,22 +127,6 @@ Player::~Player()
 }
 void Player::recycle_player()
 {
-	/*
-	if (Set_ALL_ItemDB(user_id) && Logout_UDB(user_id)) {
-		printf("[Success]->SaveData Logout %s\n", clients[user_id].getname());
-	}
-	else {
-		printf("[Fail]->SaveData Logout %s\n", clients[user_id].getname());
-	}
-
-	{
-		std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-		strcpy_s(out_client._result, "1");
-		clients[user_id].do_send(&out_client);
-	}
-
-	*/
-
 	disconnect(user_id);
 }
 
@@ -155,7 +139,7 @@ void Player::check_exists_token(char* login_token)
 		if ("TokenError" == nameBuffer || "Token Error" == nameBuffer || "Empty" == nameBuffer) {
 			clients[user_id].send_fail_reason("Token error");
 		}
-		/*else if (Login_UDB(user_id, nameBuffer)) {
+		else if (Login_UDB(user_id, nameBuffer)) {
 			clients[user_id].send_self_user_info(
 				std::string("Login player name is ").append(clients[user_id].getname()).c_str()
 			);
@@ -169,7 +153,7 @@ void Player::check_exists_token(char* login_token)
 			else {
 				clients[user_id].send_fail_reason("Failed to initialize player");
 			}
-		}*/
+		}
 	}
 	else
 	{
@@ -185,8 +169,6 @@ void Player::get_all_inventory_item()
 	item_pack.size = sizeof(SC_ITEM_INFO_PACK);
 	item_pack.type = SC_ITEM_INFO;
 	
-	/*
-
 	for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
 		for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
 
@@ -196,52 +178,45 @@ void Player::get_all_inventory_item()
 			if (false == itemname.compare("None")) continue;
 			if (0 == cnt) continue;
 
-			printf("[%s] : %d\n", itemname.c_str(), cnt);
 			{
-				std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-				// clients[user_id].itemData.insert({ itemname, cnt });
+				clients[user_id].lock();
+				clients[user_id].get_item().insert({itemname, cnt});
+				clients[user_id].unlock();
 			}
 
 			strncpy_s(item_pack.name, CHAR_SIZE, itemname.c_str(), strlen(itemname.c_str()));
 			item_pack._cnt = cnt;
-			// clients[user_id].do_send(&item_pack);
+			clients[user_id].get_session()->send_packet(&item_pack);
 		}
 	}
 
-	*/
-
 	strncpy_s(item_pack.name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
-	// clients[user_id].do_send(&item_pack);
-	std::cout << "End\n";
+	clients[user_id].get_session()->send_packet(&item_pack);
 }
 
 bool Player::set_inventory_item(char* item_name, char item_count)
 {
-	/*
+	std::map<std::string, short>::iterator info = clients[user_id].itemData.find(save_pack->name);
+	if (clients[user_id].itemData.end() != info) {
+		std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
+		info->second = cnt;
+	}
+	else if (0 == strcmp(save_pack->name, "theEnd")) {
+		for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
+			for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
 
-		std::map<std::string, short>::iterator info = clients[user_id].itemData.find(save_pack->name);
-		if (clients[user_id].itemData.end() != info) {
-			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-			info->second = cnt;
-		}
-		else if (0 == strcmp(save_pack->name, "theEnd")) {
-			for (int category = 0; category < MAX_ITEM_CATEGORY; ++category) {
-				for (int item_num = 0; item_num < MAX_ITEM_COUNT; ++item_num) {
-
-					std::map<std::string, short>::iterator it = clients[user_id].itemData.find(Get_ItemName(category, item_num));
-					if (clients[user_id].itemData.end() != it) {
-						clients[user_id].get_item_arrayName(category)[item_num] = it->second;
-						std::cout << "<" << it->first << "> - " << it->second << std::endl;
-					}
-					else {
-						clients[user_id].get_item_arrayName(category)[item_num] = 0;
-						std::cout << "<" << it->first << "> - " << 0 << std::endl;
-					}
+				std::map<std::string, short>::iterator it = clients[user_id].itemData.find(Get_ItemName(category, item_num));
+				if (clients[user_id].itemData.end() != it) {
+					clients[user_id].get_item_arrayName(category)[item_num] = it->second;
+					std::cout << "<" << it->first << "> - " << it->second << std::endl;
+				}
+				else {
+					clients[user_id].get_item_arrayName(category)[item_num] = 0;
+					std::cout << "<" << it->first << "> - " << 0 << std::endl;
 				}
 			}
 		}
-
-		*/
+	}
 	return false;
 }
 
@@ -664,90 +639,114 @@ void PacketWorker::get_party_list(int user_id)
 	clients[user_id].get_session()->send_packet(&party_list);
 }
 
-void disconnect(int user_id)
+void PacketWorker::disconnect(int user_id)
 {
 	clients[user_id].get_session()->~Session();
 }
-void worker_thread(HANDLE h_iocp)
+
+void PacketWorker::accept_new_client()
+{
+	get_new_client_ticket();
+
+	ZeroMemory(&glbal_overlapped.overlapped, sizeof(glbal_overlapped.overlapped));
+	int addr_size = sizeof(SOCKADDR_IN);
+	AcceptEx(
+		global_server_socket, global_client_accept_socket,
+		glbal_overlapped.packet_buffer, 0, addr_size + 16, addr_size + 16, 0,
+		&glbal_overlapped.overlapped
+	);
+}
+
+int PacketWorker::get_new_client_ticket()
+{
+	// TODO: make new client ticket 
+	int ticket = -1;
+
+	set_new_client_ticket(ticket);
+	return ticket;
+}
+
+void PacketWorker::set_new_client_ticket(int user_id)
+{
+	int new_user_id = get_new_client_ticket();
+
+	if (-1 != new_user_id)
+	{
+		clients[new_user_id].lock();
+
+		clients[new_user_id].get_session()->set_socket(global_server_socket);
+		clients[new_user_id].set_user_id(new_user_id);
+		clients[new_user_id].unlock();
+
+		CreateIoCompletionPort(reinterpret_cast<HANDLE>(global_client_accept_socket), h_iocp, new_user_id, 0);
+
+		clients[new_user_id].get_session()->recv_packet();
+		global_client_accept_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	}
+	else
+	{
+		return;
+	}
+}
+
+void PacketWorker::recv_new_message(OverlappedExpansion* exoverlapped)
+{
+	int remain_data = num_bytes + clients[key].get_session()->get_prev_remain_packet_size();
+	char* p = exoverlapped->packet_buffer;
+
+	while (remain_data > 0) {
+		int packet_size = p[0];
+		if (packet_size <= remain_data) {
+			process_packet(static_cast<int>(key), p);
+			p = p + packet_size;
+			remain_data = remain_data - packet_size;
+		}
+		else break;
+	}
+
+	clients[key].get_session()->set_curr_remain_packet_size(remain_data);
+
+	if (remain_data > 0) {
+		memcpy(exoverlapped->packet_buffer, p, remain_data);
+	}
+	clients[key].get_session()->recv_packet();
+}
+
+void PacketWorker::worker_thread(HANDLE h_iocp)
 {
 	while (true) {
-		DWORD num_bytes;
-		ULONG_PTR key;
-		WSAOVERLAPPED* over = nullptr;
 		BOOL ret = GetQueuedCompletionStatus(h_iocp, &num_bytes, &key, &over, INFINITE);
 		OverlappedExpansion* exoverlapped = reinterpret_cast<OverlappedExpansion*>(over);
 
-		// error 검출기
 		if (FALSE == ret) {
-			if (exoverlapped->socket_type == ACCEPT) {
-				std::cout << "Accept error\n";
+			if (exoverlapped->socket_type == ACCEPT) 
+			{
+				send_log("Accept error\n");
 			}
-			else {
-				std::cout << "\nGQCS Error on client[" << key << "]\n\n";
-				// disconnect client
+			else 
+			{
+				send_log("GQCS Error on client[" + std::to_string(key) + "]\n");
+				disconnect(key);
 			}
 		}
 		if ((0 == num_bytes) && (exoverlapped->socket_type == RECV)) continue;
 
-		switch (exoverlapped->socket_type) {
-		case ACCEPT:
+		switch (exoverlapped->socket_type) 
 		{
-			int new_cuser_id = -1;
+		case SOCKET_TYPE::ACCEPT:
+			accept_new_client();
+			break;
 
-			if (-1 != new_cuser_id) 
-			{
-				
-				clients[new_cuser_id].lock();
-				
-				clients[new_cuser_id].get_session()->set_socket(global_server_socket);
-				clients[new_cuser_id].set_user_id(new_cuser_id);
-				clients[new_cuser_id].unlock();
+		case SOCKET_TYPE::RECV:
+			recv_new_message(exoverlapped);
+			break;
 
-				CreateIoCompletionPort(reinterpret_cast<HANDLE>(global_client_accept_socket), h_iocp, new_cuser_id, 0);
-
-				clients[new_cuser_id].get_session()->recv_packet();
-				global_client_accept_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-			}
-			else 
-			{
-				printf("connect fail\n");
-				break;
-			}
-
-			ZeroMemory(&glbal_overlapped.overlapped, sizeof(glbal_overlapped.overlapped));
-			int addr_size = sizeof(SOCKADDR_IN);
-			AcceptEx(
-					global_server_socket, global_client_accept_socket, 
-					glbal_overlapped.packet_buffer, 0, addr_size + 16, addr_size + 16, 0, 
-					&glbal_overlapped.overlapped
-			);
-		}
-		break;
-		case RECV:
-		{
-			int remain_data = num_bytes + clients[key].get_session()->get_prev_remain_packet_size();
-			char* p = exoverlapped->packet_buffer;
-
-			while (remain_data > 0) {
-				int packet_size = p[0];
-				if (packet_size <= remain_data) {
-					process_packet(static_cast<int>(key), p);
-					p = p + packet_size;
-					remain_data = remain_data - packet_size;
-				}
-				else break;
-			}
-
-			clients[key].get_session()->set_curr_remain_packet_size(remain_data);
-
-			if (remain_data > 0) {
-				memcpy(exoverlapped->packet_buffer, p, remain_data);
-			}
-			clients[key].get_session()->recv_packet();
-		}
-		break;
-		case SEND:		
+		case SOCKET_TYPE::SEND:
 			delete exoverlapped;
+			break;
+
+		default:
+			// TODO: make error message
 			break;
 		}
 	}

@@ -3,6 +3,7 @@
 #include "netModule.h"
 #include "DBModule.h"
 
+// TODO: make sure clean code(one function one behavior)
 OVER_EXP g_a_over;
 SOCKET g_s_socket, g_c_socket;
 
@@ -36,11 +37,13 @@ int main() {
 	std::vector<std::thread> worker_threads;
 	int num_threads = std::thread::hardware_concurrency();
 
-	// === WORK SPACE ===
-	std::cout << "Start...\n";
+	// TODO: make log thread use all log
+	// std::thread log_thread(PacketWorker);
+
 	for (int i = 0; i < num_threads; ++i)
-		worker_threads.emplace_back(worker_thread, h_iocp);
-	// === ====  ==== ===
+	{
+		worker_threads.emplace_back(PacketWorker::worker_thread, h_iocp, PacketWorker());
+	}
 
 	USER_DB_MANAGER* db = new USER_DB_MANAGER("localhost", "root", "0000", "user_info_db");
 	db->test_mysql_function();

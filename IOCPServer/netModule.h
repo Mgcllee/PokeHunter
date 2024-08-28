@@ -54,10 +54,6 @@ public:
 	bool recycle_session();
 
 private:
-
-public:
-
-private:
 	SOCKET socket;
 	int remain_packet_size;
 };
@@ -145,21 +141,6 @@ private:
 	std::mutex ll;
 };
 
-class PacketWorker {
-	/*
-	1. packet convert
-	2. process packet content
-	3. sync all client
-	*/
-
-public:
-
-	void process_packet(int, char*);
-	void sync_new_chatting_all_client(int user_id, std::string content);
-	
-	void get_party_list(int user_id);
-};
-
 extern OverlappedExpansion glbal_overlapped;
 extern HANDLE handle_iocp;
 extern SOCKET global_server_socket, global_client_accept_socket;
@@ -167,6 +148,38 @@ extern SOCKET global_server_socket, global_client_accept_socket;
 extern std::array<Player, MAX_USER> clients;
 extern std::array<Party, MAX_PARTY> parties;
 
-void worker_thread(HANDLE h_iocp);
-void process_packet(int c_uid, char* packet);
-void disconnect(int c_uid);
+class PacketWorker {
+public:
+	PacketWorker()
+		: over(nullptr)
+	{
+
+	}
+	~PacketWorker() { }
+
+	void worker_thread(HANDLE h_iocp);
+	void process_packet(int, char*);
+
+	void sync_new_chatting_all_client(int user_id, std::string content);
+	
+	void get_party_list(int user_id);
+	void disconnect(int user_id);
+
+	void accept_new_client();
+	int get_new_client_ticket();
+	void set_new_client_ticket(int user_id);
+
+	void recv_new_message(OverlappedExpansion* exoverlapped);
+
+	void send_log(std::string log);
+
+public:
+	
+
+private:
+	DWORD num_bytes;
+	ULONG_PTR key;
+	WSAOVERLAPPED* over;
+};
+
+
