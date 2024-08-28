@@ -1,0 +1,1 @@
+https://pokehunter.auth.ap-northeast-2.amazoncognito.com/login?client_id=21ehe1s9s21s4f3b0g01bvdiqc&response_type=code&scope=aws.cognito.signin.user.admin+email+openid+phone+profile&redirect_uri=https://nhuelkev56.execute-api.ap-northeast-2.amazonaws.com/test/getsigninresult
