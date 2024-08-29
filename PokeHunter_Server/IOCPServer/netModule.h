@@ -151,7 +151,7 @@ extern std::array<Party, MAX_PARTY> parties;
 class PacketWorker {
 public:
 	PacketWorker()
-		: over(nullptr)
+		: overlapped(nullptr)
 	{
 
 	}
@@ -159,6 +159,8 @@ public:
 
 	void worker_thread(HANDLE h_iocp);
 	void process_packet(int, char*);
+
+	bool check_exists_overlapped(OverlappedExpansion* overlapped);
 
 	void sync_new_chatting_all_client(int user_id, std::string content);
 	
@@ -179,7 +181,9 @@ public:
 private:
 	DWORD num_bytes;
 	ULONG_PTR key;
-	WSAOVERLAPPED* over;
+	WSAOVERLAPPED* overlapped;
+
+	BOOL GQCS_result;
 };
 
 

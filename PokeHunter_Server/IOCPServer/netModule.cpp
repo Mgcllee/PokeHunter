@@ -609,6 +609,24 @@ void PacketWorker::process_packet(int user_id, char* packet)
 	}
 }
 
+bool PacketWorker::check_exists_overlapped(OverlappedExpansion* exoverlapped)
+{
+	if (FALSE == GQCS_result) {
+		if (exoverlapped->socket_type == ACCEPT)
+		{
+			send_log("Accept error\n");
+		}
+		else
+		{
+			send_log("GQCS Error on client[" + std::to_string(key) + "]\n");
+			disconnect(key);
+		}
+	}
+	if ((0 == num_bytes) && (exoverlapped->socket_type == RECV)) return false;
+
+	return true;
+}
+
 void PacketWorker::sync_new_chatting_all_client(int user_id, std::string content)
 {
 	std::string chat_log = std::string("[채팅][").append(clients[user_id].get_user_name()).append("]: ").append(content);
@@ -714,22 +732,15 @@ void PacketWorker::recv_new_message(OverlappedExpansion* exoverlapped)
 
 void PacketWorker::worker_thread(HANDLE h_iocp)
 {
-	while (true) {
-		BOOL ret = GetQueuedCompletionStatus(h_iocp, &num_bytes, &key, &over, INFINITE);
-		OverlappedExpansion* exoverlapped = reinterpret_cast<OverlappedExpansion*>(over);
+	while (true) 
+	{
+		GQCS_result = GetQueuedCompletionStatus(h_iocp, &num_bytes, &key, &overlapped, INFINITE);
+		OverlappedExpansion* exoverlapped = reinterpret_cast<OverlappedExpansion*>(overlapped);
 
-		if (FALSE == ret) {
-			if (exoverlapped->socket_type == ACCEPT) 
-			{
-				send_log("Accept error\n");
-			}
-			else 
-			{
-				send_log("GQCS Error on client[" + std::to_string(key) + "]\n");
-				disconnect(key);
-			}
+		if (check_exists_overlapped(exoverlapped))
+		{
+			continue;
 		}
-		if ((0 == num_bytes) && (exoverlapped->socket_type == RECV)) continue;
 
 		switch (exoverlapped->socket_type) 
 		{
@@ -746,7 +757,7 @@ void PacketWorker::worker_thread(HANDLE h_iocp)
 			break;
 
 		default:
-			// TODO: make error message
+			send_log("[Process Function]: Wrong SOCKET TYPE " + std::to_string(key));
 			break;
 		}
 	}
