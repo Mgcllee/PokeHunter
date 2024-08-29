@@ -148,12 +148,18 @@
     <ClCompile Include="DBModule.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="netModule.cpp" />
+    <ClCompile Include="PacketWorker.cpp" />
+    <ClCompile Include="Party.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AWSModule.h" />
     <ClInclude Include="DBModule.h" />
     <ClInclude Include="netModule.h" />
+    <ClInclude Include="PacketWorker.h" />
+    <ClInclude Include="Party.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

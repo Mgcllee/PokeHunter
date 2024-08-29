@@ -60,6 +60,8 @@ public:
 	bool save_logout_user_data(int& user_id);
 	bool get_user_data(int& user_id);
 
+
+
 private:
 	int user_id;
 
