@@ -36,8 +36,6 @@ public:
 
 	void get_all_storage_item();
 
-	void enter_party(int party_number);
-
 	void set_ready_in_party();
 	void leave_current_party();
 

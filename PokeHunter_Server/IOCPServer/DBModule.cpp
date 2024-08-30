@@ -26,18 +26,6 @@ USER_DB_MANAGER::USER_DB_MANAGER(
 USER_DB_MANAGER::~USER_DB_MANAGER()
 {
 	mysql_close(conn);
-
-	for (PARTY& party : parties)
-	{
-		party.~PARTY();
-	}
-	for (PLAYER& player : clients)
-	{
-		player.get_session()->disconnect();
-		player.~PLAYER();
-	}
-
-	user_id = 1;
 }
 void USER_DB_MANAGER::test_mysql_function()
 {

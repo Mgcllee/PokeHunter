@@ -39,6 +39,9 @@
     <ClCompile Include="Party.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NetworkSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -65,9 +68,11 @@
     <ClInclude Include="Party.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NetworkSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="libmysql.dll" />
   </ItemGroup>
 </Project>

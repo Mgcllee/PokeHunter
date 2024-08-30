@@ -4,7 +4,7 @@
 #include <regex>
 
 std::string GetPlayerName(std::string& AWSIdToken) {
-    AWSIdToken = std::regex_replace(AWSIdToken, std::regex("\n"), "");
+    /*AWSIdToken = std::regex_replace(AWSIdToken, std::regex("\n"), "");
     Aws::SDKOptions options;
     Aws::InitAPI(options);
     {
@@ -29,7 +29,7 @@ std::string GetPlayerName(std::string& AWSIdToken) {
             return "Token Error";
         }
     }
-    Aws::ShutdownAPI(options);
+    Aws::ShutdownAPI(options);*/
 
     return "Empty";
 }

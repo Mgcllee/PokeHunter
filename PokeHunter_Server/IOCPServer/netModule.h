@@ -11,9 +11,6 @@
 #include "stdafx.h"
 #include "protocol.h"
 
-#include "Player.h"
-#include "Party.h"
-
 enum SOCKET_TYPE	{ ACCEPT, RECV, SEND, LOGOUT };
 enum SESSION_TYPE	{ FREE, ALLOC };
 enum PLAYER_STATE	{ HOME, NOT_READY, READY, STAGE };
@@ -47,8 +44,6 @@ public:
 	void recv_packet();
 	void send_packet(void* packet);
 
-	void send_all_client(void* packet);
-	
 	int get_prev_remain_packet_size();
 	void set_curr_remain_packet_size(int in);
 	
@@ -60,10 +55,3 @@ private:
 	SOCKET socket;
 	int remain_packet_size;
 };
-
-extern OverlappedExpansion glbal_overlapped;
-extern HANDLE handle_iocp;
-extern SOCKET global_server_socket, global_client_accept_socket;
-
-extern std::array<Player, MAX_USER> clients;
-extern std::array<Party, MAX_PARTY> parties;

@@ -6,7 +6,6 @@
 #include <string>
 #include <format>
 
-#include <array>
 #include <vector>
 
 #include <thread>

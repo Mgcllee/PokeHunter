@@ -38,7 +38,7 @@ void Player::check_exists_token(char* login_token)
 	{
 		std::string tokenBuffer;
 		tokenBuffer.assign(login_token, (size_t)login_token);
-		clients[user_id].get_cognito_id_token()->append(tokenBuffer);
+		cognito_id_token.append(tokenBuffer);
 	}
 }
 
@@ -54,12 +54,12 @@ void Player::get_all_inventory_item()
 			// TODO: get item name and insert player item, and send item information packet
 			// std::string itemname = Get_ItemName(category, item_num);
 			
-			clients[user_id].get_session()->send_packet(&item_pack);
+			session.send_packet(&item_pack);
 		}
 	}
 
 	strncpy_s(item_pack.name, CHAR_SIZE, "theEnd", sizeof("theEnd"));
-	clients[user_id].get_session()->send_packet(&item_pack);
+	session.send_packet(&item_pack);
 }
 
 bool Player::set_inventory_item(char* item_name, char item_count)
@@ -80,72 +80,8 @@ void Player::get_all_storage_item()
 			// TODO: send each item informtaion
 			// std::string itemname = Get_ItemName(category, item_num);
 
-			clients[user_id].do_send(&item_pack);
+			session.send_packet(&item_pack);
 		}
-	}
-}
-
-void Player::enter_party(int party_number)
-{
-	if (0 > party_number || party_number > 8) return;
-
-	int cur_party_member_count = parties[party_number].get_member_count();
-	if (0 <= cur_party_member_count && cur_party_member_count <= 3) {
-
-		/*strncpy_s(parties[party_number].member[cur_party_member_count].name, CHAR_SIZE, clients[user_id].name, CHAR_SIZE);
-		parties[party_number].member[cur_party_member_count].user_id = user_id;
-
-		strncpy_s(parties[party_number].member[cur_party_member_count]._pet_num, CHAR_SIZE, clients[user_id]._pet_num, CHAR_SIZE);
-		{
-			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-			parties[party_number].member[cur_party_member_count]._player_state = ST_NOTREADY;
-			clients[user_id]._player_state = ST_NOTREADY;
-		}
-
-		parties[party_number].mem_count += 1;
-
-		SC_PARTY_ENTER_OK_PACK ok_pack;
-		ok_pack.size = sizeof(SC_PARTY_ENTER_OK_PACK);
-		ok_pack.type = SC_PARTY_ENTER_OK;
-		clients[user_id].do_send(&ok_pack);
-		clients[user_id]._party_num = party_number;
-
-		printf("%s party connection Success\n", clients[user_id].getname());*/
-
-
-		// CS_PARTY_INFO
-		SC_PARTY_INFO_PACK in_party;
-		in_party.size = sizeof(SC_PARTY_INFO_PACK);
-		in_party.type = SC_PARTY_INFO;
-
-		/*
-
-		for (Session& cl : parties[clients[user_id]._party_num].member) {
-			if (0 == strcmp("None", cl.name)) continue;
-			else  if (-1 == cl.user_id)						continue;
-
-			strncpy_s(in_party._mem, CHAR_SIZE, cl.name, CHAR_SIZE);
-			strncpy_s(in_party._mem_pet, CHAR_SIZE, cl._pet_num, CHAR_SIZE);
-
-			{
-				std::lock_guard<std::mutex> ll{ cl._lock };
-				if (ST_READY == cl._player_state) {
-					in_party._mem_state = 2;
-				}
-				else in_party._mem_state = 0;
-			}
-
-			clients[user_id].do_send(&in_party);
-		}
-
-		strncpy_s(in_party._mem, CHAR_SIZE, "theEnd", strlen("theEnd"));
-		strncpy_s(in_party._myname, CHAR_SIZE, clients[user_id].name, strlen(clients[user_id].name));
-		clients[user_id].do_send(&in_party);
-
-		*/
-	}
-	else {
-		// printf("%s party connection failed\n", clients[user_id].getname());
 	}
 }
 

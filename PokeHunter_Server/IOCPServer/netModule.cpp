@@ -3,9 +3,6 @@
 #include "DBModule.h"
 #include "AWSModule.h"
 
-std::array<Player, MAX_USER> clients;
-std::array<Party, MAX_PARTY> parties;
-
 OverlappedExpansion::OverlappedExpansion()
 	: socket_type(SOCKET_TYPE::RECV)
 	, wsa_buffer(WSABUF(BUF_SIZE, packet_buffer))
@@ -48,7 +45,7 @@ Session& Session::operator=(const Session& ref)
 	this->socket_type = ref.socket_type;
 	this->wsa_buffer = ref.wsa_buffer;
 	
-	strncpy(this->packet_buffer, ref.packet_buffer, BUF_SIZE);
+	strncpy_s(this->packet_buffer, ref.packet_buffer, BUF_SIZE);
 
 	this->socket = ref.socket;
 	this->remain_packet_size = ref.remain_packet_size;
@@ -88,14 +85,6 @@ void Session::send_packet(void* packet)
 
 	OverlappedExpansion* sendoverlapped = new OverlappedExpansion{ reinterpret_cast<char*>(packet) };
 	WSASend(socket, &sendoverlapped->wsa_buffer, 1, 0, 0, &sendoverlapped->overlapped, 0);
-}
-
-void Session::send_all_client(void* packet)
-{
-	for (Player& p : clients)
-	{
-		p.get_session()->send_packet(&packet);
-	}
 }
 
 void Session::disconnect()

@@ -114,12 +114,12 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\PokeHunter\PH-Server\packages\AWSSDKCPP-Core.1.6.25\build\native\include;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\include;C:\PokeHunter\PH-Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\include;C:\Program Files\MySQL\MySQL Server 8.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Git\aws-sdk-cpp\src\aws-cpp-sdk-core\include;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\include;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\include;C:\Program Files\MySQL\MySQL Server 8.0\include;C:\Git\aws-sdk-cpp\generated\src\aws-cpp-sdk-cognito-idp\include;C:\Git\aws-sdk-cpp\crt\aws-crt-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;C:\Program Files\MySQL\MySQL Server 8.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;C:\Program Files\MySQL\MySQL Server 8.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>aws-cpp-sdk-core.lib;aws-cpp-sdk-cognito-idp.lib;aws-cpp-sdk-cognito-identity.lib;libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -139,7 +139,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter_LoginServer\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;C:\Program Files\MySQL\MySQL Server 8.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;C:\Program Files\MySQL\MySQL Server 8.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>aws-cpp-sdk-core.lib;aws-cpp-sdk-cognito-idp.lib;aws-cpp-sdk-cognito-identity.lib;libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -148,6 +148,7 @@
     <ClCompile Include="DBModule.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="netModule.cpp" />
+    <ClCompile Include="NetworkSettings.cpp" />
     <ClCompile Include="PacketWorker.cpp" />
     <ClCompile Include="Party.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="AWSModule.h" />
     <ClInclude Include="DBModule.h" />
     <ClInclude Include="netModule.h" />
+    <ClInclude Include="NetworkSettings.h" />
     <ClInclude Include="PacketWorker.h" />
     <ClInclude Include="Party.h" />
     <ClInclude Include="Player.h" />
@@ -165,30 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="libmysql.dll" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets" Condition="Exists('..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-CognitoSync.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoSync.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.redist.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-CognitoSync.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoSync.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-CognitoIdentity.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoIdentity.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.redist.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.redist.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.redist.targets')" />
-    <Import Project="..\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.targets" Condition="Exists('..\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Core.redist.1.6.25\build\native\AWSSDKCPP-Core.redist.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-Core.1.6.25\build\native\AWSSDKCPP-Core.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoSync.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoSync.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.redist.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoSync.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoSync.1.6.20140630.25\build\native\AWSSDKCPP-CognitoSync.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoIdentity.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoIdentity.redist.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.redist.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\AWSSDKCPP-CognitoIdentity.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.redist.targets'))" />
-    <Error Condition="!Exists('..\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\AWSSDKCPP-CognitoIdentityProvider.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>
