@@ -3,14 +3,17 @@
 #include "stdafx.h"
 #include "netModule.h"
 
-#include "Player.h"
-#include "Party.h"
+#include "PartiesManager.h"
+#include "PlayerManager.h"
 
 class PacketWorker
 {
 public:
-	PacketWorker()
+	PacketWorker() { };
+	PacketWorker(PlayerManager* player_manager, PartiesManager* parties_manager)
 		: overlapped(nullptr)
+		, players(player_manager)
+		, parties(parties_manager)
 	{ }
 	~PacketWorker() { }
 
@@ -23,13 +26,12 @@ public:
 	void recv_new_message(OverlappedExpansion* exoverlapped);
 
 	int get_new_client_ticket();
-	void set_new_client_ticket(int user_id);
+	void set_new_client_ticket(int player_ticket);
 
 	void process_packet(int, char*);
 
 	bool check_exists_overlapped(OverlappedExpansion* overlapped);
-	void sync_new_chatting_all_client(int user_id, std::string content);
-	void get_party_list(int user_id);
+	void sync_new_chatting_all_client(int user_id, char* packet);
 	void disconnect(int user_id);
 
 private:
@@ -44,7 +46,7 @@ private:
 	HANDLE handle_iocp;
 	SOCKET server_socket, client_accept_socket;
 	
-	std::vector<Player> clients;
-	std::vector<Party> parties;
+	PlayerManager* players;
+	PartiesManager* parties;
 };
 

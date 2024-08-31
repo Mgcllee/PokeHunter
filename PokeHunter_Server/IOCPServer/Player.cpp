@@ -27,8 +27,10 @@ void Player::recycle_player()
 	//TODO: make disconnect and recycle Player
 }
 
-void Player::check_exists_token(char* login_token)
+void Player::check_exists_token(char* packet)
 {
+	char* login_token = reinterpret_cast<CS_LOGIN_PACK*>(packet)->Token;
+
 	if (0 == strncmp(login_token, "theEnd", strlen("theEnd")))
 	{
 		// TODO: get player name
@@ -53,7 +55,7 @@ void Player::get_all_inventory_item()
 
 			// TODO: get item name and insert player item, and send item information packet
 			// std::string itemname = Get_ItemName(category, item_num);
-			
+
 			session.send_packet(&item_pack);
 		}
 	}
@@ -62,8 +64,10 @@ void Player::get_all_inventory_item()
 	session.send_packet(&item_pack);
 }
 
-bool Player::set_inventory_item(char* item_name, char item_count)
-{
+bool Player::set_inventory_item(char* packet) {
+	char* item_name = reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet)->_name;
+	char item_count = reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet)->_cnt;
+
 	// set each item
 	return false;
 }
@@ -91,12 +95,12 @@ void Player::set_ready_in_party()
 
 		int cur_member = 0;
 		int ready_member = 0;
-		int party_num = clients[user_id]._party_num;
+		int party_num = players->get_player(player_ticket)->_party_num;
 
 		{
-			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
-			if (clients[user_id]._player_state != ST_READY) {
-				clients[user_id]._player_state = ST_READY;
+			std::lock_guard<std::mutex> ll{ players->get_player(player_ticket)->_lock };
+			if (players->get_player(player_ticket)->_player_state != ST_READY) {
+				players->get_player(player_ticket)->_player_state = ST_READY;
 			}
 		}
 
@@ -155,33 +159,33 @@ void Player::leave_current_party()
 {
 	/*
 
-		int party_num = clients[user_id]._party_num;
+		int party_num = players->get_player(player_ticket)->_party_num;
 
 		if (0 <= party_num) {
-			if (parties[party_num].leave_member(clients[user_id].name)) {
-				clients[user_id]._player_state = ST_HOME;
-				clients[user_id]._party_num = -1;
+			if (parties[party_num].leave_member(players->get_player(player_ticket)->name)) {
+				players->get_player(player_ticket)->_player_state = ST_HOME;
+				players->get_player(player_ticket)->_party_num = -1;
 
 				SC_PARTY_LEAVE_SUCCESS_PACK leave_pack;
 				leave_pack.size = sizeof(SC_PARTY_LEAVE_SUCCESS_PACK);
 				leave_pack.type = SC_PARTY_LEAVE_SUCCESS;
-				strncpy_s(leave_pack._mem, CHAR_SIZE, clients[user_id].name, CHAR_SIZE);
-				clients[user_id].do_send(&leave_pack);
-				printf("[%s] left the party.\n", clients[user_id].getname());
+				strncpy_s(leave_pack._mem, CHAR_SIZE, players->get_player(player_ticket)->name, CHAR_SIZE);
+				players->get_player(player_ticket)->do_send(&leave_pack);
+				printf("[%s] left the party.\n", players->get_player(player_ticket)->getname());
 			}
 			else {
 				SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
 				fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
 				fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
-				clients[user_id].do_send(&fail_leave_pack);
+				players->get_player(player_ticket)->do_send(&fail_leave_pack);
 			}
 		}
 		else {
-			printf("[%s] not [%d]party member.\n", clients[user_id].getname(), party_num);
+			printf("[%s] not [%d]party member.\n", players->get_player(player_ticket)->getname(), party_num);
 			SC_PARTY_LEAVE_FAIL_PACK fail_leave_pack;
 			fail_leave_pack.size = sizeof(SC_PARTY_LEAVE_FAIL_PACK);
 			fail_leave_pack.type = SC_PARTY_LEAVE_FAIL;
-			clients[user_id].do_send(&fail_leave_pack);
+			players->get_player(player_ticket)->do_send(&fail_leave_pack);
 		}
 
 		*/

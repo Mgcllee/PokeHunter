@@ -39,76 +39,61 @@ void PacketWorker::worker_thread(HANDLE h_iocp)
 
 void PacketWorker::recv_new_message(OverlappedExpansion* exoverlapped)
 {
-	int remain_data = num_bytes + clients[key].get_session()->get_prev_remain_packet_size();
+	int player_ticket = static_cast<int>(key);
+	int remain_data = num_bytes + players->get_player(player_ticket)->get_session()->get_prev_remain_packet_size();
 	char* p = exoverlapped->packet_buffer;
 
 	while (remain_data > 0) {
 		int packet_size = p[0];
 		if (packet_size <= remain_data) {
-			process_packet(static_cast<int>(key), p);
+			process_packet(static_cast<int>(player_ticket), p);
 			p = p + packet_size;
 			remain_data = remain_data - packet_size;
 		}
 		else break;
 	}
 
-	clients[key].get_session()->set_curr_remain_packet_size(remain_data);
+	players->get_player(player_ticket)->get_session()->set_curr_remain_packet_size(remain_data);
 
 	if (remain_data > 0) {
 		memcpy(exoverlapped->packet_buffer, p, remain_data);
 	}
-	clients[key].get_session()->recv_packet();
+	players->get_player(player_ticket)->get_session()->recv_packet();
 }
 
-void PacketWorker::process_packet(int user_id, char* packet)
+void PacketWorker::process_packet(int player_ticket, char* packet)
 {
 	switch (packet[1])
 	{
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_LOGIN:
-		clients[user_id].check_exists_token(reinterpret_cast<CS_LOGIN_PACK*>(packet)->Token);
+		players->get_player(player_ticket)->check_exists_token(packet);
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_CHAT:
-		sync_new_chatting_all_client(user_id, reinterpret_cast<CS_CHAT_PACK*>(packet)->content);
+		sync_new_chatting_all_client(player_ticket, packet);
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_QUEST_INVENTORY:
-		clients[user_id].get_all_inventory_item();
+		players->get_player(player_ticket)->get_all_inventory_item();
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_SAVE_INVENTORY:
-		clients[user_id].set_inventory_item
-		(
-			reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet)->_name, 
-			reinterpret_cast<CS_SAVE_INVENTORY_PACK*>(packet)->_cnt
-		);
+		players->get_player(player_ticket)->set_inventory_item(packet);
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_QUEST_STORAGE:
-		clients[user_id].get_all_storage_item();
+		players->get_player(player_ticket)->get_all_storage_item();
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_SEARCHING:
-		get_party_list(user_id);
+		parties->get_party_list(player_ticket);
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_ENTER:
-		if (int party_number = reinterpret_cast<CS_PARTY_ENTER_PACK*>(packet)->party_num)
-		{
-			parties[party_number].enter_member(clients[user_id]);
-		}
+		parties->enter_party(player_ticket, packet);
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_READY:
-		clients[user_id].set_ready_in_party();
+		players->get_player(player_ticket)->set_ready_in_party();
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_LEAVE:
-		clients[user_id].leave_current_party();
+		players->get_player(player_ticket)->leave_current_party();
 		break;
-
 	case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_LOGOUT:
-		clients[user_id].recycle_player();
+		players->get_player(player_ticket)->recycle_player();
 		break;
 	}
 }
@@ -122,8 +107,9 @@ bool PacketWorker::check_exists_overlapped(OverlappedExpansion* exoverlapped)
 		}
 		else
 		{
-			send_log("GQCS Error on client[" + std::to_string(key) + "]\n");
-			disconnect(key);
+			int player_ticket = static_cast<int>(key);
+			send_log("GQCS Error on client[" + std::to_string(player_ticket) + "]\n");
+			disconnect(player_ticket);
 		}
 	}
 	if ((0 == num_bytes) && (exoverlapped->socket_type == RECV)) return false;
@@ -131,42 +117,23 @@ bool PacketWorker::check_exists_overlapped(OverlappedExpansion* exoverlapped)
 	return true;
 }
 
-void PacketWorker::sync_new_chatting_all_client(int user_id, std::string content)
+void PacketWorker::sync_new_chatting_all_client(int player_ticket, char* packet)
 {
-	std::string chat_log = std::string("[chat][").append(clients[user_id].get_user_name()).append("]: ").append(content);
+	std::string content = reinterpret_cast<CS_CHAT_PACK*>(packet)->content;
+
+	std::string chat_log = std::string("[chat][").append(players->get_player(player_ticket)->get_user_name()).append("]: ").append(content);
 
 	SC_CHAT_PACK ctp;
 	ctp.size = sizeof(SC_CHAT_PACK);
 	ctp.type = SC_CHAT;
 	strcpy_s(ctp.content, chat_log.c_str());
 
-	for (Player& p : clients)
-	{
-		p.get_session()->send_packet(&ctp);
-	}
+	players->send_all_player(&ctp);
 }
 
-void PacketWorker::get_party_list(int user_id)
+void PacketWorker::disconnect(int player_ticket)
 {
-	SC_PARTIES_INFO_PACK party_list;
-	party_list.size = sizeof(SC_PARTIES_INFO_PACK);
-	party_list.type = SC_PARTY_LIST_INFO;
-
-	for (int i = 0; i < MAX_PARTY; ++i) {
-		party_list._staff_count[i] = static_cast<char>(parties[i].get_member_count());
-
-		if (parties[i].get_party_in_stage())
-			party_list.Inaccessible[i] = 1;
-		else
-			party_list.Inaccessible[i] = 0;
-	}
-
-	clients[user_id].get_session()->send_packet(&party_list);
-}
-
-void PacketWorker::disconnect(int user_id)
-{
-	clients[user_id].get_session()->~Session();
+	players->get_player(player_ticket)->get_session()->~Session();
 }
 
 void PacketWorker::accept_new_client()
@@ -182,35 +149,23 @@ void PacketWorker::accept_new_client()
 	);
 }
 
-int PacketWorker::get_new_client_ticket()
-{
+int PacketWorker::get_new_client_ticket() {
 	// TODO: make new client ticket 
-	int ticket = -1;
+	int player_ticket = -1;
 
-	set_new_client_ticket(ticket);
-	return ticket;
+	set_new_client_ticket(player_ticket);
+	return player_ticket;
 }
 
-void PacketWorker::set_new_client_ticket(int user_id)
+void PacketWorker::set_new_client_ticket(int player_ticket)
 {
-	int new_user_id = get_new_client_ticket();
+	int new_player_ticket = get_new_client_ticket();
 
-	if (-1 != new_user_id)
-	{
-		clients[new_user_id].lock();
-
-		clients[new_user_id].get_session()->set_socket(server_socket);
-		clients[new_user_id].set_user_id(new_user_id);
-		clients[new_user_id].unlock();
-
-		CreateIoCompletionPort(reinterpret_cast<HANDLE>(client_accept_socket), iocp_handle, new_user_id, 0);
-
-		clients[new_user_id].get_session()->recv_packet();
+	if (-1 != new_player_ticket) {
+		players->init_player(client_accept_socket, new_player_ticket);
+		CreateIoCompletionPort(reinterpret_cast<HANDLE>(client_accept_socket), iocp_handle, new_player_ticket, 0);
+		players->get_player(new_player_ticket)->get_session()->recv_packet();
 		client_accept_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-	}
-	else
-	{
-		return;
 	}
 }
 
@@ -223,9 +178,13 @@ void PacketWorker::run_packet_worker_threads(HANDLE h_iocp)
 	
 	// TODO: USER_DB_MANAGER class run on db_thread
 	
+	PlayerManager* player_manager = new PlayerManager();
+	PartiesManager* parties_manager = new PartiesManager(player_manager);
+
 	for (int i = 0; i < num_threads; ++i)
 	{
-		worker_threads.emplace_back(&PacketWorker::worker_thread, new PacketWorker, h_iocp);
+		worker_threads.emplace_back(&PacketWorker::worker_thread, 
+			new PacketWorker(player_manager, parties_manager), h_iocp);
 	}
 
 	for (auto& each_thread : worker_threads)

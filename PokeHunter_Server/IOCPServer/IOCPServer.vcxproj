@@ -150,8 +150,10 @@
     <ClCompile Include="netModule.cpp" />
     <ClCompile Include="NetworkSettings.cpp" />
     <ClCompile Include="PacketWorker.cpp" />
+    <ClCompile Include="PartiesManager.cpp" />
     <ClCompile Include="Party.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlayerManager.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -160,8 +162,10 @@
     <ClInclude Include="netModule.h" />
     <ClInclude Include="NetworkSettings.h" />
     <ClInclude Include="PacketWorker.h" />
+    <ClInclude Include="PartiesManager.h" />
     <ClInclude Include="Party.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerManager.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

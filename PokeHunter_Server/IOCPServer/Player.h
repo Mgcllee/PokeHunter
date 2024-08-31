@@ -32,7 +32,7 @@ public:
 	void check_exists_token(char*);
 
 	void get_all_inventory_item();
-	bool set_inventory_item(char* item_name, char item_count);
+	bool set_inventory_item(char* packet);
 
 	void get_all_storage_item();
 

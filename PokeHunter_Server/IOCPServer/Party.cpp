@@ -13,21 +13,23 @@ Party::~Party()
 
 }
 
-bool Party::enter_member(Player& new_mem)
+bool Party::enter_member(int player_ticket, char* packet)
 {
+	int party_number = reinterpret_cast<CS_PARTY_ENTER_PACK*>(packet)->party_num;
+
 	if (member_count >= PARTY_MAX_NUM)
 		return false;
 
 	if (0 <= member_count && member_count <= 3) {
 
-		/*strncpy_s(parties[party_number].member[cur_party_member_count].name, CHAR_SIZE, clients[user_id].name, CHAR_SIZE);
+		/*strncpy_s(parties[party_number].member[cur_party_member_count].name, CHAR_SIZE, players->get_player(player_ticket)->name, CHAR_SIZE);
 		parties[party_number].member[cur_party_member_count].user_id = user_id;
 
-		strncpy_s(parties[party_number].member[cur_party_member_count]._pet_num, CHAR_SIZE, clients[user_id]._pet_num, CHAR_SIZE);
+		strncpy_s(parties[party_number].member[cur_party_member_count]._pet_num, CHAR_SIZE, players->get_player(player_ticket)->_pet_num, CHAR_SIZE);
 		{
-			std::lock_guard<std::mutex> ll{ clients[user_id]._lock };
+			std::lock_guard<std::mutex> ll{ players->get_player(player_ticket)->_lock };
 			parties[party_number].member[cur_party_member_count]._player_state = ST_NOTREADY;
-			clients[user_id]._player_state = ST_NOTREADY;
+			players->get_player(player_ticket)->_player_state = ST_NOTREADY;
 		}
 
 		parties[party_number].mem_count += 1;
@@ -35,10 +37,10 @@ bool Party::enter_member(Player& new_mem)
 		SC_PARTY_ENTER_OK_PACK ok_pack;
 		ok_pack.size = sizeof(SC_PARTY_ENTER_OK_PACK);
 		ok_pack.type = SC_PARTY_ENTER_OK;
-		clients[user_id].do_send(&ok_pack);
-		clients[user_id]._party_num = party_number;
+		players->get_player(player_ticket)->do_send(&ok_pack);
+		players->get_player(player_ticket)->_party_num = party_number;
 
-		printf("%s party connection Success\n", clients[user_id].getname());*/
+		printf("%s party connection Success\n", players->get_player(player_ticket)->getname());*/
 
 
 		// CS_PARTY_INFO
@@ -48,7 +50,7 @@ bool Party::enter_member(Player& new_mem)
 
 		/*
 
-		for (Session& cl : parties[clients[user_id]._party_num].member) {
+		for (Session& cl : parties[players->get_player(player_ticket)->_party_num].member) {
 			if (0 == strcmp("None", cl.name)) continue;
 			else  if (-1 == cl.user_id)						continue;
 
@@ -63,25 +65,23 @@ bool Party::enter_member(Player& new_mem)
 				else in_party._mem_state = 0;
 			}
 
-			clients[user_id].do_send(&in_party);
+			players->get_player(player_ticket)->do_send(&in_party);
 		}
 
 		strncpy_s(in_party._mem, CHAR_SIZE, "theEnd", strlen("theEnd"));
-		strncpy_s(in_party._myname, CHAR_SIZE, clients[user_id].name, strlen(clients[user_id].name));
-		clients[user_id].do_send(&in_party);
+		strncpy_s(in_party._myname, CHAR_SIZE, players->get_player(player_ticket)->name, strlen(players->get_player(player_ticket)->name));
+		players->get_player(player_ticket)->do_send(&in_party);
 
 		*/
 	}
 	else {
-		// printf("%s party connection failed\n", clients[user_id].getname());
+		// printf("%s party connection failed\n", players->get_player(player_ticket)->getname());
 	}
 
 	ll.lock();
-	member.push_back(new_mem);
+	member.push_back(player_manager->get_player(player_ticket));
 	++member_count;
 	ll.unlock();
-
-
 
 	return true;
 }
@@ -91,9 +91,9 @@ bool Party::leave_member(char* memname) {
 		return false;
 
 	ll.lock();
-	for (Player& mem : member)
+	for (Player* mem : member)
 	{
-		if (0 == strcmp(mem.get_user_name(), memname))
+		if (0 == strcmp(mem->get_user_name(), memname))
 		{
 			member.remove(mem);
 			if (0 == --member_count)

@@ -29,8 +29,8 @@ USER_DB_MANAGER::~USER_DB_MANAGER()
 }
 void USER_DB_MANAGER::test_mysql_function()
 {
-	MYSQL_RES* result;
-	MYSQL_ROW row;
+	MYSQL_RES* result = nullptr;
+	MYSQL_ROW row = NULL;
 
 	process_sql("SELECT GROUP_CONCAT(col_name separator ', ') as name FROM(SELECT COLUMN_NAME as col_name FROM INFORMATION_SCHEMA.COLUMNS WHERE  TABLE_NAME = 'user_info_table') as field_name;");
 	process_sql("SELECT * FROM user_info_db.user_info_table");
