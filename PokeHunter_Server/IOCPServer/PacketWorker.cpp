@@ -169,6 +169,11 @@ void PacketWorker::set_new_client_ticket(int player_ticket)
 	}
 }
 
+void PacketWorker::send_log(std::string log)
+{
+	// TODO: send to log thread
+}
+
 void PacketWorker::run_packet_worker_threads(HANDLE h_iocp)
 {
 	std::vector<std::thread> worker_threads;
