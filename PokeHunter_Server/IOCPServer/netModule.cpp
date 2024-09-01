@@ -1,7 +1,6 @@
 ﻿#pragma once
 
-#include "AWSModule.h"
-#include "DBModule.h"
+#include "netModule.h"
 
 OverlappedExpansion::OverlappedExpansion()
     : socket_type(SOCKET_TYPE::RECV),
@@ -32,7 +31,7 @@ Session& Session::operator=(const Session& ref) {
 
   this->socket = ref.socket;
   this->remain_packet_size = ref.remain_packet_size;
-
+  
   return *this;
 }
 

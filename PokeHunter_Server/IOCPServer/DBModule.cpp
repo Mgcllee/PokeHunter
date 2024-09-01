@@ -1,10 +1,9 @@
 #pragma once
 
 #include "DBModule.h"
+#include "netModule.h"
 
 #include <atlstr.h>
-
-#include "netModule.h"
 
 USER_DB_MANAGER::USER_DB_MANAGER(const char* DB_HOST, const char* DB_USER,
                                  const char* DB_PASS, const char* DB_NAME) {

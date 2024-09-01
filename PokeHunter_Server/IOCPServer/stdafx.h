@@ -8,6 +8,8 @@
 
 #include <array>
 #include <vector>
+#include <list>
+#include <unordered_map>
 
 #include <thread>
 #include <mutex>

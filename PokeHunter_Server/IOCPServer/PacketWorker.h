@@ -1,9 +1,9 @@
 #pragma once
 
-#include "PartiesManager.h"
-#include "PlayerManager.h"
-#include "netModule.h"
 #include "stdafx.h"
+#include "netModule.h"
+#include "PlayerManager.h"
+#include "PartiesManager.h"
 
 class PacketWorker {
  public:

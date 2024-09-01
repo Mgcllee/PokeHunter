@@ -1,16 +1,13 @@
 ﻿#pragma once
 
-#include <MSWSock.h>
 #include <WS2tcpip.h>
-
-#include <list>
-#include <unordered_map>
+#include <MSWSock.h>
 
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 
-#include "protocol.h"
 #include "stdafx.h"
+#include "protocol.h"
 
 enum SOCKET_TYPE { ACCEPT, RECV, SEND, LOGOUT };
 enum SESSION_TYPE { FREE, ALLOC };

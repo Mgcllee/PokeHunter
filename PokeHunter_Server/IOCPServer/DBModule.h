@@ -1,9 +1,10 @@
 #pragma once
 
-#include <mysql.h>
+#include "netModule.h"
+
 #include <sqlext.h>
 
-#include "netModule.h"
+#include <mysql.h>
 #pragma comment(lib, "libmysql.lib")
 
 class SQL_ERROR_MSG {

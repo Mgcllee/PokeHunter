@@ -4,7 +4,7 @@
 
 void PacketWorker::worker_thread(HANDLE h_iocp) {
   iocp_handle = h_iocp;
-
+  
   while (true) {
     GQCS_result = GetQueuedCompletionStatus(iocp_handle, &num_bytes, &key,
                                             &overlapped, INFINITE);
@@ -16,22 +16,23 @@ void PacketWorker::worker_thread(HANDLE h_iocp) {
     }
 
     switch (exoverlapped->socket_type) {
-      case SOCKET_TYPE::ACCEPT:
+      case SOCKET_TYPE::ACCEPT: {
         accept_new_client();
         break;
-
-      case SOCKET_TYPE::RECV:
+      }
+      case SOCKET_TYPE::RECV: {
         recv_new_message(exoverlapped);
         break;
-
-      case SOCKET_TYPE::SEND:
+      }
+      case SOCKET_TYPE::SEND: {
         delete exoverlapped;
         break;
-
-      default:
+      }
+      default: {
         send_log("[Process Function]: Wrong SOCKET TYPE " +
                  std::to_string(key));
         break;
+      }
     }
   }
 }
@@ -65,36 +66,50 @@ void PacketWorker::recv_new_message(OverlappedExpansion* exoverlapped) {
 
 void PacketWorker::process_packet(int player_ticket, char* packet) {
   switch (packet[1]) {
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_LOGIN:
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_LOGIN: {
       players->get_player(player_ticket)->check_exists_token(packet);
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_CHAT:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_CHAT: {
       sync_new_chatting_all_client(player_ticket, packet);
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_QUEST_INVENTORY:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_QUEST_INVENTORY: {
       players->get_player(player_ticket)->get_all_inventory_item();
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_SAVE_INVENTORY:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_SAVE_INVENTORY: {
       players->get_player(player_ticket)->set_inventory_item(packet);
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_QUEST_STORAGE:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_QUEST_STORAGE: {
       players->get_player(player_ticket)->get_all_storage_item();
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_SEARCHING:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_SEARCHING: {
       parties->get_party_list(player_ticket);
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_ENTER:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_ENTER: {
       parties->enter_party(player_ticket, packet);
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_READY:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_READY: {
       players->get_player(player_ticket)->set_ready_in_party();
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_LEAVE:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_LEAVE: {
       players->get_player(player_ticket)->leave_current_party();
       break;
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_LOGOUT:
+    }
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_LOGOUT: {
       players->get_player(player_ticket)->recycle_player();
       break;
+    }
+    default: {
+      send_log("Error");
+      break;
+    }
   }
 }
 
@@ -137,7 +152,7 @@ void PacketWorker::disconnect(int player_ticket) {
 
 void PacketWorker::accept_new_client() {
   get_new_client_ticket();
-
+  
   ZeroMemory(&accepter_overlapped.overlapped,
              sizeof(accepter_overlapped.overlapped));
   int addr_size = sizeof(SOCKADDR_IN);
