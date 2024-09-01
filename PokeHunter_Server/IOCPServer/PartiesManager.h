@@ -3,21 +3,15 @@
 #include "Party.h"
 #include "PlayerManager.h"
 
-class PartiesManager
-{
-public:
-	PartiesManager(PlayerManager* players)
-		: player_manager(players)
-	{
+class PartiesManager {
+ public:
+  PartiesManager(PlayerManager* players) : player_manager(players) {}
+  ~PartiesManager();
 
-	}
-	~PartiesManager();
+  void get_party_list(int user_id);
+  void enter_party(int user_id, char* packet);
 
-	void get_party_list(int user_id);
-	void enter_party(int user_id, char* packet);
-
-private:
-	PlayerManager* player_manager;
-	std::array<Party, MAX_PARTY> parties;
-
+ private:
+  PlayerManager* player_manager;
+  std::array<Party, MAX_PARTY> parties;
 };
