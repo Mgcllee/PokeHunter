@@ -5,6 +5,8 @@
 #include "PlayerManager.h"
 #include "PartiesManager.h"
 
+static std::atomic<int> user_ticket;
+
 class PacketWorker {
  public:
   PacketWorker(){};
@@ -14,6 +16,7 @@ class PacketWorker {
         parties(parties_manager) {}
   ~PacketWorker() {}
 
+  // TODO: make log DB
   void send_log(std::string log);
 
   void run_packet_worker_threads(HANDLE h_iocp);
@@ -23,7 +26,7 @@ class PacketWorker {
   void recv_new_message(OverlappedExpansion* exoverlapped);
 
   int get_new_client_ticket();
-  void set_new_client_ticket(int player_ticket);
+  void init_new_client_ticket();
 
   void process_packet(int, char*);
 

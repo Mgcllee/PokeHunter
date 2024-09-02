@@ -2,6 +2,32 @@
 
 #include "PacketWorker.h"
 
+void PacketWorker::send_log(std::string log) {
+  
+}
+
+void PacketWorker::run_packet_worker_threads(HANDLE h_iocp) {
+  std::vector<std::thread> worker_threads;
+  int num_threads = std::thread::hardware_concurrency();
+
+  // TODO: make log thread use all log
+
+  // TODO: USER_DB_MANAGER class run on db_thread
+
+  PlayerManager* player_manager = new PlayerManager();
+  PartiesManager* parties_manager = new PartiesManager(player_manager);
+
+  for (int i = 0; i < num_threads; ++i) {
+    worker_threads.emplace_back(
+        &PacketWorker::worker_thread,
+        new PacketWorker(player_manager, parties_manager), h_iocp);
+  }
+
+  for (auto& each_thread : worker_threads) {
+    each_thread.join();
+  }
+}
+
 void PacketWorker::worker_thread(HANDLE h_iocp) {
   iocp_handle = h_iocp;
   
@@ -35,6 +61,35 @@ void PacketWorker::worker_thread(HANDLE h_iocp) {
       }
     }
   }
+}
+
+void PacketWorker::accept_new_client() {
+  init_new_client_ticket();
+
+  ZeroMemory(&accepter_overlapped.overlapped,
+             sizeof(accepter_overlapped.overlapped));
+  int addr_size = sizeof(SOCKADDR_IN);
+  AcceptEx(server_socket, client_accept_socket,
+           accepter_overlapped.packet_buffer, 0, addr_size + 16, addr_size + 16,
+           0, &accepter_overlapped.overlapped);
+}
+
+void PacketWorker::init_new_client_ticket() {
+  int new_player_ticket = get_new_client_ticket();
+
+  if (-1 != new_player_ticket) {
+    players->init_player(client_accept_socket, new_player_ticket);
+    CreateIoCompletionPort(reinterpret_cast<HANDLE>(client_accept_socket),
+                           iocp_handle, new_player_ticket, 0);
+    players->get_player(new_player_ticket)->get_session()->recv_packet();
+    client_accept_socket =
+        WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+  }
+}
+
+int PacketWorker::get_new_client_ticket() {
+  // TODO: make new client ticket
+  return ++user_ticket;
 }
 
 void PacketWorker::recv_new_message(OverlappedExpansion* exoverlapped) {
@@ -148,62 +203,4 @@ void PacketWorker::sync_new_chatting_all_client(int player_ticket,
 
 void PacketWorker::disconnect(int player_ticket) {
   players->get_player(player_ticket)->get_session()->~Session();
-}
-
-void PacketWorker::accept_new_client() {
-  get_new_client_ticket();
-  
-  ZeroMemory(&accepter_overlapped.overlapped,
-             sizeof(accepter_overlapped.overlapped));
-  int addr_size = sizeof(SOCKADDR_IN);
-  AcceptEx(server_socket, client_accept_socket,
-           accepter_overlapped.packet_buffer, 0, addr_size + 16, addr_size + 16,
-           0, &accepter_overlapped.overlapped);
-}
-
-int PacketWorker::get_new_client_ticket() {
-  // TODO: make new client ticket
-  int player_ticket = -1;
-
-  set_new_client_ticket(player_ticket);
-  return player_ticket;
-}
-
-void PacketWorker::set_new_client_ticket(int player_ticket) {
-  int new_player_ticket = get_new_client_ticket();
-
-  if (-1 != new_player_ticket) {
-    players->init_player(client_accept_socket, new_player_ticket);
-    CreateIoCompletionPort(reinterpret_cast<HANDLE>(client_accept_socket),
-                           iocp_handle, new_player_ticket, 0);
-    players->get_player(new_player_ticket)->get_session()->recv_packet();
-    client_accept_socket =
-        WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-  }
-}
-
-void PacketWorker::send_log(std::string log) {
-  // TODO: send to log thread
-}
-
-void PacketWorker::run_packet_worker_threads(HANDLE h_iocp) {
-  std::vector<std::thread> worker_threads;
-  int num_threads = std::thread::hardware_concurrency();
-
-  // TODO: make log thread use all log
-
-  // TODO: USER_DB_MANAGER class run on db_thread
-
-  PlayerManager* player_manager = new PlayerManager();
-  PartiesManager* parties_manager = new PartiesManager(player_manager);
-
-  for (int i = 0; i < num_threads; ++i) {
-    worker_threads.emplace_back(
-        &PacketWorker::worker_thread,
-        new PacketWorker(player_manager, parties_manager), h_iocp);
-  }
-
-  for (auto& each_thread : worker_threads) {
-    each_thread.join();
-  }
 }

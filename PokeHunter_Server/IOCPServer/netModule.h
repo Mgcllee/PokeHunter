@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <atomic>
+
 #include <WS2tcpip.h>
 #include <MSWSock.h>
 
