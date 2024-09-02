@@ -114,13 +114,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Git\aws-sdk-cpp\src\aws-cpp-sdk-core\include;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\include;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\include;C:\Program Files\MySQL\MySQL Server 8.0\include;C:\Git\aws-sdk-cpp\generated\src\aws-cpp-sdk-cognito-idp\include;C:\Git\aws-sdk-cpp\crt\aws-crt-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-Core.1.6.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentity.1.6.20140630.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentityProvider.1.6.20160418.25\build\native\lib\x64\Debug\v141\dynamic;C:\Git\PokeHunter\PokeHunter_Server\packages\AWSSDKCPP-CognitoIdentityProvider.redist.1.6.20160418.25\build\native\bin\x64\Debug\v141\dynamic;C:\Program Files\MySQL\MySQL Server 8.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>aws-cpp-sdk-core.lib;aws-cpp-sdk-cognito-idp.lib;aws-cpp-sdk-cognito-identity.lib;libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -168,9 +169,6 @@
     <ClInclude Include="PlayerManager.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="stdafx.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="libmysql.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

@@ -5,7 +5,6 @@
 NetworkSettings::NetworkSettings(ULONG open_addr, USHORT open_port)
     : error_code(-1),
       h_iocp(nullptr),
-      accept_overlapped_expansion(NULL),
       server_socket(NULL),
       client_socket(NULL) {
   error_code = WSAStartup(MAKEWORD(2, 2), &WSAData);

@@ -13,6 +13,30 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Network">
+      <UniqueIdentifier>{3dd641ef-6e6f-4419-b063-84a22ee784a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Player">
+      <UniqueIdentifier>{b741dd90-84de-41cf-b3a3-6b964c1abdc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Party">
+      <UniqueIdentifier>{7443d65c-d6e4-4af2-90a5-a31236ab56e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Database">
+      <UniqueIdentifier>{7ca9594b-bdef-48bc-8235-519e7911477e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Network">
+      <UniqueIdentifier>{0c6e3500-16bb-4bc5-a431-029557f024c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Database">
+      <UniqueIdentifier>{93ed5091-5c9f-4af3-8db5-0a647059aa74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Party">
+      <UniqueIdentifier>{03f02ef6-dcad-4bed-99fd-f472649e1bcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Player">
+      <UniqueIdentifier>{9e06ccc7-6c11-41d0-ac53-eb1e4348f811}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -21,70 +45,67 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="netModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DBModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AWSModule.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Network</Filter>
     </ClCompile>
-    <ClCompile Include="PacketWorker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Party.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="netModule.cpp">
+      <Filter>Source Files\Network</Filter>
     </ClCompile>
     <ClCompile Include="NetworkSettings.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketWorker.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="DBModule.cpp">
+      <Filter>Source Files\Database</Filter>
     </ClCompile>
     <ClCompile Include="PartiesManager.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Party</Filter>
+    </ClCompile>
+    <ClCompile Include="Party.cpp">
+      <Filter>Source Files\Party</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Source Files\Player</Filter>
     </ClCompile>
     <ClCompile Include="PlayerManager.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Player</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="protocol.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="AWSModule.h">
+      <Filter>Header Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="netModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DBModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AWSModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketWorker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Party.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="NetworkSettings.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketWorker.h">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="protocol.h">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Party.h">
+      <Filter>Header Files\Party</Filter>
     </ClInclude>
     <ClInclude Include="PartiesManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Party</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Header Files\Player</Filter>
     </ClInclude>
     <ClInclude Include="PlayerManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Player</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="libmysql.dll" />
+    <ClInclude Include="DBModule.h">
+      <Filter>Header Files\Database</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
