@@ -31,10 +31,10 @@ class Player {
 
   void check_exists_token(char*);
 
-  void get_all_inventory_item();
+  void send_all_inventory_item();
   bool set_inventory_item(char* packet);
 
-  void get_all_storage_item();
+  void send_all_storage_item();
 
   void set_ready_in_party();
   void leave_current_party();

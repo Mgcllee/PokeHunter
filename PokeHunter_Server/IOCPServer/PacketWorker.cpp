@@ -51,12 +51,13 @@ void PacketWorker::worker_thread(HANDLE h_iocp) {
         break;
       }
       case SOCKET_TYPE::SEND: {
-        delete exoverlapped;
+        
         break;
       }
       default: {
         send_log("[Process Function]: Wrong SOCKET TYPE " +
                  std::to_string(key));
+        delete exoverlapped;
         break;
       }
     }
@@ -122,23 +123,27 @@ void PacketWorker::recv_new_message(OverlappedExpansion* exoverlapped) {
 void PacketWorker::process_packet(int player_ticket, char* packet) {
   switch (packet[1]) {
     case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_LOGIN: {
-      players->get_player(player_ticket)->check_exists_token(packet);
+      Player* login_player = players->get_player(player_ticket);
+      login_player->check_exists_token(packet);
       break;
     }
     case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_CHAT: {
       sync_new_chatting_all_client(player_ticket, packet);
       break;
     }
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_QUEST_INVENTORY: {
-      players->get_player(player_ticket)->get_all_inventory_item();
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_REQUEST_INVENTORY: {
+      Player* item_request_player = players->get_player(player_ticket);
+      item_request_player->send_all_inventory_item();
       break;
     }
     case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_SAVE_INVENTORY: {
-      players->get_player(player_ticket)->set_inventory_item(packet);
+      Player* item_save_request_player = players->get_player(player_ticket);
+      item_save_request_player->set_inventory_item(packet);
       break;
     }
-    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_QUEST_STORAGE: {
-      players->get_player(player_ticket)->get_all_storage_item();
+    case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_REQUEST_STORAGE: {
+      Player* storage_item_request_player = players->get_player(player_ticket);
+      storage_item_request_player->send_all_storage_item();
       break;
     }
     case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_SEARCHING: {
@@ -150,15 +155,18 @@ void PacketWorker::process_packet(int player_ticket, char* packet) {
       break;
     }
     case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_READY: {
-      players->get_player(player_ticket)->set_ready_in_party();
+      Player* party_ready_player = players->get_player(player_ticket);
+      party_ready_player->set_ready_in_party();
       break;
     }
     case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_PARTY_LEAVE: {
-      players->get_player(player_ticket)->leave_current_party();
+      Player* party_leave_player = players->get_player(player_ticket);
+      party_leave_player->leave_current_party();
       break;
     }
     case SEND_CLIENT_TO_SERVER_PACKET_TYPE::CS_LOGOUT: {
-      players->get_player(player_ticket)->recycle_player();
+      Player* logout_player = players->get_player(player_ticket);
+      logout_player->recycle_player();
       break;
     }
     default: {

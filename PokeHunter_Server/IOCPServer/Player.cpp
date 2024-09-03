@@ -32,7 +32,7 @@ void Player::check_exists_token(char* packet) {
   }
 }
 
-void Player::get_all_inventory_item() {
+void Player::send_all_inventory_item() {
   SC_ITEM_INFO_PACK item_pack;
   item_pack.size = sizeof(SC_ITEM_INFO_PACK);
   item_pack.type = SC_ITEM_INFO;
@@ -58,7 +58,7 @@ bool Player::set_inventory_item(char* packet) {
   return false;
 }
 
-void Player::get_all_storage_item() {
+void Player::send_all_storage_item() {
   SC_ITEM_INFO_PACK item_pack;
   item_pack.size = sizeof(SC_ITEM_INFO_PACK);
   item_pack.type = SC_ITEM_INFO;

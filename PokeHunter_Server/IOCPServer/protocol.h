@@ -20,10 +20,10 @@ enum SEND_CLIENT_TO_SERVER_PACKET_TYPE
 	CS_PARTY_ENTER,
 	CS_PARTY_READY,
 	CS_PARTY_LEAVE,
-	CS_QUEST_INVENTORY,
+	CS_REQUEST_INVENTORY,
 	CS_SAVE_INVENTORY,
 	CS_LOGOUT,
-	CS_QUEST_STORAGE,
+	CS_REQUEST_STORAGE,
 	CS_CHAT
 };
 
@@ -58,7 +58,7 @@ struct CS_LOGIN_PACK {
 	char Token_size;
 };
 
-struct CS_QUEST_INVENTORY_PACK {
+struct CS_REQUEST_INVENTORY_PACK {
 	char size;
 	char type;
 };
@@ -134,7 +134,7 @@ struct CS_LOGOUT_PACK {
 	char name[CHAR_SIZE];
 };
 
-struct CS_QUEST_STORAGE_PACK {
+struct CS_REQUEST_STORAGE_PACK {
 	char size;
 	char type;
 };
