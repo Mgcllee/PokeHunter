@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IOCPServer", "IOCPServer\IOCPServer.vcxproj", "{1BA95437-B721-45B0-B467-FB9BF139E0F9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MainServer", "MainServer\MainServer.vcxproj", "{1BA95437-B721-45B0-B467-FB9BF139E0F9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DummyClient", "DummyClient\DummyClient.vcxproj", "{B8A83663-473C-4257-99E6-58B09D60A854}"
 EndProject
