@@ -12,6 +12,10 @@ NetworkSettings::NetworkSettings(ULONG open_addr, USHORT open_port)
   server_socket =
       WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
+  int option = TRUE;
+  setsockopt(server_socket, IPPROTO_TCP, TCP_NODELAY, (const char*)&option,
+             sizeof(option));
+
   memset(&server_addr, 0, sizeof(server_addr));
   server_addr.sin_family = AF_INET;
   server_addr.sin_port = htons(PORT_NUM);
@@ -33,6 +37,11 @@ void NetworkSettings::create_iocp() {
 
   client_socket =
       WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+
+  int option = TRUE;
+  setsockopt(client_socket, IPPROTO_TCP, TCP_NODELAY, (const char*)&option,
+             sizeof(option));
+
   accept_overlapped_expansion.socket_type = ACCEPT;
 }
 
