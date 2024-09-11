@@ -69,6 +69,8 @@ void PacketWorker::accept_new_client() {
 
   ZeroMemory(&accepter_overlapped.overlapped,
              sizeof(accepter_overlapped.overlapped));
+  client_accept_socket =
+      WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
   int addr_size = sizeof(SOCKADDR_IN);
   AcceptEx(server_socket, client_accept_socket,
            accepter_overlapped.packet_buffer, 0, addr_size + 16, addr_size + 16,
@@ -76,21 +78,14 @@ void PacketWorker::accept_new_client() {
 }
 
 void PacketWorker::init_new_client_ticket() {
-  int new_player_ticket = get_new_client_ticket();
+  int new_player_ticket = user_ticket.fetch_add(1);
 
-  if (-1 != new_player_ticket) {
-    players->init_player(client_accept_socket, new_player_ticket);
-    CreateIoCompletionPort(reinterpret_cast<HANDLE>(client_accept_socket),
-                           iocp_handle, new_player_ticket, 0);
-    players->get_player(new_player_ticket)->get_session()->recv_packet();
-    client_accept_socket =
-        WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-  }
-}
-
-int PacketWorker::get_new_client_ticket() {
-  // TODO: make new client ticket
-  return ++user_ticket;
+  CreateIoCompletionPort(reinterpret_cast<HANDLE>(client_accept_socket),
+                         iocp_handle, new_player_ticket, 0);
+  
+  players->init_player(client_accept_socket, new_player_ticket);
+  Player* player =  players->get_player(new_palyer_ticket);
+  player->get_session()->recv_packet();
 }
 
 void PacketWorker::recv_new_message(OverlappedExpansion* exoverlapped) {
