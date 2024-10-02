@@ -84,7 +84,7 @@ void PacketWorker::init_new_client_ticket() {
                          iocp_handle, new_player_ticket, 0);
   
   players->init_player(client_accept_socket, new_player_ticket);
-  Player* player =  players->get_player(new_palyer_ticket);
+  Player* player =  players->get_player(new_player_ticket);
   player->get_session()->recv_packet();
 }
 

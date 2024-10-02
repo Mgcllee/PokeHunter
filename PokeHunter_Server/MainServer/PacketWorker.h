@@ -25,7 +25,6 @@ class PacketWorker {
   void accept_new_client();
   void recv_new_message(OverlappedExpansion* exoverlapped);
 
-  int get_new_client_ticket();
   void init_new_client_ticket();
 
   void process_packet(int, char*);
